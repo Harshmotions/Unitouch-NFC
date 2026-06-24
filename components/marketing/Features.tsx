@@ -35,12 +35,10 @@ const FEATURES = [
 
 export default function Features() {
   return (
-    <section id="features" className="px-6 py-24">
+    <section id="features" className="px-6 py-24 md:py-28">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
-            Features
-          </span>
+        <div className="mb-16 flex flex-col items-center gap-4 text-center">
+          <span className="eyebrow">Features</span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
             Everything in one tap.
           </h2>
@@ -50,13 +48,13 @@ export default function Features() {
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="group bg-bg-elevated border-bg-border hover:border-accent-purple/30 rounded-2xl border p-6 transition-colors"
+              className="surface-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent-purple/25"
             >
-              <div className="bg-accent-purple/10 text-accent-purple mb-4 flex size-10 items-center justify-center rounded-xl">
+              <div className="bg-accent-purple/10 text-accent-purple mb-5 flex size-10 items-center justify-center rounded-xl border border-accent-purple/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <Icon className="size-5" />
               </div>
-              <h3 className="font-display text-text-primary mb-1 font-[600]">{title}</h3>
-              <p className="text-text-secondary text-sm">{description}</p>
+              <h3 className="font-display text-text-primary mb-1.5 font-[600]">{title}</h3>
+              <p className="text-text-secondary text-sm leading-relaxed">{description}</p>
             </div>
           ))}
         </div>

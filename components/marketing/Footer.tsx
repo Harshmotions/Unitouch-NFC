@@ -10,7 +10,7 @@ const LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="border-bg-border border-t px-6 py-12">
+    <footer className="border-t border-white/[0.06] px-6 py-16">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-8 sm:flex-row sm:items-start">
         <div className="flex flex-col items-center gap-2 sm:items-start">
           <Link href="/" className="flex items-center gap-2">
@@ -35,7 +35,7 @@ export default function Footer() {
         <p className="text-text-muted text-sm">Made in India 🇮🇳</p>
       </div>
 
-      <div className="border-bg-border mx-auto mt-8 flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t pt-6 sm:flex-row">
+      <div className="mx-auto mt-10 flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/[0.06] pt-8 sm:flex-row">
         <p className="text-text-muted text-xs">© {new Date().getFullYear()} Unitouch. All rights reserved.</p>
         <div className="flex gap-4">
           <Link href="/privacy" className="text-text-muted hover:text-text-primary text-xs transition-colors">

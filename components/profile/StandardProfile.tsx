@@ -39,7 +39,7 @@ export default function StandardProfile({
       </div>
 
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 pt-8 text-center">
-        <div className="bg-accent-purple/15 border-accent-purple/30 flex size-24 items-center justify-center rounded-3xl border text-2xl font-[700] text-accent-purple">
+        <div className="bg-accent-purple/15 border-accent-purple/30 flex size-24 items-center justify-center rounded-3xl border text-2xl font-[700] text-accent-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
           {initials(profile.fullName)}
         </div>
         <div>
@@ -54,7 +54,7 @@ export default function StandardProfile({
         </span>
       </div>
 
-      <div className="border-bg-border bg-bg-elevated mx-auto mt-6 flex w-full max-w-md divide-x divide-bg-border rounded-2xl border">
+      <div className="surface-card mx-auto mt-6 flex w-full max-w-md divide-x divide-white/[0.06] rounded-2xl">
         <div className="flex flex-1 flex-col items-center gap-1 py-4">
           <Eye className="text-accent-purple size-4" />
           <span className="text-text-primary text-sm font-[600]">{stats.views.toLocaleString()}</span>
@@ -112,7 +112,7 @@ export default function StandardProfile({
 
       <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4">
         <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
-        <button className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600]">
+        <button className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]">
           <Download className="size-4" />
           Save Contact
         </button>

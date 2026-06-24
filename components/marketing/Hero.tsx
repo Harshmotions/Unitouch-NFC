@@ -96,14 +96,14 @@ export default function Hero() {
           }}
         />
         <div
-          className="absolute top-0 size-16 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-          style={{ left: "76%", background: "rgba(255,255,255,0.8)" }}
+          className="absolute top-0 size-14 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+          style={{ left: "76%", background: "rgba(255,255,255,0.55)" }}
         />
       </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col items-start gap-6 text-left">
-          <span className="hero-badge border-accent-purple/30 bg-accent-purple/10 text-accent-purple rounded-full border px-4 py-1.5 text-xs font-[500]">
+          <span className="hero-badge text-accent-purple inline-flex items-center rounded-full border border-accent-purple/25 bg-accent-purple/[0.08] px-4 py-1.5 text-xs font-[500] tracking-wide backdrop-blur-sm">
             NFC Business Cards, Reinvented
           </span>
           <h1 className="hero-headline font-display text-hero from-text-primary to-text-secondary bg-gradient-to-b bg-clip-text font-[700] leading-[1.05] text-transparent">
@@ -126,7 +126,7 @@ export default function Hero() {
             {BADGES.map(({ icon: Icon, label }) => (
               <span
                 key={label}
-                className="hero-stat-badge border-bg-border bg-bg-elevated/60 text-text-secondary flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs"
+                className="hero-stat-badge glass text-text-secondary flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs"
               >
                 <Icon className="text-accent-purple size-3.5" />
                 {label}
@@ -135,7 +135,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="hero-visual-slot border-accent-purple/20 bg-bg-elevated/40 relative h-[460px] w-full max-w-[380px] shrink-0 rounded-[2rem] border shadow-[0_0_80px_var(--color-accent-purple-glow-soft)] md:h-[560px]" />
+        <div className="hero-visual-slot relative h-[460px] w-full max-w-[380px] shrink-0 rounded-[2rem] border border-white/10 bg-white/[0.02] shadow-[0_0_100px_-30px_var(--color-accent-purple-glow),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm md:h-[560px]" />
       </div>
 
       <div

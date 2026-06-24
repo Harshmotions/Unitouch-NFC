@@ -88,9 +88,38 @@ html {
 }
 
 body {
-  background: var(--color-bg-base);
+  background-color: var(--color-bg-base);
+  /* Soft ambient light from the top — single low-opacity radial, fixed so it
+     reads as lighting rather than a gradient blob that scrolls. */
+  background-image: radial-gradient(
+    70% 55% at 50% -8%,
+    rgba(139, 92, 255, 0.06),
+    transparent 60%
+  );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--color-text-primary);
   font-family: var(--font-body);
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display type sits tighter for a more crafted, premium headline feel. */
+.font-display {
+  letter-spacing: -0.02em;
+}
+
+/* Standardised eyebrow label — replaces ad-hoc bordered pills with a single
+   restrained, tracked uppercase mark used above every section heading. */
+.eyebrow {
+  display: inline-block;
+  color: var(--color-accent-purple);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 /* Glass-edge stroke: a gradient border bright at the top-right and
@@ -119,34 +148,49 @@ body {
   pointer-events: none;
 }
 
-/* Frosted glass — 25% fill so the shape reads, backdrop blur so everything
-   behind the shape is softened, and a stroke that only catches the light on
-   the bottom-left and top-right diagonals (fading to nothing along the other
-   two corners). No inner shadow, no full border. Profile pages only. */
+/* Premium frosted glass — restrained Apple-style: realistic low-opacity
+   translucency, a gentle blur, a hairline border, and a single soft highlight
+   along the top edge. No milky fill, no neon, no heavy glassmorphism. Used on
+   secondary CTAs, floating controls, and profile action elements. */
+.glass,
 .glass-icon-btn,
 .glass-pill {
   position: relative;
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-.glass-icon-btn::before,
-.glass-pill::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0) 38%,
-    rgba(255, 255, 255, 0) 62%,
-    rgba(255, 255, 255, 0.85) 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+.glass:hover,
+.glass-icon-btn:hover,
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Premium surface card — layered depth from a faint top sheen, a hairline
+   border, an inner top highlight, and a soft grounded shadow. Replaces flat
+   AI-looking cards without making them float. */
+.surface-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
+    var(--color-bg-elevated);
+  border: 1px solid var(--color-bg-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 18px 44px -28px rgba(0, 0, 0, 0.85);
+}
+
+/* Accent surface — same depth language, tuned for the highlighted tier. */
+.surface-card-accent {
+  background:
+    linear-gradient(180deg, rgba(139, 92, 255, 0.08), transparent 50%),
+    var(--color-bg-elevated);
+  border: 1px solid rgba(139, 92, 255, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 20px 50px -26px rgba(139, 92, 255, 0.3);
 }

@@ -48,12 +48,10 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="bg-bg-subtle px-6 py-24">
+    <section id="faq" className="bg-bg-subtle px-6 py-24 md:py-28">
       <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
-            FAQ
-          </span>
+        <div className="mb-16 flex flex-col items-center gap-4 text-center">
+          <span className="eyebrow">FAQ</span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
             Questions? We&apos;ve got answers.
           </h2>
@@ -63,26 +61,31 @@ export default function FAQ() {
           {FAQS.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
-              <div key={faq.question} className="border-bg-border bg-bg-elevated rounded-xl border">
+              <div
+                key={faq.question}
+                className={`surface-card rounded-2xl transition-colors duration-200 ${
+                  isOpen ? "border-accent-purple/25" : ""
+                }`}
+              >
                 <button
-                  className="flex w-full items-center justify-between px-5 py-4 text-left"
+                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                 >
                   <span className="font-display text-text-primary font-[500]">
                     {faq.question}
                   </span>
                   <ChevronDown
-                    className={`text-text-muted size-4 shrink-0 transition-transform ${
-                      isOpen ? "rotate-180" : ""
+                    className={`size-4 shrink-0 transition-transform duration-300 ${
+                      isOpen ? "text-accent-purple rotate-180" : "text-text-muted"
                     }`}
                   />
                 </button>
                 <div
-                  className={`overflow-hidden transition-[max-height] duration-300 ${
+                  className={`overflow-hidden transition-[max-height] duration-300 ease-out ${
                     isOpen ? "max-h-40" : "max-h-0"
                   }`}
                 >
-                  <p className="text-text-secondary px-5 pb-4 text-sm leading-relaxed">
+                  <p className="text-text-secondary px-6 pb-5 text-sm leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

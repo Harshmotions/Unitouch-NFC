@@ -44,8 +44,10 @@ export default function Navbar() {
   return (
     <nav
       ref={navRef}
-      className={`fixed inset-x-0 top-0 z-50 border-b border-bg-border backdrop-blur-md transition-colors ${
-        scrolled ? "bg-bg-base/90" : "bg-bg-base/60"
+      className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-colors duration-300 ${
+        scrolled
+          ? "border-white/[0.07] bg-bg-base/80"
+          : "border-transparent bg-bg-base/40"
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -61,7 +63,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
             >
               {link.label}
             </a>
@@ -84,7 +86,7 @@ export default function Navbar() {
       </div>
 
       <div
-        className={`bg-bg-base overflow-hidden border-t border-bg-border transition-[max-height] duration-300 md:hidden ${
+        className={`bg-bg-base overflow-hidden border-t border-white/[0.06] transition-[max-height] duration-300 md:hidden ${
           menuOpen ? "max-h-80" : "max-h-0"
         }`}
       >
@@ -93,7 +95,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
               onClick={() => setMenuOpen(false)}
             >
               {link.label}

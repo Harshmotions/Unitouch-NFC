@@ -15,17 +15,16 @@ export interface ButtonProps {
 
 const variantClasses: Record<ButtonProps["variant"], string> = {
   primary:
-    "bg-accent-purple text-bg-base shadow-[0_8px_28px_var(--color-accent-purple-glow-soft)] hover:brightness-110",
-  secondary:
-    "border border-white/15 bg-white/[0.04] text-text-secondary hover:bg-white/[0.08] hover:text-text-primary",
-  ghost: "bg-transparent text-text-secondary hover:text-text-primary hover:underline",
-  danger: "bg-error/10 border border-error text-error hover:bg-error/20",
+    "bg-accent-purple text-bg-base shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] hover:-translate-y-px hover:brightness-[1.07] active:translate-y-0",
+  secondary: "glass text-text-secondary hover:-translate-y-px hover:text-text-primary",
+  ghost: "bg-transparent text-text-secondary hover:text-text-primary",
+  danger: "border border-error/40 bg-error/10 text-error hover:bg-error/15",
 };
 
 const sizeClasses: Record<ButtonProps["size"], string> = {
-  sm: "px-4 py-2 text-sm",
-  md: "px-6 py-3 text-body",
-  lg: "px-8 py-4 text-body-lg",
+  sm: "h-9 px-4 text-sm",
+  md: "h-11 px-6 text-sm",
+  lg: "h-12 px-7 text-base",
 };
 
 export default function Button({
@@ -39,7 +38,7 @@ export default function Button({
   onClick,
 }: ButtonProps) {
   const classes = [
-    "inline-flex items-center justify-center gap-2 rounded-full font-display font-[500] transition-colors disabled:opacity-50 disabled:pointer-events-none",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-display font-[500] transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none",
     variantClasses[variant],
     sizeClasses[size],
     className,
