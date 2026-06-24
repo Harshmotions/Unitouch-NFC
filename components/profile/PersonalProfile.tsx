@@ -1,7 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowLeft,
   Share2,
   BadgeCheck,
   Eye,
@@ -71,13 +69,7 @@ export default function PersonalProfile({
             }}
           />
 
-          <div className="absolute inset-x-5 top-6 flex items-center justify-between">
-            <Link
-              href="/"
-              className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
-            >
-              <ArrowLeft className="size-4" />
-            </Link>
+          <div className="absolute inset-x-5 top-6 flex items-center justify-end">
             <button className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary">
               <Share2 className="size-4" />
             </button>

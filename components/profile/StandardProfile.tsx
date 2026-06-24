@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft, Share2, Eye, Bookmark, MapPin, Download } from "lucide-react";
+import { Share2, Eye, Bookmark, MapPin, Download } from "lucide-react";
 import type { Profile } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
 import { PlatformBadge } from "./PlatformIcons";
@@ -33,13 +32,7 @@ export default function StandardProfile({
 
   return (
     <main className="bg-bg-base min-h-screen px-5 pt-6 pb-28">
-      <div className="mx-auto flex w-full max-w-md items-center justify-between">
-        <Link
-          href="/"
-          className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
-        >
-          <ArrowLeft className="size-4" />
-        </Link>
+      <div className="mx-auto flex w-full max-w-md items-center justify-end">
         <button className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary">
           <Share2 className="size-4" />
         </button>
