@@ -1,3 +1,58 @@
+import { User } from "lucide-react";
+
+const TESTIMONIALS = [
+  {
+    name: "Aanya Sharma",
+    role: "Founder, Loomstudio",
+    quote: "I stopped carrying paper cards the day mine arrived. People just tap and save my number — no typos, no app.",
+  },
+  {
+    name: "Vikram Nair",
+    role: "Sales Lead, Northbridge",
+    quote: "Conversations at events end with a tap now instead of a fumble for a pen. It's a small thing that makes a big first impression.",
+  },
+  {
+    name: "Priya Iyer",
+    role: "Independent Consultant",
+    quote: "I update my profile whenever my offerings change and the card never needs reprinting. That alone paid for itself.",
+  },
+  {
+    name: "Karan Bhatia",
+    role: "Co-founder, Driftwork",
+    quote: "Our whole team ordered the Team Pack. Onboarding new hires with a card now takes minutes instead of a design request.",
+  },
+];
+
 export default function Testimonials() {
-  return null;
+  return (
+    <section className="px-6 py-24">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-12 flex flex-col items-center gap-3 text-center">
+          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+            Placeholder Testimonials
+          </span>
+          <h2 className="font-display text-h2 text-text-primary font-[600]">
+            What people say about Unitouch.
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {TESTIMONIALS.map((t) => (
+            <div key={t.name} className="bg-bg-elevated border-bg-border rounded-2xl border p-6">
+              <p className="text-text-secondary mb-6 text-sm leading-relaxed">“{t.quote}”</p>
+              <div className="flex items-center gap-3">
+                <div className="bg-accent-amber/10 text-accent-amber flex size-10 items-center justify-center rounded-full">
+                  <User className="size-5" />
+                </div>
+                <div>
+                  <p className="font-display text-text-primary text-sm font-[600]">{t.name}</p>
+                  <p className="text-text-muted text-xs">{t.role}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -14,9 +14,10 @@ export interface ButtonProps {
 }
 
 const variantClasses: Record<ButtonProps["variant"], string> = {
-  primary: "bg-accent-green text-bg-base hover:brightness-110",
+  primary:
+    "bg-accent-amber text-bg-base shadow-[0_8px_28px_var(--color-accent-amber-glow-soft)] hover:brightness-110",
   secondary:
-    "bg-transparent border border-accent-green text-accent-green hover:bg-accent-green/10",
+    "border border-white/15 bg-white/[0.04] text-text-secondary hover:bg-white/[0.08] hover:text-text-primary",
   ghost: "bg-transparent text-text-secondary hover:text-text-primary hover:underline",
   danger: "bg-error/10 border border-error text-error hover:bg-error/20",
 };
