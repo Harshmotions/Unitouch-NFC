@@ -53,7 +53,7 @@ export default function Hero() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 90% 70% at 65% 35%, var(--color-accent-amber-glow-soft), transparent 65%)",
+            "radial-gradient(ellipse 90% 70% at 65% 35%, var(--color-accent-purple-glow-soft), transparent 65%)",
         }}
       />
 
@@ -69,7 +69,7 @@ export default function Hero() {
           style={{
             left: "76%",
             background:
-              "radial-gradient(ellipse at center, var(--color-accent-amber-glow-soft), transparent 70%)",
+              "radial-gradient(ellipse at center, var(--color-accent-purple-glow-soft), transparent 70%)",
           }}
         />
         {/* tighter bright glow directly behind the card */}
@@ -78,13 +78,13 @@ export default function Hero() {
           style={{
             left: "76%",
             background:
-              "radial-gradient(ellipse at center, var(--color-accent-amber-glow), transparent 70%)",
+              "radial-gradient(ellipse at center, var(--color-accent-purple-glow), transparent 70%)",
           }}
         />
         {/* light pooling beneath the card */}
         <div
           className="absolute bottom-[10%] h-32 w-[360px] -translate-x-1/2 blur-2xl"
-          style={{ left: "76%", background: "var(--color-accent-amber-glow-soft)" }}
+          style={{ left: "76%", background: "var(--color-accent-purple-glow-soft)" }}
         />
         {/* vertical beam */}
         <div
@@ -92,7 +92,7 @@ export default function Hero() {
           style={{
             left: "76%",
             background:
-              "linear-gradient(to bottom, rgba(255,255,255,0.9), var(--color-accent-amber) 30%, transparent 85%)",
+              "linear-gradient(to bottom, rgba(255,255,255,0.9), var(--color-accent-purple) 30%, transparent 85%)",
           }}
         />
         <div
@@ -103,7 +103,7 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col items-start gap-6 text-left">
-          <span className="hero-badge border-accent-amber/30 bg-accent-amber/10 text-accent-amber rounded-full border px-4 py-1.5 text-xs font-[500]">
+          <span className="hero-badge border-accent-purple/30 bg-accent-purple/10 text-accent-purple rounded-full border px-4 py-1.5 text-xs font-[500]">
             NFC Business Cards, Reinvented
           </span>
           <h1 className="hero-headline font-display text-hero from-text-primary to-text-secondary bg-gradient-to-b bg-clip-text font-[700] leading-[1.05] text-transparent">
@@ -128,14 +128,14 @@ export default function Hero() {
                 key={label}
                 className="hero-stat-badge border-bg-border bg-bg-elevated/60 text-text-secondary flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs"
               >
-                <Icon className="text-accent-amber size-3.5" />
+                <Icon className="text-accent-purple size-3.5" />
                 {label}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="hero-visual-slot border-accent-amber/20 bg-bg-elevated/40 relative h-[460px] w-full max-w-[380px] shrink-0 rounded-[2rem] border shadow-[0_0_80px_var(--color-accent-amber-glow-soft)] md:h-[560px]" />
+        <div className="hero-visual-slot border-accent-purple/20 bg-bg-elevated/40 relative h-[460px] w-full max-w-[380px] shrink-0 rounded-[2rem] border shadow-[0_0_80px_var(--color-accent-purple-glow-soft)] md:h-[560px]" />
       </div>
 
       <div

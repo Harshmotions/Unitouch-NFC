@@ -16,7 +16,9 @@ export interface Profile {
   location?: string;
   bio?: string;
   avatarUrl?: string;
+  interests?: string[];
   isPublished: boolean;
+  profileStyle: "standard" | "personal";
   createdAt: string;
   updatedAt: string;
   orderId?: string;

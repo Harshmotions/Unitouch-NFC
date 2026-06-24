@@ -12,7 +12,7 @@ export default function HowItWorks() {
     <section id="how-it-works" className="bg-bg-subtle px-6 py-24">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
             The Process
           </span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
@@ -26,11 +26,11 @@ export default function HowItWorks() {
               key={step.title}
               className="bg-bg-elevated border-bg-border relative rounded-2xl border p-6"
             >
-              <span className="text-accent-amber font-display mb-3 block text-2xl font-[700]">
+              <span className="text-accent-purple font-display mb-3 block text-2xl font-[700]">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="font-display text-text-primary mb-2 font-[600]">{step.title}</h3>
-              <span className="bg-accent-amber/10 text-accent-amber inline-block rounded-full px-3 py-1 text-xs">
+              <span className="bg-accent-purple/10 text-accent-purple inline-block rounded-full px-3 py-1 text-xs">
                 {step.duration}
               </span>
             </div>

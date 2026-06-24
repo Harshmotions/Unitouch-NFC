@@ -38,7 +38,7 @@ export default function Features() {
     <section id="features" className="px-6 py-24">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
             Features
           </span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
@@ -50,9 +50,9 @@ export default function Features() {
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="group bg-bg-elevated border-bg-border hover:border-accent-amber/30 rounded-2xl border p-6 transition-colors"
+              className="group bg-bg-elevated border-bg-border hover:border-accent-purple/30 rounded-2xl border p-6 transition-colors"
             >
-              <div className="bg-accent-amber/10 text-accent-amber mb-4 flex size-10 items-center justify-center rounded-xl">
+              <div className="bg-accent-purple/10 text-accent-purple mb-4 flex size-10 items-center justify-center rounded-xl">
                 <Icon className="size-5" />
               </div>
               <h3 className="font-display text-text-primary mb-1 font-[600]">{title}</h3>

@@ -5,7 +5,7 @@ export default function ProductShowcase() {
     <section className="px-6 py-24">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
             Card Tiers
           </span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
@@ -19,7 +19,7 @@ export default function ProductShowcase() {
               key={variant.id}
               className={`rounded-2xl border p-8 ${
                 variant.isPopular
-                  ? "border-accent-amber/40 bg-accent-amber/[0.04]"
+                  ? "border-accent-purple/40 bg-accent-purple/[0.04]"
                   : "border-bg-border bg-bg-elevated"
               }`}
             >

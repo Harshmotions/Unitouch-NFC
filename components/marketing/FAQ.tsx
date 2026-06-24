@@ -51,7 +51,7 @@ export default function FAQ() {
     <section id="faq" className="bg-bg-subtle px-6 py-24">
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
             FAQ
           </span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">

@@ -1,12 +1,12 @@
-import { Phone, Mail, Globe, Camera, Briefcase } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { PlatformBadge, type PlatformKey } from "@/components/profile/PlatformIcons";
 
-const ACTIONS = [
-  { icon: Phone, label: "WhatsApp" },
-  { icon: Mail, label: "Email" },
-  { icon: Globe, label: "Website" },
-  { icon: Camera, label: "Instagram" },
-  { icon: Briefcase, label: "LinkedIn" },
+const ACTIONS: { platform: PlatformKey; label: string }[] = [
+  { platform: "whatsapp", label: "WhatsApp" },
+  { platform: "email", label: "Email" },
+  { platform: "website", label: "Website" },
+  { platform: "instagram", label: "Instagram" },
+  { platform: "linkedin", label: "LinkedIn" },
 ];
 
 export default function ProfileDemo() {
@@ -14,7 +14,7 @@ export default function ProfileDemo() {
     <section id="profile-demo" className="px-6 py-24">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-12 md:flex-row md:justify-between">
         <div className="flex flex-col items-center gap-4 text-center md:items-start md:text-left">
-          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
             Demo Profile
           </span>
           <h2 className="font-display text-h2 text-text-primary max-w-md font-[600]">
@@ -31,7 +31,7 @@ export default function ProfileDemo() {
 
         <div className="border-bg-border bg-bg-elevated w-full max-w-[300px] rounded-[2rem] border p-3 shadow-2xl">
           <div className="bg-bg-base flex flex-col items-center gap-4 rounded-[1.5rem] p-6 pt-10">
-            <div className="bg-accent-amber/15 border-accent-amber/30 flex size-20 items-center justify-center rounded-full border text-2xl font-[700] text-accent-amber">
+            <div className="bg-accent-purple/15 border-accent-purple/30 flex size-20 items-center justify-center rounded-full border text-2xl font-[700] text-accent-purple">
               RM
             </div>
             <div className="text-center">
@@ -39,12 +39,12 @@ export default function ProfileDemo() {
               <p className="text-text-secondary text-sm">Creative Director, Studio North</p>
             </div>
             <div className="flex w-full flex-col gap-2">
-              {ACTIONS.map(({ icon: Icon, label }) => (
+              {ACTIONS.map(({ platform, label }) => (
                 <div
                   key={label}
-                  className="border-bg-border flex items-center gap-3 rounded-xl border px-4 py-3"
+                  className="border-bg-border flex items-center gap-3 rounded-xl border px-3 py-2.5"
                 >
-                  <Icon className="text-accent-amber size-4" />
+                  <PlatformBadge platform={platform} className="size-8" />
                   <span className="text-text-secondary text-sm">{label}</span>
                 </div>
               ))}

@@ -6,7 +6,7 @@ export default function Pricing() {
     <section id="pricing" className="bg-bg-subtle px-6 py-24">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-12 flex flex-col items-center gap-3 text-center">
-          <span className="text-accent-amber border-accent-amber/30 rounded-full border px-3 py-1 text-xs">
+          <span className="text-accent-purple border-accent-purple/30 rounded-full border px-3 py-1 text-xs">
             Pricing
           </span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
@@ -20,12 +20,12 @@ export default function Pricing() {
               key={variant.id}
               className={`relative flex flex-col rounded-2xl border p-8 ${
                 variant.isPopular
-                  ? "border-accent-amber/40 bg-accent-amber/[0.04]"
+                  ? "border-accent-purple/40 bg-accent-purple/[0.04]"
                   : "border-bg-border bg-bg-elevated"
               }`}
             >
               {variant.isPopular && (
-                <span className="bg-accent-amber text-bg-base absolute -top-3 left-8 rounded-full px-3 py-1 text-xs font-[600]">
+                <span className="bg-accent-purple text-bg-base absolute -top-3 left-8 rounded-full px-3 py-1 text-xs font-[600]">
                   MOST POPULAR
                 </span>
               )}

@@ -12,16 +12,13 @@
   --color-text-secondary: #a0a0a0;
   --color-text-muted: #5a5a5a;
 
-  /* Accents */
-  --color-accent-green: #9ef5c0;
-  --color-accent-blue: #93c5fd;
-  --color-accent-purple: #c4b5fd;
-  --color-accent-navy: #0b1224;
-  --color-accent-purple-glow: rgba(124, 58, 237, 0.45);
-  --color-accent-purple-glow-soft: rgba(76, 29, 149, 0.25);
-  --color-accent-amber: #ff8a3d;
-  --color-accent-amber-glow: rgba(255, 122, 26, 0.55);
-  --color-accent-amber-glow-soft: rgba(180, 70, 15, 0.3);
+  /* Accent — violet (brand) */
+  --color-accent-purple: #8b5cff;
+  --color-accent-purple-glow: rgba(124, 70, 255, 0.55);
+  --color-accent-purple-glow-soft: rgba(96, 45, 200, 0.32);
+
+  /* Verified tick — universal blue, used only on profile pages */
+  --color-verified: #3b9eff;
 
   /* Functional */
   --color-success: #4ade80;
@@ -55,7 +52,7 @@
 
 :root {
   /* Ambient glow — kept raw, not a utility color token */
-  --color-accent-glow: rgba(147, 197, 253, 0.08);
+  --color-accent-glow: rgba(124, 70, 255, 0.08);
 
   /* Font weights */
   --weight-hero: 700;
@@ -115,6 +112,38 @@ body {
     rgba(255, 255, 255, 0) 35%,
     rgba(255, 255, 255, 0) 65%,
     rgba(255, 255, 255, 0.55) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Frosted glass — 25% fill so the shape reads, backdrop blur so everything
+   behind the shape is softened, and a stroke that only catches the light on
+   the bottom-left and top-right diagonals (fading to nothing along the other
+   two corners). No inner shadow, no full border. Profile pages only. */
+.glass-icon-btn,
+.glass-pill {
+  position: relative;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-icon-btn::before,
+.glass-pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 255, 255, 0) 62%,
+    rgba(255, 255, 255, 0.85) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
