@@ -10,7 +10,7 @@ export interface ButtonProps {
   href?: string;
   className?: string;
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 const variantClasses: Record<ButtonProps["variant"], string> = {
@@ -55,7 +55,7 @@ export default function Button({
 
   if (href) {
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} onClick={onClick} className={classes}>
         {content}
       </Link>
     );

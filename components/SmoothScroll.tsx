@@ -16,6 +16,12 @@ export default function SmoothScroll() {
       smoothWheel: true,
     });
 
+    // Lenis's own built-in `anchors` option never calls preventDefault, so
+    // the native instant hash-jump still wins the race against its smooth
+    // scroll. Exposing the instance lets lib/scroll.ts drive scrollTo
+    // directly from explicit click handlers instead.
+    window.lenisInstance = lenis;
+
     let frameId: number;
     function raf(time: number) {
       lenis.raf(time);
@@ -26,6 +32,7 @@ export default function SmoothScroll() {
     return () => {
       cancelAnimationFrame(frameId);
       lenis.destroy();
+      window.lenisInstance = undefined;
     };
   }, []);
 

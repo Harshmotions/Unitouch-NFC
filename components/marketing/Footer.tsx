@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { handleHashLinkClick } from "@/lib/scroll";
 
 const LINKS = [
   { label: "Home", href: "/" },
@@ -25,6 +28,7 @@ export default function Footer() {
             <a
               key={link.label}
               href={link.href}
+              onClick={link.href.startsWith("#") ? handleHashLinkClick(link.href) : undefined}
               className="text-text-secondary hover:text-text-primary text-sm transition-colors"
             >
               {link.label}

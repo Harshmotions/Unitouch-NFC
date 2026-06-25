@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import gsap from "gsap";
 import Button from "@/components/ui/Button";
+import { handleHashLinkClick } from "@/lib/scroll";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -32,13 +33,31 @@ export default function Navbar() {
     ).matches;
     if (prefersReducedMotion) return;
 
-    gsap.from(navRef.current, {
-      y: -24,
-      opacity: 0,
-      duration: 0.6,
-      delay: 0.1,
-      ease: "power2.out",
-    });
+    const el = navRef.current;
+    let tween: gsap.core.Tween | undefined;
+
+    function playIntro() {
+      tween?.kill();
+      // Clears any inline style a previous, interrupted run left behind
+      // (e.g. navigating away mid-animation) before replaying.
+      gsap.set(el, { clearProps: "all" });
+      tween = gsap.from(el, { y: -24, opacity: 0, duration: 0.6, delay: 0.1, ease: "power2.out" });
+    }
+
+    playIntro();
+
+    // Browsers can restore this exact page from the back/forward cache when
+    // navigating back to it — a mid-flight tween freezes and resumes as-is,
+    // with no fresh mount/effect run. Replay cleanly when that happens.
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) playIntro();
+    }
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      tween?.kill();
+    };
   }, []);
 
   return (
@@ -63,6 +82,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
+              onClick={handleHashLinkClick(link.href)}
               className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
             >
               {link.label}
@@ -96,7 +116,10 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
-              onClick={() => setMenuOpen(false)}
+              onClick={(e) => {
+                handleHashLinkClick(link.href)(e);
+                setMenuOpen(false);
+              }}
             >
               {link.label}
             </a>

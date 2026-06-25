@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Zap, RefreshCw, BarChart3 } from "lucide-react";
 import gsap from "gsap";
 import Button from "@/components/ui/Button";
+import { handleHashLinkClick } from "@/lib/scroll";
 
 const BADGES = [
   { icon: Zap, label: "Instant NFC Tap" },
@@ -153,7 +154,13 @@ export default function Hero() {
             <Button variant="primary" size="lg" href="/order">
               Order Your Card →
             </Button>
-            <Button variant="secondary" size="lg" href="#profile-demo" className="glass-stroke-2">
+            <Button
+              variant="secondary"
+              size="lg"
+              href="#profile-demo"
+              onClick={handleHashLinkClick("#profile-demo")}
+              className="glass-stroke-2"
+            >
               See a Live Profile
             </Button>
           </div>
