@@ -36,14 +36,49 @@ export default function Hero() {
 
     if (prefersReducedMotion) return;
 
-    gsap
-      .timeline()
-      .from(".hero-badge", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" })
-      .from(".hero-headline", { y: 28, opacity: 0, duration: 0.55, ease: "expo.out" }, "-=0.15")
-      .from(".hero-sub", { y: 14, opacity: 0, duration: 0.4, ease: "power2.out" }, "-=0.35")
-      .from(".hero-ctas", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" }, "-=0.25")
-      .from(".hero-stat-badge", { y: 10, opacity: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }, "-=0.15")
-      .from(".hero-visual-slot", { opacity: 0, scale: 0.97, duration: 0.5, ease: "expo.out" }, "-=0.5");
+    const targets = [
+      ".hero-badge",
+      ".hero-headline",
+      ".hero-sub",
+      ".hero-ctas",
+      ".hero-stat-badge",
+      ".hero-visual-slot",
+    ];
+
+    let tl: gsap.core.Timeline | undefined;
+
+    function playIntro() {
+      tl?.kill();
+      // Wipe any inline styles a previous, interrupted run left behind (e.g.
+      // navigating away mid-animation) so this replay starts from a clean
+      // state instead of resuming from a half-faded frame.
+      gsap.set(targets, { clearProps: "all" });
+
+      tl = gsap
+        .timeline()
+        .from(".hero-badge", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" })
+        .from(".hero-headline", { y: 28, opacity: 0, duration: 0.55, ease: "expo.out" }, "-=0.15")
+        .from(".hero-sub", { y: 14, opacity: 0, duration: 0.4, ease: "power2.out" }, "-=0.35")
+        .from(".hero-ctas", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" }, "-=0.25")
+        .from(".hero-stat-badge", { y: 10, opacity: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }, "-=0.15")
+        .from(".hero-visual-slot", { opacity: 0, scale: 0.97, duration: 0.5, ease: "expo.out" }, "-=0.5");
+    }
+
+    playIntro();
+
+    // Browsers can restore this exact page from the back/forward cache when
+    // navigating back to it — JS state (including a mid-flight GSAP tween)
+    // is frozen and resumed as-is, with no fresh mount/effect run. Detect
+    // that restoration and replay the intro cleanly.
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) playIntro();
+    }
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      tl?.kill();
+    };
   }, []);
 
   return (
