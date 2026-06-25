@@ -75,16 +75,22 @@ export default function StandardProfile({
 
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 pt-8 text-center">
         {profile.avatarUrl ? (
-          <div className="border-accent-purple/30 relative size-24 overflow-hidden rounded-3xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+          <div className="border-accent-purple/30 relative size-36 overflow-hidden rounded-full border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
             <Image src={profile.avatarUrl} alt={profile.fullName} fill className="object-cover" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+            <h1 className="font-display text-text-primary absolute inset-x-0 bottom-3 truncate px-4 text-sm font-[600]">
+              {profile.fullName}
+            </h1>
           </div>
         ) : (
-          <div className="bg-accent-purple/15 border-accent-purple/30 flex size-24 items-center justify-center rounded-3xl border text-2xl font-[700] text-accent-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+          <div className="bg-accent-purple/15 border-accent-purple/30 flex size-36 items-center justify-center rounded-full border text-2xl font-[700] text-accent-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
             {initials(profile.fullName)}
           </div>
         )}
         <div>
-          <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
+          {!profile.avatarUrl && (
+            <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
+          )}
           <p className="text-text-secondary text-sm">
             {profile.designation}
             {profile.company ? ` · ${profile.company}` : ""}
