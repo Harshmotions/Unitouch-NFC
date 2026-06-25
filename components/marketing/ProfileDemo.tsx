@@ -1,12 +1,12 @@
 import Button from "@/components/ui/Button";
-import { PlatformBadge, type PlatformKey } from "@/components/profile/PlatformIcons";
+import { PlatformGrid, type PlatformKey } from "@/components/profile/PlatformIcons";
 
-const ACTIONS: { platform: PlatformKey; label: string }[] = [
-  { platform: "whatsapp", label: "WhatsApp" },
-  { platform: "email", label: "Email" },
-  { platform: "website", label: "Website" },
-  { platform: "instagram", label: "Instagram" },
-  { platform: "linkedin", label: "LinkedIn" },
+const ACTIONS: { platform: PlatformKey; label: string; href: string }[] = [
+  { platform: "whatsapp", label: "WhatsApp", href: "#" },
+  { platform: "email", label: "Email", href: "#" },
+  { platform: "website", label: "Website", href: "#" },
+  { platform: "instagram", label: "Instagram", href: "#" },
+  { platform: "linkedin", label: "LinkedIn", href: "#" },
 ];
 
 export default function ProfileDemo() {
@@ -36,16 +36,8 @@ export default function ProfileDemo() {
               <p className="font-display text-text-primary font-[600]">Rohan Mehta</p>
               <p className="text-text-secondary text-sm">Creative Director, Studio North</p>
             </div>
-            <div className="flex w-full flex-col gap-2">
-              {ACTIONS.map(({ platform, label }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5"
-                >
-                  <PlatformBadge platform={platform} className="size-8" />
-                  <span className="text-text-secondary text-sm">{label}</span>
-                </div>
-              ))}
+            <div className="w-full">
+              <PlatformGrid items={ACTIONS} />
             </div>
           </div>
         </div>

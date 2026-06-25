@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Share2,
+  Check,
   BadgeCheck,
   Eye,
   Bookmark,
@@ -10,8 +14,26 @@ import {
   Globe,
   MapPin,
 } from "lucide-react";
-import type { Profile } from "@/types";
+import type { Profile, EventType } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
+import { downloadVCard } from "@/lib/vcard";
+import { track } from "@/lib/track";
+import { shareProfile } from "@/lib/share";
+import { PlatformGrid, type PlatformKey } from "./PlatformIcons";
+
+const PLATFORM_EVENTS: Partial<Record<PlatformKey, EventType>> = {
+  whatsapp: "whatsapp_click",
+  email: "email_click",
+  website: "website_click",
+  instagram: "instagram_click",
+  linkedin: "linkedin_click",
+  youtube: "youtube_click",
+  phone: "phone_click",
+};
+
+function withHref<T extends { href?: string }>(item: T): item is T & { href: string } {
+  return Boolean(item.href);
+}
 
 export default function PersonalProfile({
   profile,
@@ -20,22 +42,57 @@ export default function PersonalProfile({
   profile: Profile;
   stats: { views: number; saves: number };
 }) {
-  const actions = [
-    { icon: Phone, label: "Call", href: profile.phone && `tel:${profile.phone}` },
+  const [shared, setShared] = useState(false);
+
+  useEffect(() => {
+    track("page_view", profile.username);
+  }, [profile.username]);
+
+  const actions: { icon: typeof Phone; label: string; href?: string; onClick?: () => void }[] = [
+    {
+      icon: Phone,
+      label: "Call",
+      href: profile.phone && `tel:${profile.phone}`,
+      onClick: () => track("phone_click", profile.username),
+    },
     {
       icon: MessageCircle,
       label: "WhatsApp",
       href: profile.whatsapp && `https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`,
+      onClick: () => track("whatsapp_click", profile.username),
     },
-    { icon: Globe, label: "Website", href: profile.website },
-    { icon: Download, label: "Save", href: "#" },
-  ].filter((action) => action.href);
+    {
+      icon: Globe,
+      label: "Website",
+      href: profile.website,
+      onClick: () => track("website_click", profile.username),
+    },
+    {
+      icon: Download,
+      label: "Save",
+      onClick: () => {
+        downloadVCard(profile);
+        track("contact_save", profile.username);
+      },
+    },
+  ].filter((action) => action.href || action.label === "Save");
+
+  // WhatsApp and Website are already covered by the bottom action dock —
+  // this grid only surfaces the other platforms, so nothing is duplicated.
+  const links: { platform: PlatformKey; label: string; href?: string }[] = [
+    { platform: "instagram", label: "Instagram", href: profile.instagram },
+    { platform: "linkedin", label: "LinkedIn", href: profile.linkedin },
+    { platform: "twitter", label: "X (Twitter)", href: profile.twitter },
+    { platform: "youtube", label: "YouTube", href: profile.youtube },
+    { platform: "email", label: "Email", href: profile.email && `mailto:${profile.email}` },
+  ];
+  const visibleLinks = links.filter(withHref);
 
   return (
     <main className="bg-bg-base min-h-screen pb-32">
-      {/* phone-width column — full-bleed on mobile, centred card on desktop */}
-      <div className="relative mx-auto max-w-md">
-        <div className="relative h-[78vh] max-h-[760px] w-full overflow-hidden md:rounded-b-[2.5rem]">
+      {/* contained column — full-bleed on mobile, centred card on desktop */}
+      <div className="relative mx-auto max-w-xl">
+        <div className="relative h-[52vh] max-h-[560px] w-full overflow-hidden md:rounded-b-[2.5rem]">
           {profile.avatarUrl ? (
             <Image
               src={profile.avatarUrl}
@@ -70,8 +127,15 @@ export default function PersonalProfile({
           />
 
           <div className="absolute inset-x-5 top-6 flex items-center justify-end">
-            <button className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary">
-              <Share2 className="size-4" />
+            <button
+              onClick={async () => {
+                await shareProfile(profile.fullName, profile.username);
+                setShared(true);
+                setTimeout(() => setShared(false), 1500);
+              }}
+              className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
+            >
+              {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
             </button>
           </div>
 
@@ -103,7 +167,7 @@ export default function PersonalProfile({
           </div>
         </div>
 
-        <div className="mx-auto -mt-6 w-[calc(100%-2.5rem)]">
+        <div className="mx-auto mt-4 w-[calc(100%-2.5rem)]">
           <div className="rounded-2xl border border-white/10 bg-bg-elevated/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_50px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl">
             {profile.bio && (
               <p className="text-text-secondary text-sm leading-relaxed">{profile.bio}</p>
@@ -126,23 +190,47 @@ export default function PersonalProfile({
             </p>
           </div>
         </div>
+
+        {visibleLinks.length > 0 && (
+          <div className="mx-auto mt-5 w-[calc(100%-2.5rem)]">
+            <PlatformGrid
+              items={visibleLinks}
+              onItemClick={(platform) => {
+                const eventType = PLATFORM_EVENTS[platform];
+                if (eventType) track(eventType, profile.username);
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-md -translate-x-1/2 px-5 pb-6 pt-4">
+      <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-xl -translate-x-1/2 px-5 pb-6 pt-4">
         <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
         <div className="flex items-center justify-center gap-4">
-          {actions.map(({ icon: Icon, label, href }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-icon-btn flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]"
-            >
-              <Icon className="size-5" />
-              <span className="text-xs">{label}</span>
-            </a>
-          ))}
+          {actions.map(({ icon: Icon, label, href, onClick }) =>
+            href ? (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClick}
+                className="glass-icon-btn flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]"
+              >
+                <Icon className="size-5" />
+                <span className="text-xs">{label}</span>
+              </a>
+            ) : (
+              <button
+                key={label}
+                onClick={onClick}
+                className="glass-icon-btn flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]"
+              >
+                <Icon className="size-5" />
+                <span className="text-xs">{label}</span>
+              </button>
+            )
+          )}
         </div>
       </div>
     </main>

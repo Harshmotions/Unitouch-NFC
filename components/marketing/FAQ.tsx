@@ -81,11 +81,12 @@ export default function FAQ() {
                   />
                 </button>
                 <div
-                  className={`overflow-hidden transition-[max-height] duration-300 ease-out ${
-                    isOpen ? "max-h-40" : "max-h-0"
+                  className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isOpen ? "opacity-100" : "opacity-0"
                   }`}
+                  style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                 >
-                  <p className="text-text-secondary px-6 pb-5 text-sm leading-relaxed">
+                  <p className="text-text-secondary min-h-0 px-6 pb-5 text-sm leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

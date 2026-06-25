@@ -56,24 +56,23 @@ export type PlatformKey =
   | "website"
   | "phone";
 
-/* Each platform's brand glyph + the colour of its rounded-square badge.
-   Non-branded contacts (email, website, phone) fall back to the brand accent. */
-export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps>; bg: string }> = {
-  whatsapp: { Icon: WhatsAppIcon, bg: "#25d366" },
-  instagram: {
-    Icon: InstagramIcon,
-    bg: "linear-gradient(135deg, #feda75 0%, #fa7e1e 28%, #d62976 58%, #6228d7 100%)",
-  },
-  linkedin: { Icon: LinkedInIcon, bg: "#0a66c2" },
-  twitter: { Icon: XIcon, bg: "#1d1d1f" },
-  youtube: { Icon: YouTubeIcon, bg: "#ff0000" },
-  email: { Icon: Mail, bg: "var(--color-accent-purple)" },
-  website: { Icon: Globe, bg: "var(--color-accent-purple)" },
-  phone: { Icon: Phone, bg: "var(--color-accent-purple)" },
+/* Each platform's brand glyph + the colour of its ambient glow. Non-branded
+   contacts (email, website, phone) fall back to the brand accent. */
+export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps>; glow: string }> = {
+  whatsapp: { Icon: WhatsAppIcon, glow: "#25d366" },
+  instagram: { Icon: InstagramIcon, glow: "#d6306f" },
+  linkedin: { Icon: LinkedInIcon, glow: "#0a66c2" },
+  twitter: { Icon: XIcon, glow: "rgba(255,255,255,0.7)" },
+  youtube: { Icon: YouTubeIcon, glow: "#ff3b3b" },
+  email: { Icon: Mail, glow: "var(--color-accent-purple)" },
+  website: { Icon: Globe, glow: "var(--color-accent-purple)" },
+  phone: { Icon: Phone, glow: "var(--color-accent-purple)" },
 };
 
-/* Rounded-square app-icon badge: brand colour fill + a soft top sheen so it
-   reads like the reference asset, with the white glyph centred. */
+/* Dark glass app-icon badge: a near-black rounded-square tile lit from below
+   by a soft bloom of the platform's brand colour, with the white glyph
+   centred — matches the reference "premium app icon" style rather than a
+   flat brand-colour fill. */
 export function PlatformBadge({
   platform,
   className = "size-9",
@@ -81,14 +80,65 @@ export function PlatformBadge({
   platform: PlatformKey;
   className?: string;
 }) {
-  const { Icon, bg } = PLATFORMS[platform];
+  const { Icon, glow } = PLATFORMS[platform];
   return (
     <span
-      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-[28%] text-white ${className}`}
-      style={{ background: bg }}
+      className={`relative inline-flex aspect-square shrink-0 items-center justify-center overflow-hidden rounded-[26%] text-white ${className}`}
+      style={{
+        background: "linear-gradient(165deg, #181818 0%, #060606 70%)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.06)",
+      }}
     >
-      <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
-      <Icon className="relative h-1/2 w-1/2" />
+      <span
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-3/4"
+        style={{ background: `radial-gradient(120% 90% at 50% 100%, ${glow}, transparent 70%)`, opacity: 0.6 }}
+      />
+      <Icon className="relative h-[38%] w-[38%] drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
     </span>
+  );
+}
+
+/* One grid cell: badge on top, platform name below — app-icon-grid style
+   rather than a wide row. */
+export function PlatformTile({
+  platform,
+  label,
+  href,
+  onClick,
+}: {
+  platform: PlatformKey;
+  label: string;
+  href: string;
+  onClick?: () => void;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 transition-transform duration-200 active:scale-[0.94]"
+    >
+      <PlatformBadge platform={platform} className="w-full" />
+      <span className="text-text-secondary w-full truncate text-center text-xs">{label}</span>
+    </a>
+  );
+}
+
+/* Consistent 3-column app-icon grid — equal-width cells so every tile lines
+   up regardless of how many platforms a profile has. */
+export function PlatformGrid({
+  items,
+  onItemClick,
+}: {
+  items: { platform: PlatformKey; label: string; href: string }[];
+  onItemClick?: (platform: PlatformKey) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-x-3 gap-y-5">
+      {items.map((item) => (
+        <PlatformTile key={item.label} {...item} onClick={onItemClick ? () => onItemClick(item.platform) : undefined} />
+      ))}
+    </div>
   );
 }

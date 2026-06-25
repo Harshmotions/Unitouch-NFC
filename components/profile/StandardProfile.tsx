@@ -1,7 +1,27 @@
-import { Share2, Eye, Bookmark, MapPin, Download } from "lucide-react";
-import type { Profile } from "@/types";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Share2, Check, Eye, Bookmark, MapPin, Download } from "lucide-react";
+import type { Profile, EventType } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
-import { PlatformBadge } from "./PlatformIcons";
+import { downloadVCard } from "@/lib/vcard";
+import { track } from "@/lib/track";
+import { shareProfile } from "@/lib/share";
+import { PlatformGrid, type PlatformKey } from "./PlatformIcons";
+
+const PLATFORM_EVENTS: Partial<Record<PlatformKey, EventType>> = {
+  whatsapp: "whatsapp_click",
+  email: "email_click",
+  website: "website_click",
+  instagram: "instagram_click",
+  linkedin: "linkedin_click",
+  youtube: "youtube_click",
+  phone: "phone_click",
+};
+
+function withHref<T extends { href?: string }>(item: T): item is T & { href: string } {
+  return Boolean(item.href);
+}
 
 const initials = (name: string) =>
   name
@@ -18,23 +38,37 @@ export default function StandardProfile({
   profile: Profile;
   stats: { views: number; saves: number };
 }) {
-  const links = [
+  const [shared, setShared] = useState(false);
+
+  useEffect(() => {
+    track("page_view", profile.username);
+  }, [profile.username]);
+
+  const links: { platform: PlatformKey; label: string; href?: string }[] = [
     {
-      platform: "whatsapp" as const,
+      platform: "whatsapp",
       label: "WhatsApp",
       href: profile.whatsapp && `https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`,
     },
-    { platform: "email" as const, label: "Email", href: profile.email && `mailto:${profile.email}` },
-    { platform: "website" as const, label: "Website", href: profile.website },
-    { platform: "instagram" as const, label: "Instagram", href: profile.instagram },
-    { platform: "linkedin" as const, label: "LinkedIn", href: profile.linkedin },
-  ].filter((link) => link.href);
+    { platform: "email", label: "Email", href: profile.email && `mailto:${profile.email}` },
+    { platform: "website", label: "Website", href: profile.website },
+    { platform: "instagram", label: "Instagram", href: profile.instagram },
+    { platform: "linkedin", label: "LinkedIn", href: profile.linkedin },
+  ];
+  const visibleLinks = links.filter(withHref);
 
   return (
     <main className="bg-bg-base min-h-screen px-5 pt-6 pb-28">
       <div className="mx-auto flex w-full max-w-md items-center justify-end">
-        <button className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary">
-          <Share2 className="size-4" />
+        <button
+          onClick={async () => {
+            await shareProfile(profile.fullName, profile.username);
+            setShared(true);
+            setTimeout(() => setShared(false), 1500);
+          }}
+          className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
+        >
+          {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
         </button>
       </div>
 
@@ -93,26 +127,25 @@ export default function StandardProfile({
         </div>
       )}
 
-      <div className="mx-auto mt-8 grid w-full max-w-md grid-cols-2 gap-2.5">
-        {links.map(({ platform, label, href }, i) => (
-          <a
-            key={label}
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`glass-icon-btn flex items-center gap-3 rounded-xl px-3.5 py-3 text-text-primary transition-transform active:scale-[0.98] ${
-              links.length % 2 === 1 && i === links.length - 1 ? "col-span-2" : ""
-            }`}
-          >
-            <PlatformBadge platform={platform} className="size-9" />
-            <span className="truncate text-sm font-[500]">{label}</span>
-          </a>
-        ))}
+      <div className="mx-auto mt-8 w-full max-w-md">
+        <PlatformGrid
+          items={visibleLinks}
+          onItemClick={(platform) => {
+            const eventType = PLATFORM_EVENTS[platform];
+            if (eventType) track(eventType, profile.username);
+          }}
+        />
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4">
         <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
-        <button className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]">
+        <button
+          onClick={() => {
+            downloadVCard(profile);
+            track("contact_save", profile.username);
+          }}
+          className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
+        >
           <Download className="size-4" />
           Save Contact
         </button>
