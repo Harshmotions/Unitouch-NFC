@@ -2,18 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import {
-  Share2,
-  Check,
-  BadgeCheck,
-  Eye,
-  Bookmark,
-  Phone,
-  MessageCircle,
-  Download,
-  Globe,
-  MapPin,
-} from "lucide-react";
+import { Share2, Check, BadgeCheck, Eye, Bookmark, Download, MapPin } from "lucide-react";
 import type { Profile, EventType } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
 import { downloadVCard } from "@/lib/vcard";
@@ -48,38 +37,14 @@ export default function PersonalProfile({
     track("page_view", profile.username);
   }, [profile.username]);
 
-  const actions: { icon: typeof Phone; label: string; href?: string; onClick?: () => void }[] = [
+  const links: { platform: PlatformKey; label: string; href?: string }[] = [
+    { platform: "phone", label: "Call", href: profile.phone && `tel:${profile.phone}` },
     {
-      icon: Phone,
-      label: "Call",
-      href: profile.phone && `tel:${profile.phone}`,
-      onClick: () => track("phone_click", profile.username),
-    },
-    {
-      icon: MessageCircle,
+      platform: "whatsapp",
       label: "WhatsApp",
       href: profile.whatsapp && `https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`,
-      onClick: () => track("whatsapp_click", profile.username),
     },
-    {
-      icon: Globe,
-      label: "Website",
-      href: profile.website,
-      onClick: () => track("website_click", profile.username),
-    },
-    {
-      icon: Download,
-      label: "Save",
-      onClick: () => {
-        downloadVCard(profile);
-        track("contact_save", profile.username);
-      },
-    },
-  ].filter((action) => action.href || action.label === "Save");
-
-  // WhatsApp and Website are already covered by the bottom action dock —
-  // this grid only surfaces the other platforms, so nothing is duplicated.
-  const links: { platform: PlatformKey; label: string; href?: string }[] = [
+    { platform: "website", label: "Website", href: profile.website },
     { platform: "instagram", label: "Instagram", href: profile.instagram },
     { platform: "linkedin", label: "LinkedIn", href: profile.linkedin },
     { platform: "twitter", label: "X (Twitter)", href: profile.twitter },
@@ -204,34 +169,18 @@ export default function PersonalProfile({
         )}
       </div>
 
-      <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-xl -translate-x-1/2 px-5 pb-6 pt-4">
+      <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4">
         <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
-        <div className="flex items-center justify-center gap-4">
-          {actions.map(({ icon: Icon, label, href, onClick }, i) =>
-            href ? (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={onClick}
-                className={`glass-icon-btn glass-stroke-${(i % 4) + 1} flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]`}
-              >
-                <Icon className="size-5" />
-                <span className="text-xs">{label}</span>
-              </a>
-            ) : (
-              <button
-                key={label}
-                onClick={onClick}
-                className={`glass-icon-btn glass-stroke-${(i % 4) + 1} flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]`}
-              >
-                <Icon className="size-5" />
-                <span className="text-xs">{label}</span>
-              </button>
-            )
-          )}
-        </div>
+        <button
+          onClick={() => {
+            downloadVCard(profile);
+            track("contact_save", profile.username);
+          }}
+          className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-xl items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
+        >
+          <Download className="size-4" />
+          Save Contact
+        </button>
       </div>
     </main>
   );

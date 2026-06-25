@@ -89,9 +89,9 @@ export function PlatformTile({
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="flex flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94]"
+      className="group flex flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94]"
     >
-      <span className="bg-bg-elevated flex size-16 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5)]">
+      <span className="bg-bg-elevated flex size-16 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)]">
         <Icon className="text-text-primary size-7" />
       </span>
       <span className="text-text-secondary truncate text-sm">{label}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { ChevronDown, Zap, RefreshCw, BarChart3 } from "lucide-react";
 import gsap from "gsap";
 import Button from "@/components/ui/Button";
@@ -101,18 +102,18 @@ export default function Hero() {
         />
         {/* wide soft corona behind the card */}
         <div
-          className="absolute top-[8%] h-[80%] w-[520px] -translate-x-1/2 blur-[80px]"
+          className="absolute top-[18%] h-[64%] w-[420px] -translate-x-1/2 blur-[80px]"
           style={{
-            left: "76%",
+            left: "82%",
             background:
               "radial-gradient(ellipse at center, var(--color-accent-purple-glow-soft), transparent 70%)",
           }}
         />
         {/* tighter bright glow directly behind the card */}
         <div
-          className="absolute top-[12%] h-[60%] w-[320px] -translate-x-1/2 blur-3xl"
+          className="absolute top-[22%] h-[44%] w-[260px] -translate-x-1/2 blur-3xl"
           style={{
-            left: "76%",
+            left: "82%",
             background:
               "radial-gradient(ellipse at center, var(--color-accent-purple-glow), transparent 70%)",
           }}
@@ -120,25 +121,12 @@ export default function Hero() {
         {/* light pooling beneath the card */}
         <div
           className="absolute bottom-[10%] h-32 w-[360px] -translate-x-1/2 blur-2xl"
-          style={{ left: "76%", background: "var(--color-accent-purple-glow-soft)" }}
-        />
-        {/* vertical beam */}
-        <div
-          className="absolute top-0 h-[65%] w-px -translate-x-1/2"
-          style={{
-            left: "76%",
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,0.9), var(--color-accent-purple) 30%, transparent 85%)",
-          }}
-        />
-        <div
-          className="absolute top-0 size-14 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-          style={{ left: "76%", background: "rgba(255,255,255,0.55)" }}
+          style={{ left: "82%", background: "var(--color-accent-purple-glow-soft)" }}
         />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col items-start gap-6 text-left">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-start">
+        <div className="flex flex-col items-start gap-6 text-left md:max-w-xl">
           <span className="hero-badge text-accent-purple inline-flex items-center rounded-full border border-accent-purple/25 bg-accent-purple/[0.08] px-4 py-1.5 text-xs font-[500] tracking-wide backdrop-blur-sm">
             NFC Business Cards, Reinvented
           </span>
@@ -176,8 +164,20 @@ export default function Hero() {
             ))}
           </div>
         </div>
+      </div>
 
-        <div className="hero-visual-slot relative h-[460px] w-full max-w-[380px] shrink-0 rounded-[2rem] border border-white/10 bg-white/[0.02] shadow-[0_0_100px_-30px_var(--color-accent-purple-glow),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm md:h-[560px]" />
+      {/* desktop-only hero visual — positioned independently of the text
+         column (not a flex sibling) so its size can't push the headline
+         off-screen; untested on tablet/mobile, so hidden below md */}
+      <div className="hero-visual-slot pointer-events-none absolute inset-y-0 right-4 z-0 hidden items-center justify-center md:flex">
+        <Image
+          src="/Final Hero Priya.png"
+          alt="A hand tapping a Unitouch NFC card against a phone showing a live profile"
+          width={1532}
+          height={1080}
+          priority
+          className="h-auto w-[260px] max-w-none object-contain lg:w-[340px] xl:w-[420px] 2xl:w-[480px]"
+        />
       </div>
 
       <div
