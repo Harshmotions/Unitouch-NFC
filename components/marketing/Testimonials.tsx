@@ -4,7 +4,7 @@ const TESTIMONIALS = [
   {
     name: "Aanya Sharma",
     role: "Founder, Loomstudio",
-    quote: "I stopped carrying paper cards the day mine arrived. People just tap and save my number — no typos, no app.",
+    quote: "I stopped carrying paper cards the day mine arrived. People just tap and save my number, no typos, no app.",
   },
   {
     name: "Vikram Nair",

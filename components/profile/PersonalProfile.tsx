@@ -133,7 +133,7 @@ export default function PersonalProfile({
                 setShared(true);
                 setTimeout(() => setShared(false), 1500);
               }}
-              className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
+              className="glass-icon-btn glass-stroke-4 flex size-10 items-center justify-center rounded-full text-text-primary"
             >
               {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
             </button>
@@ -154,10 +154,10 @@ export default function PersonalProfile({
 
             {profile.interests && profile.interests.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {profile.interests.map((tag) => (
+                {profile.interests.map((tag, i) => (
                   <span
                     key={tag}
-                    className="glass-pill text-text-primary rounded-full px-4 py-2 text-sm font-[500]"
+                    className={`glass-pill glass-stroke-${((i + 2) % 4) + 1} text-text-primary rounded-full px-4 py-2 text-sm font-[500]`}
                   >
                     {tag}
                   </span>
@@ -207,7 +207,7 @@ export default function PersonalProfile({
       <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-xl -translate-x-1/2 px-5 pb-6 pt-4">
         <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
         <div className="flex items-center justify-center gap-4">
-          {actions.map(({ icon: Icon, label, href, onClick }) =>
+          {actions.map(({ icon: Icon, label, href, onClick }, i) =>
             href ? (
               <a
                 key={label}
@@ -215,7 +215,7 @@ export default function PersonalProfile({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={onClick}
-                className="glass-icon-btn flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]"
+                className={`glass-icon-btn glass-stroke-${(i % 4) + 1} flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]`}
               >
                 <Icon className="size-5" />
                 <span className="text-xs">{label}</span>
@@ -224,7 +224,7 @@ export default function PersonalProfile({
               <button
                 key={label}
                 onClick={onClick}
-                className="glass-icon-btn flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]"
+                className={`glass-icon-btn glass-stroke-${(i % 4) + 1} flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-3.5 text-text-primary transition-transform active:scale-[0.96]`}
               >
                 <Icon className="size-5" />
                 <span className="text-xs">{label}</span>

@@ -7,7 +7,7 @@ const FAQS = [
   {
     question: "How does NFC work?",
     answer:
-      "Tap the card against the back of any NFC-enabled smartphone (most phones since around 2015). Your profile opens instantly in the browser — no app, no pairing.",
+      "Tap the card against the back of any NFC-enabled smartphone (most phones since around 2015). Your profile opens instantly in the browser, no app, no pairing.",
   },
   {
     question: "Do I need an app?",
@@ -17,7 +17,7 @@ const FAQS = [
   {
     question: "Can I update my profile after the card is made?",
     answer:
-      "Yes. Your card just links to your profile page, so you can update your details, photo, or links anytime — the physical card never needs to change.",
+      "Yes. Your card just links to your profile page, so you can update your details, photo, or links anytime. The physical card never needs to change.",
   },
   {
     question: "What if I lose my card?",
@@ -26,7 +26,7 @@ const FAQS = [
   },
   {
     question: "How long does delivery take?",
-    answer: "Roughly 5–7 days from order to delivery — see the full process timeline above.",
+    answer: "Roughly 5–7 days from order to delivery. See the full process timeline above.",
   },
   {
     question: "Do you ship across India?",
@@ -35,7 +35,7 @@ const FAQS = [
   {
     question: "Can I order for my entire team?",
     answer:
-      "Yes — the Team Pack bundles 5 cards for groups, or you can place multiple individual orders.",
+      "Yes, the Team Pack bundles 5 cards for groups, or you can place multiple individual orders.",
   },
   {
     question: "What's the difference between plans?",

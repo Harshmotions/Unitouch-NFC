@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import StandardProfile from "@/components/profile/StandardProfile";
 import PersonalProfile from "@/components/profile/PersonalProfile";
-import { DEMO_PROFILES, DEMO_STATS } from "@/lib/profile-demo";
+import { getPublishedProfile } from "@/lib/profile";
+import { getProfileStats } from "@/lib/analytics";
 
 export default async function ProfilePage({
   params,
@@ -9,10 +10,10 @@ export default async function ProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const profile = DEMO_PROFILES[username];
+  const profile = await getPublishedProfile(username);
   if (!profile) notFound();
 
-  const stats = DEMO_STATS[username] ?? { views: 0, saves: 0 };
+  const stats = await getProfileStats(username);
 
   return profile.profileStyle === "personal" ? (
     <PersonalProfile profile={profile} stats={stats} />

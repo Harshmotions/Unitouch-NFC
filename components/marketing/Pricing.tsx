@@ -37,7 +37,7 @@ export default function Pricing() {
               <Button
                 variant={variant.isPopular ? "primary" : "secondary"}
                 size="md"
-                href="/order"
+                href={`/order?card=${variant.id}`}
                 className="w-full"
               >
                 Order This Card →

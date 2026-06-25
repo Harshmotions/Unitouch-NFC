@@ -19,7 +19,7 @@ export default function ProfileDemo() {
             Your profile. Always ready to impress.
           </h2>
           <p className="text-text-secondary max-w-sm">
-            This is a sample profile so you can see what your card opens — every Unitouch
+            This is a sample profile so you can see what your card opens. Every Unitouch
             profile is fully editable after your card ships.
           </p>
           <Button variant="primary" size="lg" href="/order" className="mt-2">

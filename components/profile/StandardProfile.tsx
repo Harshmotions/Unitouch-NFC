@@ -66,7 +66,7 @@ export default function StandardProfile({
             setShared(true);
             setTimeout(() => setShared(false), 1500);
           }}
-          className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
+          className="glass-icon-btn glass-stroke-3 flex size-10 items-center justify-center rounded-full text-text-primary"
         >
           {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
         </button>
@@ -83,7 +83,7 @@ export default function StandardProfile({
             {profile.company ? ` · ${profile.company}` : ""}
           </p>
         </div>
-        <span className="glass-pill text-text-secondary rounded-full px-3.5 py-1.5 text-xs">
+        <span className="glass-pill glass-stroke-1 text-text-secondary rounded-full px-3.5 py-1.5 text-xs">
           Unitouch member since {formatMemberSince(profile.createdAt)}
         </span>
       </div>
@@ -116,10 +116,10 @@ export default function StandardProfile({
 
       {profile.interests && profile.interests.length > 0 && (
         <div className="mx-auto mt-5 flex w-full max-w-md flex-wrap justify-center gap-2">
-          {profile.interests.map((tag) => (
+          {profile.interests.map((tag, i) => (
             <span
               key={tag}
-              className="glass-pill text-text-primary rounded-full px-4 py-2 text-sm font-[500]"
+              className={`glass-pill glass-stroke-${((i + 1) % 4) + 1} text-text-primary rounded-full px-4 py-2 text-sm font-[500]`}
             >
               {tag}
             </span>

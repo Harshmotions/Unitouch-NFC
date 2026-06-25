@@ -38,12 +38,12 @@ export default function Hero() {
 
     gsap
       .timeline()
-      .from(".hero-badge", { y: 16, opacity: 0, duration: 0.6, ease: "power2.out" })
-      .from(".hero-headline", { y: 40, opacity: 0, duration: 1.2, ease: "expo.out" }, "-=0.2")
-      .from(".hero-sub", { y: 20, opacity: 0, duration: 0.75, ease: "power2.out" }, "-=0.6")
-      .from(".hero-ctas", { y: 20, opacity: 0, duration: 0.6, ease: "power2.out" }, "-=0.4")
-      .from(".hero-stat-badge", { y: 12, opacity: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }, "-=0.2")
-      .from(".hero-visual-slot", { opacity: 0, scale: 0.96, duration: 1.0, ease: "expo.out" }, "-=0.8");
+      .from(".hero-badge", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" })
+      .from(".hero-headline", { y: 28, opacity: 0, duration: 0.55, ease: "expo.out" }, "-=0.15")
+      .from(".hero-sub", { y: 14, opacity: 0, duration: 0.4, ease: "power2.out" }, "-=0.35")
+      .from(".hero-ctas", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" }, "-=0.25")
+      .from(".hero-stat-badge", { y: 10, opacity: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }, "-=0.15")
+      .from(".hero-visual-slot", { opacity: 0, scale: 0.97, duration: 0.5, ease: "expo.out" }, "-=0.5");
   }, []);
 
   return (
@@ -109,7 +109,7 @@ export default function Hero() {
           <h1 className="hero-headline font-display text-hero from-text-primary to-text-secondary bg-gradient-to-b bg-clip-text font-[700] leading-[1.05] text-transparent">
             Tap. Connect.
             <br />
-            Impress Instantly.
+            <span className="md:whitespace-nowrap">Impress Instantly.</span>
           </h1>
           <p className="hero-sub text-text-secondary text-body-lg max-w-md">
             One NFC card. Your entire professional world. No app needed.
@@ -118,15 +118,15 @@ export default function Hero() {
             <Button variant="primary" size="lg" href="/order">
               Order Your Card →
             </Button>
-            <Button variant="secondary" size="lg" href="#profile-demo">
+            <Button variant="secondary" size="lg" href="#profile-demo" className="glass-stroke-2">
               See a Live Profile
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {BADGES.map(({ icon: Icon, label }) => (
+            {BADGES.map(({ icon: Icon, label }, i) => (
               <span
                 key={label}
-                className="hero-stat-badge glass text-text-secondary flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs"
+                className={`hero-stat-badge glass glass-stroke-${(i % 4) + 1} text-text-secondary flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs`}
               >
                 <Icon className="text-accent-purple size-3.5" />
                 {label}

@@ -170,6 +170,77 @@ body {
   border-color: rgba(255, 255, 255, 0.18);
 }
 
+/* Corner-stroke accents — a masked gradient ring that only catches light at
+   two opposite corners, like glass catching a rim light, layered on top of
+   the base hairline border above. Four variants at different angles/extents
+   so glass elements sitting near each other don't all show the identical
+   stroke position. Pair with .glass / .glass-icon-btn / .glass-pill. */
+.glass-stroke-1,
+.glass-stroke-2,
+.glass-stroke-3,
+.glass-stroke-4 {
+  position: relative;
+}
+
+.glass-stroke-1::before,
+.glass-stroke-2::before,
+.glass-stroke-3::before,
+.glass-stroke-4::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* bottom-left / top-right, wide bright patch */
+.glass-stroke-1::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    transparent 24%,
+    transparent 76%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+}
+
+/* top-left / bottom-right, tighter patch */
+.glass-stroke-2::before {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+}
+
+/* bottom-left / top-right, shifted further toward the corners */
+.glass-stroke-3::before {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    transparent 16%,
+    transparent 62%,
+    rgba(255, 255, 255, 0.32) 100%
+  );
+}
+
+/* top-left / bottom-right, asymmetric brightness */
+.glass-stroke-4::before {
+  background: linear-gradient(
+    20deg,
+    rgba(255, 255, 255, 0.38) 0%,
+    transparent 32%,
+    transparent 84%,
+    rgba(255, 255, 255, 0.65) 100%
+  );
+}
+
 /* Premium surface card — layered depth from a faint top sheen, a hairline
    border, an inner top highlight, and a soft grounded shadow. Replaces flat
    AI-looking cards without making them float. */
