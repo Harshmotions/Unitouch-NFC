@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Share2, Check, Eye, Bookmark, MapPin, Download } from "lucide-react";
 import type { Profile, EventType } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
@@ -73,9 +74,15 @@ export default function StandardProfile({
       </div>
 
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 pt-8 text-center">
-        <div className="bg-accent-purple/15 border-accent-purple/30 flex size-24 items-center justify-center rounded-3xl border text-2xl font-[700] text-accent-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-          {initials(profile.fullName)}
-        </div>
+        {profile.avatarUrl ? (
+          <div className="border-accent-purple/30 relative size-24 overflow-hidden rounded-3xl border shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+            <Image src={profile.avatarUrl} alt={profile.fullName} fill className="object-cover" />
+          </div>
+        ) : (
+          <div className="bg-accent-purple/15 border-accent-purple/30 flex size-24 items-center justify-center rounded-3xl border text-2xl font-[700] text-accent-purple shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+            {initials(profile.fullName)}
+          </div>
+        )}
         <div>
           <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
           <p className="text-text-secondary text-sm">

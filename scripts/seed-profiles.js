@@ -40,6 +40,7 @@ const PROFILES = [
     linkedin: "https://www.linkedin.com/in/harsh-powar/",
     location: "Mumbai, India",
     bio: "Building brand identities for ambitious founders. Let's make something people remember.",
+    avatar_url: "/Rohan.jpg",
     interests: ["🎨 Branding", "📐 Design", "💡 Strategy"],
     is_published: true,
     profile_style: "standard",
