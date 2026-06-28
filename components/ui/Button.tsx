@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 export interface ButtonProps {
   variant: "primary" | "secondary" | "ghost" | "danger";
   size: "sm" | "md" | "lg";
+  type?: "button" | "submit";
   loading?: boolean;
   disabled?: boolean;
   magnetic?: boolean;
@@ -30,6 +31,7 @@ const sizeClasses: Record<ButtonProps["size"], string> = {
 export default function Button({
   variant,
   size,
+  type = "submit",
   loading,
   disabled,
   href,
@@ -62,7 +64,7 @@ export default function Button({
   }
 
   return (
-    <button disabled={disabled || loading} onClick={onClick} className={classes}>
+    <button type={type} disabled={disabled || loading} onClick={onClick} className={classes}>
       {content}
     </button>
   );

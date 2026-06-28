@@ -21,6 +21,7 @@ interface ProfileRow {
   bio: string | null;
   avatar_url: string | null;
   interests: string[] | null;
+  extra_links: { label: string; url: string }[] | null;
   is_published: boolean;
   profile_style: "standard" | "personal";
   created_at: string;
@@ -48,6 +49,7 @@ function mapProfileRow(row: ProfileRow): Profile {
     bio: row.bio ?? undefined,
     avatarUrl: row.avatar_url ?? undefined,
     interests: row.interests ?? undefined,
+    extraLinks: row.extra_links ?? undefined,
     isPublished: row.is_published,
     profileStyle: row.profile_style,
     createdAt: row.created_at,

@@ -1,4 +1,4 @@
-import OrderForm from "@/components/order/OrderForm";
+import OrderWizard from "@/components/order/OrderWizard";
 
 export default async function OrderPage({
   searchParams,
@@ -12,9 +12,9 @@ export default async function OrderPage({
       <div className="mx-auto w-full max-w-2xl">
         <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Order your card</h1>
         <p className="text-text-secondary mb-10">
-          Fill in your details below and we&apos;ll get your NFC card designed and shipped.
+          Set up your card, your profile page, and pay — in three quick steps.
         </p>
-        <OrderForm defaultCardType={card} />
+        <OrderWizard defaultCardType={card} />
       </div>
     </main>
   );

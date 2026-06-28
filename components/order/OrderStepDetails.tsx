@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { orderFormSchema, type OrderFormValues } from "@/lib/validations";
+import { orderDetailsSchema, type OrderDetailsValues } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
 
-export default function OrderForm({ defaultCardType }: { defaultCardType?: string }) {
-  const router = useRouter();
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const initialCardType = CARD_VARIANTS.some((v) => v.id === defaultCardType)
-    ? (defaultCardType as OrderFormValues["cardType"])
+export default function OrderStepDetails({
+  defaultCardType,
+  defaultValues,
+  onContinue,
+}: {
+  defaultCardType?: string;
+  defaultValues?: Partial<OrderDetailsValues>;
+  onContinue: (values: OrderDetailsValues) => void;
+}) {
+  const initialCardType = CARD_VARIANTS.some((v) => v.id === (defaultValues?.cardType ?? defaultCardType))
+    ? ((defaultValues?.cardType ?? defaultCardType) as OrderDetailsValues["cardType"])
     : "standard";
 
   const {
@@ -23,33 +26,16 @@ export default function OrderForm({ defaultCardType }: { defaultCardType?: strin
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<OrderFormValues>({
-    resolver: zodResolver(orderFormSchema),
-    defaultValues: { cardType: initialCardType, quantity: 1 },
+    formState: { errors },
+  } = useForm<OrderDetailsValues>({
+    resolver: zodResolver(orderDetailsSchema),
+    defaultValues: { ...defaultValues, cardType: initialCardType, quantity: defaultValues?.quantity ?? 1 },
   });
 
   const selectedCardType = watch("cardType");
 
-  async function onSubmit(values: OrderFormValues) {
-    setSubmitError(null);
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      setSubmitError(data.error ?? "Something went wrong, please try again.");
-      return;
-    }
-
-    router.push(`/order/success?orderNumber=${data.orderNumber}`);
-  }
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
+    <form onSubmit={handleSubmit((values) => onContinue(values))} className="flex flex-col gap-8">
       <div>
         <Label>Choose your card</Label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -133,14 +119,9 @@ export default function OrderForm({ defaultCardType }: { defaultCardType?: strin
         />
       </div>
 
-      {submitError && <p className="text-error text-sm">{submitError}</p>}
-
-      <Button variant="primary" size="lg" disabled={isSubmitting} loading={isSubmitting} className="w-full">
-        {isSubmitting ? "Placing your order…" : "Place Order"}
+      <Button variant="primary" size="lg" className="w-full">
+        Continue to profile setup
       </Button>
-      <p className="text-text-muted -mt-4 text-center text-xs">
-        Online payment isn&apos;t live yet. After you submit, our team will reach out to arrange payment.
-      </p>
     </form>
   );
 }

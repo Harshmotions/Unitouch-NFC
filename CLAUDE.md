@@ -42,10 +42,17 @@ Check before assuming something works.
   click events (`lib/track.ts` → `app/api/analytics/route.ts` →
   `lib/analytics.ts`). vCard download (`lib/vcard.ts`) and native share
   (`lib/share.ts`) both work.
-- Order creation API (`app/api/orders/route.ts`) — validates with
-  `lib/validations.ts` (zod) and inserts a `pending` row into `orders`.
-  Generates a `UTK-XXXXXX` order number.
-- Order form UI (`components/order/OrderForm.tsx`) + success page.
+- Order flow (`components/order/OrderWizard.tsx`) — a 3-step checkout:
+  order details → self-serve profile setup (with a live preview that
+  renders the real `StandardProfile`/`PersonalProfile` against draft
+  in-memory data, photo included via a local blob URL) → payment. Nothing
+  is written to `orders` or `profiles` until payment succeeds —
+  `app/api/orders/checkout/route.ts` is the only route that writes to
+  either table, and it's only called after the payment step reports
+  success. Real Razorpay isn't wired up yet, so that step is a "Test
+  Payment" button that simulates success and logs the mock payment to the
+  console — swap it for real Razorpay later. Username availability is
+  checked live via `app/api/profiles/check-username/route.ts`.
 
 **Stubbed — exists as a file/route but does nothing yet:**
 - Everything under `app/admin/**` (login, dashboard, orders, profiles,

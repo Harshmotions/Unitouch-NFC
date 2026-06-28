@@ -17,6 +17,7 @@ export interface Profile {
   bio?: string;
   avatarUrl?: string;
   interests?: string[];
+  extraLinks?: { label: string; url: string }[];
   isPublished: boolean;
   profileStyle: "standard" | "personal";
   createdAt: string;

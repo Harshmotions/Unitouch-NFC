@@ -1,4 +1,4 @@
-import { Mail, Globe, Phone } from "lucide-react";
+import { Mail, Globe, Phone, Link2 } from "lucide-react";
 import type { ComponentType } from "react";
 
 type IconProps = { className?: string };
@@ -70,19 +70,23 @@ export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps> }> 
 };
 
 /* One grid cell: just the circular icon badge with its label underneath —
-   no outer card. Every platform shares this one neutral badge style. */
+   no outer card. Every platform shares this one neutral badge style.
+   `platform` is omitted for custom/arbitrary links (added during checkout)
+   — those fall back to a generic link icon. Swap that fallback for the
+   linked site's favicon here later; this is the only place that needs to
+   change. */
 export function PlatformTile({
   platform,
   label,
   href,
   onClick,
 }: {
-  platform: PlatformKey;
+  platform?: PlatformKey;
   label: string;
   href: string;
   onClick?: () => void;
 }) {
-  const { Icon } = PLATFORMS[platform];
+  const Icon = platform ? PLATFORMS[platform].Icon : Link2;
   return (
     <a
       href={href}
@@ -105,13 +109,17 @@ export function PlatformGrid({
   items,
   onItemClick,
 }: {
-  items: { platform: PlatformKey; label: string; href: string }[];
+  items: { platform?: PlatformKey; label: string; href: string }[];
   onItemClick?: (platform: PlatformKey) => void;
 }) {
   return (
     <div className="grid grid-cols-3 place-items-center gap-x-3 gap-y-5">
       {items.map((item) => (
-        <PlatformTile key={item.label} {...item} onClick={onItemClick ? () => onItemClick(item.platform) : undefined} />
+        <PlatformTile
+          key={item.label}
+          {...item}
+          onClick={item.platform && onItemClick ? () => onItemClick(item.platform!) : undefined}
+        />
       ))}
     </div>
   );

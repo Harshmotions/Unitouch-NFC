@@ -26,6 +26,7 @@ create table public.profiles (
   bio text,
   avatar_url text,
   interests text[],
+  extra_links jsonb not null default '[]',
   is_published boolean not null default false,
   profile_style text not null default 'standard'
     check (profile_style in ('standard', 'personal')),

@@ -27,17 +27,23 @@ function withHref<T extends { href?: string }>(item: T): item is T & { href: str
 export default function PersonalProfile({
   profile,
   stats,
+  preview = false,
 }: {
   profile: Profile;
   stats: { views: number; saves: number };
+  preview?: boolean;
 }) {
   const [shared, setShared] = useState(false);
 
-  useEffect(() => {
-    track("page_view", profile.username);
-  }, [profile.username]);
+  const safeTrack: typeof track = (eventType, username, metadata) => {
+    if (!preview) track(eventType, username, metadata);
+  };
 
-  const links: { platform: PlatformKey; label: string; href?: string }[] = [
+  useEffect(() => {
+    if (!preview) track("page_view", profile.username);
+  }, [preview, profile.username]);
+
+  const links: { platform?: PlatformKey; label: string; href?: string }[] = [
     { platform: "phone", label: "Call", href: profile.phone && `tel:${profile.phone}` },
     {
       platform: "whatsapp",
@@ -50,6 +56,7 @@ export default function PersonalProfile({
     { platform: "twitter", label: "X (Twitter)", href: profile.twitter },
     { platform: "youtube", label: "YouTube", href: profile.youtube },
     { platform: "email", label: "Email", href: profile.email && `mailto:${profile.email}` },
+    ...(profile.extraLinks ?? []).map((link) => ({ label: link.label, href: link.url })),
   ];
   const visibleLinks = links.filter(withHref);
 
@@ -162,7 +169,7 @@ export default function PersonalProfile({
               items={visibleLinks}
               onItemClick={(platform) => {
                 const eventType = PLATFORM_EVENTS[platform];
-                if (eventType) track(eventType, profile.username);
+                if (eventType) safeTrack(eventType, profile.username);
               }}
             />
           </div>
@@ -174,7 +181,7 @@ export default function PersonalProfile({
         <button
           onClick={() => {
             downloadVCard(profile);
-            track("contact_save", profile.username);
+            safeTrack("contact_save", profile.username);
           }}
           className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-xl items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
         >

@@ -35,17 +35,23 @@ const initials = (name: string) =>
 export default function StandardProfile({
   profile,
   stats,
+  preview = false,
 }: {
   profile: Profile;
   stats: { views: number; saves: number };
+  preview?: boolean;
 }) {
   const [shared, setShared] = useState(false);
 
-  useEffect(() => {
-    track("page_view", profile.username);
-  }, [profile.username]);
+  const safeTrack: typeof track = (eventType, username, metadata) => {
+    if (!preview) track(eventType, username, metadata);
+  };
 
-  const links: { platform: PlatformKey; label: string; href?: string }[] = [
+  useEffect(() => {
+    if (!preview) track("page_view", profile.username);
+  }, [preview, profile.username]);
+
+  const links: { platform?: PlatformKey; label: string; href?: string }[] = [
     {
       platform: "whatsapp",
       label: "WhatsApp",
@@ -55,6 +61,7 @@ export default function StandardProfile({
     { platform: "website", label: "Website", href: profile.website },
     { platform: "instagram", label: "Instagram", href: profile.instagram },
     { platform: "linkedin", label: "LinkedIn", href: profile.linkedin },
+    ...(profile.extraLinks ?? []).map((link) => ({ label: link.label, href: link.url })),
   ];
   const visibleLinks = links.filter(withHref);
 
@@ -140,7 +147,7 @@ export default function StandardProfile({
           items={visibleLinks}
           onItemClick={(platform) => {
             const eventType = PLATFORM_EVENTS[platform];
-            if (eventType) track(eventType, profile.username);
+            if (eventType) safeTrack(eventType, profile.username);
           }}
         />
       </div>
@@ -150,7 +157,7 @@ export default function StandardProfile({
         <button
           onClick={() => {
             downloadVCard(profile);
-            track("contact_save", profile.username);
+            safeTrack("contact_save", profile.username);
           }}
           className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
         >
