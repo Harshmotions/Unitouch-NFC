@@ -15,6 +15,7 @@ import PersonalProfile from "@/components/profile/PersonalProfile";
 type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "error";
 
 const MAX_EXTRA_LINKS = 8;
+const MAX_INTERESTS = 6;
 
 const STYLE_OPTIONS = [
   {
@@ -126,6 +127,20 @@ export default function OrderStepProfile({
   const [photoError, setPhotoError] = useState<string | null>(null);
   const usernameField = register("username");
 
+  const [interests, setInterests] = useState<string[]>(defaultValues?.interests ?? []);
+  const [interestInput, setInterestInput] = useState("");
+
+  function addInterest() {
+    const trimmed = interestInput.trim();
+    if (!trimmed || interests.length >= MAX_INTERESTS) return;
+    setInterests((prev) => [...prev, trimmed]);
+    setInterestInput("");
+  }
+
+  function removeInterest(index: number) {
+    setInterests((prev) => prev.filter((_, i) => i !== index));
+  }
+
   // Auto-generate the profile URL from the customer's name (+ company) so
   // they don't have to think about it — it's just the link, not a big
   // decision. Stops the moment they edit it themselves.
@@ -205,6 +220,7 @@ export default function OrderStepProfile({
     location: formValues.location,
     bio: formValues.bio,
     avatarUrl: photoUrl ?? undefined,
+    interests: interests.length > 0 ? interests : undefined,
     extraLinks: (formValues.extraLinks ?? []).filter((l) => l?.label && l?.url) as { label: string; url: string }[],
     isPublished: true,
     profileStyle: formValues.profileStyle ?? "standard",
@@ -218,7 +234,7 @@ export default function OrderStepProfile({
     // another link" row doesn't block submission with a validation error.
     const cleaned = (watch("extraLinks") ?? []).filter((l) => l?.label?.trim() && l?.url?.trim());
     setValue("extraLinks", cleaned);
-    handleSubmit((values) => onContinue({ ...values, extraLinks: cleaned }))(e);
+    handleSubmit((values) => onContinue({ ...values, extraLinks: cleaned, interests }))(e);
   }
 
   return (
@@ -343,6 +359,56 @@ export default function OrderStepProfile({
             className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent-purple/50"
           />
           {errors.bio && <p className="text-error mt-1.5 text-xs">{errors.bio.message}</p>}
+        </div>
+
+        <div>
+          <Label>Interests / tags (optional)</Label>
+          <p className="text-text-muted mb-3 -mt-1 text-xs">
+            Small tags shown under your bio, like &quot;🎨 Branding&quot;. Purely decorative, not
+            clickable.
+          </p>
+          {interests.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {interests.map((tag, index) => (
+                <span
+                  key={`${tag}-${index}`}
+                  className="glass-pill glass-stroke-1 text-text-primary flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeInterest(index)}
+                    className="text-text-muted hover:text-error"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          {interests.length < MAX_INTERESTS && (
+            <div className="flex gap-3">
+              <Input
+                value={interestInput}
+                onChange={(e) => setInterestInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addInterest();
+                  }
+                }}
+                placeholder="🎨 Branding"
+                maxLength={30}
+              />
+              <Button type="button" variant="secondary" size="md" onClick={addInterest}>
+                <Plus className="size-4" />
+                Add
+              </Button>
+            </div>
+          )}
+          <p className="text-text-muted mt-1.5 text-xs">
+            {interests.length}/{MAX_INTERESTS}
+          </p>
         </div>
 
         <div>

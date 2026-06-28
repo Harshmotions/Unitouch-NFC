@@ -138,6 +138,7 @@ export async function POST(request: Request) {
       location: profile.location || null,
       bio: profile.bio || null,
       avatar_url: avatarUrl,
+      interests: profile.interests ?? [],
       extra_links: profile.extraLinks ?? [],
       is_published: true,
       profile_style: profile.profileStyle,

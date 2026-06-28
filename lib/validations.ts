@@ -38,6 +38,7 @@ export const profileSetupSchema = z.object({
   youtube: z.string().optional(),
   portfolio: z.string().optional(),
   profileStyle: z.enum(["standard", "personal"]),
+  interests: z.array(z.string().min(1).max(30)).max(6, "Up to 6 tags").optional(),
   extraLinks: z
     .array(z.object({ label: z.string().min(1, "Add a label").max(40), url: z.string().url("Enter a valid URL") }))
     .max(8, "Up to 8 extra links")
