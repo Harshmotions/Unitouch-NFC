@@ -8,6 +8,7 @@ import { formatMemberSince } from "@/lib/profile-demo";
 import { downloadVCard } from "@/lib/vcard";
 import { track } from "@/lib/track";
 import { shareProfile } from "@/lib/share";
+import { withProtocol } from "@/lib/url";
 import { PlatformGrid, type PlatformKey } from "./PlatformIcons";
 
 const PLATFORM_EVENTS: Partial<Record<PlatformKey, EventType>> = {
@@ -50,11 +51,11 @@ export default function PersonalProfile({
       label: "WhatsApp",
       href: profile.whatsapp && `https://wa.me/${profile.whatsapp.replace(/\D/g, "")}`,
     },
-    { platform: "website", label: "Website", href: profile.website },
-    { platform: "instagram", label: "Instagram", href: profile.instagram },
-    { platform: "linkedin", label: "LinkedIn", href: profile.linkedin },
-    { platform: "twitter", label: "X (Twitter)", href: profile.twitter },
-    { platform: "youtube", label: "YouTube", href: profile.youtube },
+    { platform: "website", label: "Website", href: profile.website && withProtocol(profile.website) },
+    { platform: "instagram", label: "Instagram", href: profile.instagram && withProtocol(profile.instagram) },
+    { platform: "linkedin", label: "LinkedIn", href: profile.linkedin && withProtocol(profile.linkedin) },
+    { platform: "twitter", label: "X (Twitter)", href: profile.twitter && withProtocol(profile.twitter) },
+    { platform: "youtube", label: "YouTube", href: profile.youtube && withProtocol(profile.youtube) },
     { platform: "email", label: "Email", href: profile.email && `mailto:${profile.email}` },
     ...(profile.extraLinks ?? []).map((link) => ({ label: link.label, href: link.url })),
   ];

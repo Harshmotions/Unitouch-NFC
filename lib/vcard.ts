@@ -1,4 +1,5 @@
 import type { Profile } from "@/types";
+import { withProtocol } from "@/lib/url";
 
 function escapeVCardValue(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
@@ -13,7 +14,7 @@ export function buildVCard(profile: Profile): string {
   if (profile.designation) lines.push(`TITLE:${escapeVCardValue(profile.designation)}`);
   if (profile.phone) lines.push(`TEL;TYPE=CELL:${escapeVCardValue(profile.phone)}`);
   if (profile.email) lines.push(`EMAIL:${escapeVCardValue(profile.email)}`);
-  if (profile.website) lines.push(`URL:${escapeVCardValue(profile.website)}`);
+  if (profile.website) lines.push(`URL:${escapeVCardValue(withProtocol(profile.website))}`);
   if (profile.location) lines.push(`ADR;TYPE=WORK:;;;${escapeVCardValue(profile.location)};;;`);
   if (profile.bio) lines.push(`NOTE:${escapeVCardValue(profile.bio)}`);
 
