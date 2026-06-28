@@ -259,7 +259,7 @@ export default function OrderStepProfile({
         <div>
           <Label htmlFor="username">Your profile link</Label>
           <p className="text-text-muted mb-2 -mt-1 text-xs">
-            We&apos;ve picked one based on your name — change it if you&apos;d like.
+            We&apos;ve picked one based on your name. Change it if you&apos;d like.
           </p>
           <div className="text-text-secondary bg-bg-elevated border-bg-border flex items-center rounded-xl border focus-within:border-accent-purple/50">
             <span className="pl-4 text-sm">unitouch.in/u/</span>
@@ -346,7 +346,11 @@ export default function OrderStepProfile({
         </div>
 
         <div>
-          <p className="text-text-primary mb-4 font-[600]">Links</p>
+          <p className="text-text-primary font-[600]">Links</p>
+          <p className="text-text-muted mb-4 text-sm">
+            Fill in whatever applies to you. Leave the rest blank, or add anything else under Extra
+            links below.
+          </p>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
               <Label htmlFor="website">Website</Label>

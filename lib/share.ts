@@ -5,7 +5,7 @@ export async function shareProfile(fullName: string, username: string) {
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: `${fullName} — Unitouch`, url });
+      await navigator.share({ title: `${fullName}'s Unitouch profile`, url });
       return;
     } catch {
       return;

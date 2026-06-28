@@ -12,7 +12,7 @@ export default async function OrderPage({
       <div className="mx-auto w-full max-w-2xl">
         <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Order your card</h1>
         <p className="text-text-secondary mb-10">
-          Set up your card, your profile page, and pay — in three quick steps.
+          Set up your card, your profile page, and pay in three quick steps.
         </p>
         <OrderWizard defaultCardType={card} />
       </div>

@@ -76,8 +76,8 @@ export default function OrderStepPayment({
 
       <div className="surface-card rounded-2xl p-5">
         <p className="text-text-muted text-sm">
-          Razorpay checkout isn&apos;t wired up yet. This is a test button that simulates a successful
-          payment so the rest of the flow — order + profile creation — can be verified end to end.
+          Razorpay checkout isn&apos;t wired up yet. This test button simulates a successful payment so
+          the order and profile creation can be verified end to end.
         </p>
       </div>
 

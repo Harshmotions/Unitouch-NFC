@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: "Could not check username — please try again" }, { status: 500 });
+    return NextResponse.json({ error: "Could not check username. Please try again." }, { status: 500 });
   }
 
   return NextResponse.json({ available: !data });

@@ -66,10 +66,10 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingError) {
-    return NextResponse.json({ error: "Could not verify username — please try again" }, { status: 500 });
+    return NextResponse.json({ error: "Could not verify username. Please try again." }, { status: 500 });
   }
   if (existing) {
-    return NextResponse.json({ error: "That username was just taken — pick another" }, { status: 409 });
+    return NextResponse.json({ error: "That username was just taken. Please pick another." }, { status: 409 });
   }
 
   let avatarUrl: string | null = null;
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       .upload(path, photo, { contentType: photo.type, upsert: false });
 
     if (uploadError) {
-      return NextResponse.json({ error: "Could not upload photo — please try again" }, { status: 500 });
+      return NextResponse.json({ error: "Could not upload photo. Please try again." }, { status: 500 });
     }
 
     const { data: publicUrlData } = supabase.storage.from("profile-photos").getPublicUrl(path);
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     .single();
 
   if (orderError || !orderRow) {
-    return NextResponse.json({ error: "Could not save your order — please try again" }, { status: 500 });
+    return NextResponse.json({ error: "Could not save your order. Please try again." }, { status: 500 });
   }
 
   const { data: profileRow, error: profileError } = await supabase
@@ -147,7 +147,7 @@ export async function POST(request: Request) {
     .single();
 
   if (profileError || !profileRow) {
-    return NextResponse.json({ error: "Order was placed but profile setup failed — we'll follow up" }, { status: 500 });
+    return NextResponse.json({ error: "Order was placed but profile setup failed. We'll follow up." }, { status: 500 });
   }
 
   await supabase.from("orders").update({ profile_id: profileRow.id }).eq("id", orderRow.id);

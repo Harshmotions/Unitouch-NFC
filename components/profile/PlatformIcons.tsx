@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Mail, Globe, Phone, Link2 } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -69,12 +72,21 @@ export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps> }> 
   phone: { Icon: Phone },
 };
 
+/* Custom/arbitrary links (added during checkout, no known PlatformKey) show
+   the linked site's actual favicon instead of a generic icon — fetched
+   straight from the URL's domain via Google's favicon service, no backend
+   route needed. Falls back to a generic link icon if it 404s. */
+function faviconUrl(href: string): string | null {
+  try {
+    const hostname = new URL(href).hostname;
+    return `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(hostname)}`;
+  } catch {
+    return null;
+  }
+}
+
 /* One grid cell: just the circular icon badge with its label underneath —
-   no outer card. Every platform shares this one neutral badge style.
-   `platform` is omitted for custom/arbitrary links (added during checkout)
-   — those fall back to a generic link icon. Swap that fallback for the
-   linked site's favicon here later; this is the only place that needs to
-   change. */
+   no outer card. Every platform shares this one neutral badge style. */
 export function PlatformTile({
   platform,
   label,
@@ -86,7 +98,10 @@ export function PlatformTile({
   href: string;
   onClick?: () => void;
 }) {
-  const Icon = platform ? PLATFORMS[platform].Icon : Link2;
+  const [faviconFailed, setFaviconFailed] = useState(false);
+  const favicon = !platform ? faviconUrl(href) : null;
+  const PlatformGlyph = platform ? PLATFORMS[platform].Icon : null;
+
   return (
     <a
       href={href}
@@ -96,7 +111,19 @@ export function PlatformTile({
       className="group flex flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94]"
     >
       <span className="bg-bg-elevated flex size-16 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)]">
-        <Icon className="text-text-primary size-7" />
+        {PlatformGlyph ? (
+          <PlatformGlyph className="text-text-primary size-7" />
+        ) : favicon && !faviconFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={favicon}
+            alt=""
+            className="size-7 object-contain"
+            onError={() => setFaviconFailed(true)}
+          />
+        ) : (
+          <Link2 className="text-text-primary size-7" />
+        )}
       </span>
       <span className="text-text-secondary truncate text-sm">{label}</span>
     </a>
