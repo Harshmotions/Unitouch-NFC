@@ -16,14 +16,14 @@ export default function OrderWizard({ defaultCardType }: { defaultCardType?: str
 
   return (
     <div>
-      <div className="mb-10 flex items-center gap-3">
+      <div className="mb-10 flex w-full max-w-full items-center gap-2 overflow-hidden sm:gap-3">
         {STEPS.map((label, i) => {
           const stepNumber = i + 1;
           const active = stepNumber === step;
           const done = stepNumber < step;
           return (
-            <div key={label} className="flex flex-1 items-center gap-3">
-              <div className="flex items-center gap-2">
+            <div key={label} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+              <div className="flex min-w-0 items-center gap-2">
                 <span
                   className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-[600] ${
                     active || done
@@ -33,11 +33,13 @@ export default function OrderWizard({ defaultCardType }: { defaultCardType?: str
                 >
                   {stepNumber}
                 </span>
-                <span className={`text-sm whitespace-nowrap ${active ? "text-text-primary" : "text-text-muted"}`}>
+                <span
+                  className={`hidden truncate text-sm sm:inline sm:whitespace-nowrap ${active ? "text-text-primary" : "text-text-muted"}`}
+                >
                   {label}
                 </span>
               </div>
-              {stepNumber < STEPS.length && <div className="bg-bg-border h-px flex-1" />}
+              {stepNumber < STEPS.length && <div className="bg-bg-border h-px min-w-4 flex-1" />}
             </div>
           );
         })}
