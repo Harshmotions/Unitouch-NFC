@@ -94,38 +94,44 @@ export default function Hero() {
         }}
       />
 
-      {/* spotlight beam + starfield + corona, anchored over the right-side visual slot */}
+      {/* spotlight beam + starfield + corona, anchored over the right-side visual
+         slot via the SAME bounded/centered container used for the image below
+         (not the raw section/viewport) — otherwise on wide monitors the
+         section's true edge sits far past this container's edge and the glow
+         (and the image it's meant to track) drift apart from the text. */}
       <div className="pointer-events-none absolute inset-0 hidden md:block">
-        <div
-          className="absolute inset-0"
-          style={{ backgroundImage: STARFIELD, backgroundRepeat: "no-repeat" }}
-        />
-        {/* wide soft corona behind the card */}
-        <div
-          className="absolute top-[18%] h-[64%] w-[420px] -translate-x-1/2 blur-[80px]"
-          style={{
-            left: "82%",
-            background:
-              "radial-gradient(ellipse at center, var(--color-accent-purple-glow-soft), transparent 70%)",
-          }}
-        />
-        {/* tighter bright glow directly behind the card */}
-        <div
-          className="absolute top-[22%] h-[44%] w-[260px] -translate-x-1/2 blur-3xl"
-          style={{
-            left: "82%",
-            background:
-              "radial-gradient(ellipse at center, var(--color-accent-purple-glow), transparent 70%)",
-          }}
-        />
-        {/* light pooling beneath the card */}
-        <div
-          className="absolute bottom-[10%] h-32 w-[360px] -translate-x-1/2 blur-2xl"
-          style={{ left: "82%", background: "var(--color-accent-purple-glow-soft)" }}
-        />
+        <div className="relative mx-auto h-full w-full max-w-[1700px]">
+          <div
+            className="absolute inset-0"
+            style={{ backgroundImage: STARFIELD, backgroundRepeat: "no-repeat" }}
+          />
+          {/* wide soft corona behind the card */}
+          <div
+            className="absolute top-[18%] h-[64%] w-[420px] -translate-x-1/2 blur-[80px]"
+            style={{
+              left: "82%",
+              background:
+                "radial-gradient(ellipse at center, var(--color-accent-purple-glow-soft), transparent 70%)",
+            }}
+          />
+          {/* tighter bright glow directly behind the card */}
+          <div
+            className="absolute top-[22%] h-[44%] w-[260px] -translate-x-1/2 blur-3xl"
+            style={{
+              left: "82%",
+              background:
+                "radial-gradient(ellipse at center, var(--color-accent-purple-glow), transparent 70%)",
+            }}
+          />
+          {/* light pooling beneath the card */}
+          <div
+            className="absolute bottom-[10%] h-32 w-[360px] -translate-x-1/2 blur-2xl"
+            style={{ left: "82%", background: "var(--color-accent-purple-glow-soft)" }}
+          />
+        </div>
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-start">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1700px] flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-start">
         <div className="flex flex-col items-start gap-6 text-left md:max-w-xl">
           <span className="hero-badge text-accent-purple inline-flex items-center rounded-full border border-accent-purple/25 bg-accent-purple/[0.08] px-4 py-1.5 text-xs font-[500] tracking-wide backdrop-blur-sm">
             NFC Business Cards, Reinvented
@@ -168,16 +174,21 @@ export default function Hero() {
 
       {/* desktop-only hero visual — positioned independently of the text
          column (not a flex sibling) so its size can't push the headline
-         off-screen; untested on tablet/mobile, so hidden below md */}
-      <div className="hero-visual-slot pointer-events-none absolute inset-y-0 right-4 z-0 hidden items-center justify-center md:flex">
-        <Image
-          src="/Final Hero Priya.png"
-          alt="A hand tapping a Unitouch NFC card against a phone showing a live profile"
-          width={1532}
-          height={1080}
-          priority
-          className="h-auto w-[260px] max-w-none object-contain lg:w-[340px] xl:w-[420px] 2xl:w-[480px]"
-        />
+         off-screen; untested on tablet/mobile, so hidden below md. Anchored
+         to the right edge of the SAME bounded container as the text (not the
+         section's true edge) so it stays visually tied to the headline
+         instead of drifting toward the true screen edge on wide monitors. */}
+      <div className="hero-visual-slot pointer-events-none absolute inset-0 z-0 hidden items-center md:flex">
+        <div className="mx-auto flex h-full w-full max-w-[1700px] items-center justify-end">
+          <Image
+            src="/Final Version.png"
+            alt="A hand tapping a Unitouch NFC card against a phone showing a live profile"
+            width={2373}
+            height={1263}
+            priority
+            className="h-auto w-[340px] max-w-none object-contain lg:w-[480px] xl:w-[620px] 2xl:w-[900px] min-[1920px]:w-[1120px]!"
+          />
+        </div>
       </div>
 
       <div
