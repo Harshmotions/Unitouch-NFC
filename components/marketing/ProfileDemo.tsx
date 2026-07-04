@@ -1,19 +1,42 @@
+import Image from "next/image";
 import Button from "@/components/ui/Button";
-import { PlatformGrid, type PlatformKey } from "@/components/profile/PlatformIcons";
 
-const ACTIONS: { platform: PlatformKey; label: string; href: string }[] = [
-  { platform: "whatsapp", label: "WhatsApp", href: "#" },
-  { platform: "email", label: "Email", href: "#" },
-  { platform: "website", label: "Website", href: "#" },
-  { platform: "instagram", label: "Instagram", href: "#" },
-  { platform: "linkedin", label: "LinkedIn", href: "#" },
-];
+/* Hand-drawn-style curved arrow doodle — swoops down through a small loop
+   before pointing into the demo image, echoing the "annotate a screenshot"
+   sketch style. marker-end handles the arrowhead rotation automatically so
+   it always points along the path's own direction. */
+function DoodleArrow({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 160 190" fill="none" className={className} aria-hidden="true">
+      <defs>
+        <marker
+          id="doodle-arrowhead"
+          markerWidth="8"
+          markerHeight="8"
+          refX="4.5"
+          refY="4"
+          orient="auto-start-reverse"
+        >
+          <path d="M0 0 L8 4 L0 8 Z" fill="currentColor" />
+        </marker>
+      </defs>
+      <path
+        d="M22 8 C -8 48, 6 112, 42 134 C 64 148, 82 120, 60 110 C 40 101, 36 132, 60 140 C 92 151, 122 141, 146 130"
+        stroke="currentColor"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeDasharray="13 11"
+        markerEnd="url(#doodle-arrowhead)"
+      />
+    </svg>
+  );
+}
 
 export default function ProfileDemo() {
   return (
     <section id="profile-demo" className="px-6 py-24 md:py-28">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-12 md:flex-row md:justify-between md:gap-16">
-        <div className="flex flex-col items-center gap-5 text-center md:items-start md:text-left">
+      <div className="mx-auto flex w-full max-w-[2100px] flex-col items-center gap-12 lg:flex-row lg:justify-between lg:gap-16">
+        <div className="flex shrink-0 flex-col items-center gap-5 text-center lg:items-start lg:text-left">
           <span className="eyebrow">Demo Profile</span>
           <h2 className="font-display text-h2 text-text-primary max-w-md font-[600]">
             Your profile. Always ready to impress.
@@ -23,23 +46,24 @@ export default function ProfileDemo() {
             profile is fully editable after your card ships.
           </p>
           <Button variant="primary" size="lg" href="/order" className="mt-2">
-            Your profile looks this good. Order Now →
+            Order Now
           </Button>
         </div>
 
-        <div className="w-full max-w-[300px] rounded-[2.2rem] border border-white/10 bg-bg-elevated p-2.5 shadow-[0_30px_80px_-32px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)]">
-          <div className="bg-bg-base flex flex-col items-center gap-4 rounded-[1.8rem] p-6 pt-10">
-            <div className="bg-accent-purple/15 border-accent-purple/30 flex size-20 items-center justify-center rounded-full border text-2xl font-[700] text-accent-purple">
-              RM
-            </div>
-            <div className="text-center">
-              <p className="font-display text-text-primary font-[600]">Rohan Mehta</p>
-              <p className="text-text-secondary text-sm">Creative Director, Studio North</p>
-            </div>
-            <div className="w-full">
-              <PlatformGrid items={ACTIONS} />
-            </div>
+        <div className="relative w-full max-w-[480px] md:max-w-[620px] lg:max-w-[810px] xl:max-w-[990px] 2xl:max-w-[1230px] min-[1920px]:max-w-[1425px]!">
+          <div className="pointer-events-none absolute -top-16 left-2 z-10 hidden flex-col items-start lg:flex">
+            <span className="font-display text-text-secondary -rotate-3 whitespace-nowrap text-base italic">
+              Your Profile looks this good
+            </span>
+            <DoodleArrow className="text-text-secondary/60 mt-1 h-28 w-24" />
           </div>
+          <Image
+            src="/Final Demo.png"
+            alt="A phone showing a live Unitouch profile page for Priya Anand"
+            width={3329}
+            height={2119}
+            className="h-auto w-full"
+          />
         </div>
       </div>
     </section>
