@@ -181,12 +181,12 @@ export default function Hero() {
       <div className="hero-visual-slot pointer-events-none absolute inset-0 z-0 hidden items-center md:flex">
         <div className="mx-auto flex h-full w-full max-w-[1700px] items-center justify-end">
           <Image
-            src="/Final Version.png"
-            alt="A hand tapping a Unitouch NFC card against a phone showing a live profile"
-            width={2373}
-            height={1263}
+            src="/Card Hero Page Mockup.png"
+            alt="A phone showing a live Unitouch profile page next to an NFC business card"
+            width={1756}
+            height={1705}
             priority
-            className="h-auto w-[340px] max-w-none object-contain lg:w-[480px] xl:w-[620px] 2xl:w-[900px] min-[1920px]:w-[1120px]!"
+            className="h-auto w-[340px] max-w-none object-contain lg:w-[480px] xl:w-[650px] 2xl:w-[780px] min-[1920px]:w-[1000px]!"
           />
         </div>
       </div>

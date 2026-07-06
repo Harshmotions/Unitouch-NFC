@@ -50,7 +50,7 @@ export default function ProfileDemo() {
           </Button>
         </div>
 
-        <div className="relative w-full max-w-[480px] md:max-w-[620px] lg:max-w-[810px] xl:max-w-[990px] 2xl:max-w-[1230px] min-[1920px]:max-w-[1425px]!">
+        <div className="relative w-full max-w-[200px] md:max-w-[240px] lg:max-w-[280px] xl:max-w-[320px] 2xl:max-w-[360px] min-[1920px]:max-w-[400px]!">
           <div className="pointer-events-none absolute -top-16 left-2 z-10 hidden flex-col items-start lg:flex">
             <span className="font-display text-text-secondary -rotate-3 whitespace-nowrap text-base italic">
               Your Profile looks this good
@@ -58,10 +58,10 @@ export default function ProfileDemo() {
             <DoodleArrow className="text-text-secondary/60 mt-1 h-28 w-24" />
           </div>
           <Image
-            src="/Final Demo.png"
+            src="/Hero Page.png"
             alt="A phone showing a live Unitouch profile page for Priya Anand"
-            width={3329}
-            height={2119}
+            width={941}
+            height={1672}
             className="h-auto w-full"
           />
         </div>
