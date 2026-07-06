@@ -45,6 +45,7 @@ export default function Hero() {
       ".hero-ctas",
       ".hero-stat-badge",
       ".hero-visual-slot",
+      ".hero-visual-mobile",
     ];
 
     let tl: gsap.core.Timeline | undefined;
@@ -63,7 +64,7 @@ export default function Hero() {
         .from(".hero-sub", { y: 14, opacity: 0, duration: 0.4, ease: "power2.out" }, "-=0.35")
         .from(".hero-ctas", { y: 14, opacity: 0, duration: 0.35, ease: "power2.out" }, "-=0.25")
         .from(".hero-stat-badge", { y: 10, opacity: 0, duration: 0.35, stagger: 0.06, ease: "power2.out" }, "-=0.15")
-        .from(".hero-visual-slot", { opacity: 0, scale: 0.97, duration: 0.5, ease: "expo.out" }, "-=0.5");
+        .from(".hero-visual-slot, .hero-visual-mobile", { opacity: 0, scale: 0.97, duration: 0.5, ease: "expo.out" }, "-=0.5");
     }
 
     playIntro();
@@ -84,7 +85,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-bg-base px-6 pt-24 pb-16">
+    <section className="relative isolate flex flex-col overflow-hidden bg-bg-base px-6 pt-24 pb-16 md:min-h-[100svh]">
       {/* ambient page-wide wash */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -170,6 +171,22 @@ export default function Hero() {
             ))}
           </div>
         </div>
+
+        {/* mobile-only hero visual — the desktop version below is absolutely
+           positioned and sized against the full section, which doesn't
+           translate to a narrow single column. Shown as a normal block
+           after the text content instead; the section no longer forces
+           min-h-[100svh] below md so there's room for it without cramming
+           everything into one screen. */}
+        <div className="hero-visual-mobile flex w-full justify-center md:hidden">
+          <Image
+            src="/Card Hero Page Mockup.png"
+            alt="A phone showing a live Unitouch profile page next to an NFC business card"
+            width={1756}
+            height={1705}
+            className="h-auto w-[260px] max-w-none object-contain"
+          />
+        </div>
       </div>
 
       {/* desktop-only hero visual — positioned independently of the text
@@ -192,7 +209,7 @@ export default function Hero() {
       </div>
 
       <div
-        className={`absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1 transition-opacity duration-300 ${
+        className={`absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-1 transition-opacity duration-300 md:flex ${
           scrolledPast ? "opacity-0" : "opacity-100"
         }`}
       >
