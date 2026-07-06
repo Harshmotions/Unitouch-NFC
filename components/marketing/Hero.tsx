@@ -85,7 +85,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative isolate flex flex-col overflow-hidden bg-bg-base px-6 pt-24 pb-16 md:min-h-[100svh]">
+    <section className="relative isolate flex flex-col overflow-hidden bg-bg-base px-6 pt-24 pb-4 md:min-h-[100svh] md:pb-16">
       {/* ambient page-wide wash */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -133,20 +133,25 @@ export default function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-[1700px] flex-1 flex-col items-center justify-center gap-12 md:flex-row md:items-center md:justify-start">
-        <div className="flex flex-col items-start gap-6 text-left md:max-w-xl">
+        <div className="flex flex-col items-center gap-6 text-center md:items-start md:text-left md:max-w-xl">
           <span className="hero-badge text-accent-purple inline-flex items-center rounded-full border border-accent-purple/25 bg-accent-purple/[0.08] px-4 py-1.5 text-xs font-[500] tracking-wide backdrop-blur-sm">
             NFC Business Cards, Reinvented
           </span>
-          <h1 className="hero-headline font-display text-hero from-text-primary to-text-secondary bg-gradient-to-b bg-clip-text font-[700] leading-[1.05] text-transparent">
-            Tap. Connect.
+          <h1 className="hero-headline font-display from-text-primary to-text-secondary bg-gradient-to-b bg-clip-text text-[35px] font-[700] leading-[1.05] text-transparent md:text-hero">
+            <span className="whitespace-nowrap">Tap. Connect.</span>
             <br />
-            <span className="md:whitespace-nowrap">Impress Instantly.</span>
+            <span className="whitespace-nowrap">Impress Instantly.</span>
           </h1>
           <p className="hero-sub text-text-secondary text-body-lg max-w-md">
             One NFC card. Your entire professional world. No app needed.
           </p>
-          <div className="hero-ctas flex flex-wrap items-center gap-4">
-            <Button variant="primary" size="lg" href="/order">
+          <div className="hero-ctas flex items-center gap-2 sm:gap-4">
+            <Button
+              variant="primary"
+              size="lg"
+              href="/order"
+              className="h-[33px] shrink-0 px-3 text-[11px] sm:h-12 sm:px-7 sm:text-base"
+            >
               Order Your Card →
             </Button>
             <Button
@@ -154,39 +159,39 @@ export default function Hero() {
               size="lg"
               href="#profile-demo"
               onClick={handleHashLinkClick("#profile-demo")}
-              className="glass-stroke-2"
+              className="glass-stroke-2 h-[33px] shrink-0 px-3 text-[11px] sm:h-12 sm:px-7 sm:text-base"
             >
               See a Live Profile
             </Button>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:flex-wrap sm:gap-3">
             {BADGES.map(({ icon: Icon, label }, i) => (
               <span
                 key={label}
-                className={`hero-stat-badge glass glass-stroke-${(i % 4) + 1} text-text-secondary flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs`}
+                className={`hero-stat-badge glass glass-stroke-${(i % 4) + 1} text-text-secondary flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] sm:gap-2 sm:px-3.5 sm:py-1.5 sm:text-xs`}
               >
-                <Icon className="text-accent-purple size-3.5" />
+                <Icon className="text-accent-purple size-3 sm:size-3.5" />
                 {label}
               </span>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* mobile-only hero visual — the desktop version below is absolutely
-           positioned and sized against the full section, which doesn't
-           translate to a narrow single column. Shown as a normal block
-           after the text content instead; the section no longer forces
-           min-h-[100svh] below md so there's room for it without cramming
-           everything into one screen. */}
-        <div className="hero-visual-mobile flex w-full justify-center md:hidden">
-          <Image
-            src="/Card Hero Page Mockup.png"
-            alt="A phone showing a live Unitouch profile page next to an NFC business card"
-            width={1756}
-            height={1705}
-            className="h-auto w-[260px] max-w-none object-contain"
-          />
-        </div>
+      {/* mobile-only hero visual — full-bleed edge-to-edge, breaking out of
+         the section's own px-6 via matching negative margins (this is a
+         direct child of the section, not the padded/centered text column
+         above, so -mx-6 has exactly the section's padding to cancel). The
+         desktop version below is absolutely positioned/sized against the
+         full section in a way that doesn't translate to a narrow single
+         column, hence the separate mobile-only block. */}
+      <div className="hero-visual-mobile relative z-10 -mx-6 mt-2 aspect-[3/4] w-[calc(100%+3rem)] overflow-hidden md:hidden">
+        <Image
+          src="/Card Hero Page Mockup.png"
+          alt="A phone showing a live Unitouch profile page next to an NFC business card"
+          fill
+          className="object-cover object-[90%_30%]"
+        />
       </div>
 
       {/* desktop-only hero visual — positioned independently of the text

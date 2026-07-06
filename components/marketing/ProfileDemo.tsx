@@ -35,7 +35,7 @@ function DoodleArrow({ className }: { className?: string }) {
 export default function ProfileDemo() {
   return (
     <section id="profile-demo" className="px-6 py-24 md:py-28">
-      <div className="mx-auto flex w-full max-w-[2100px] flex-col items-center gap-12 lg:flex-row lg:justify-between lg:gap-16">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-12 lg:flex-row lg:justify-center lg:gap-20">
         <div className="flex shrink-0 flex-col items-center gap-5 text-center lg:items-start lg:text-left">
           <span className="eyebrow">Demo Profile</span>
           <h2 className="font-display text-h2 text-text-primary max-w-md font-[600]">
@@ -50,7 +50,7 @@ export default function ProfileDemo() {
           </Button>
         </div>
 
-        <div className="relative w-full max-w-[200px] md:max-w-[240px] lg:max-w-[280px] xl:max-w-[320px] 2xl:max-w-[360px] min-[1920px]:max-w-[400px]!">
+        <div className="relative w-full max-w-[300px] md:max-w-[360px] lg:max-w-[300px] xl:max-w-[340px] 2xl:max-w-[380px] min-[1920px]:max-w-[420px]!">
           <div className="pointer-events-none absolute -top-16 left-2 z-10 hidden flex-col items-start lg:flex">
             <span className="font-display text-text-secondary -rotate-3 whitespace-nowrap text-base italic">
               Your Profile looks this good
