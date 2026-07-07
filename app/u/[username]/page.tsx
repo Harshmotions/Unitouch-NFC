@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import StandardProfile from "@/components/profile/StandardProfile";
 import PersonalProfile from "@/components/profile/PersonalProfile";
 import { getPublishedProfile } from "@/lib/profile";
 import { getProfileStats } from "@/lib/analytics";
@@ -15,9 +14,5 @@ export default async function ProfilePage({
 
   const stats = await getProfileStats(username);
 
-  return profile.profileStyle === "personal" ? (
-    <PersonalProfile profile={profile} stats={stats} />
-  ) : (
-    <StandardProfile profile={profile} stats={stats} />
-  );
+  return <PersonalProfile profile={profile} stats={stats} />;
 }

@@ -20,6 +20,9 @@ export interface Profile {
   extraLinks?: { label: string; url: string }[];
   isPublished: boolean;
   profileStyle: "standard" | "personal";
+  /* Internal-only — informs the manual design review, never shown on the
+     public profile page. */
+  represents?: "me" | "company" | "both";
   createdAt: string;
   updatedAt: string;
   orderId?: string;

@@ -24,6 +24,7 @@ interface ProfileRow {
   extra_links: { label: string; url: string }[] | null;
   is_published: boolean;
   profile_style: "standard" | "personal";
+  represents: "me" | "company" | "both" | null;
   created_at: string;
   updated_at: string;
   order_id: string | null;
@@ -52,6 +53,7 @@ function mapProfileRow(row: ProfileRow): Profile {
     extraLinks: row.extra_links ?? undefined,
     isPublished: row.is_published,
     profileStyle: row.profile_style,
+    represents: row.represents ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     orderId: row.order_id ?? undefined,

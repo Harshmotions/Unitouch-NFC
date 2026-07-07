@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X, Eye, ImagePlus, Plus } from "lucide-react";
+import { X, Eye, ImagePlus, Plus, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSetupSchema, type ProfileSetupValues } from "@/lib/validations";
@@ -9,7 +9,6 @@ import type { Profile } from "@/types";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
-import StandardProfile from "@/components/profile/StandardProfile";
 import PersonalProfile from "@/components/profile/PersonalProfile";
 
 type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "error";
@@ -17,20 +16,80 @@ type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid" | 
 const MAX_EXTRA_LINKS = 8;
 const MAX_INTERESTS = 6;
 
-const STYLE_OPTIONS = [
+const REPRESENTS_OPTIONS = [
   {
-    style: "standard" as const,
-    title: "Company card",
-    description: "Compact layout for company roles & organizations",
-    demoUsername: "rohan",
+    value: "me" as const,
+    icon: "👤",
+    title: "Me",
+    description: "This profile represents me as an individual.",
   },
   {
-    style: "personal" as const,
-    title: "Personal brand",
-    description: "Big photo, magazine-style layout for personal brands",
-    demoUsername: "priya",
+    value: "company" as const,
+    icon: "🏢",
+    title: "My Company",
+    description: "This profile represents my business or organization.",
+  },
+  {
+    value: "both" as const,
+    icon: "🤝",
+    title: "Both",
+    description: "I want to represent both myself and my company.",
   },
 ];
+
+// Lightweight, client-side keyword matcher that stands in for a real AI call
+// (no AI provider is configured for this project) — scans the free-text
+// "professional interests" description and proposes tags the user can accept,
+// reorder, or discard, rather than writing them from scratch.
+const INTEREST_KEYWORDS: { keywords: string[]; tag: string }[] = [
+  { keywords: ["ui design", "ux design", "ui/ux"], tag: "💻 UI Design" },
+  { keywords: ["public speaking"], tag: "🎤 Public Speaking" },
+  { keywords: ["real estate"], tag: "🏠 Real Estate" },
+  { keywords: ["branding", "brand"], tag: "🎨 Branding" },
+  { keywords: ["photography", "photographer", "photo"], tag: "📷 Photography" },
+  { keywords: ["coffee"], tag: "☕ Coffee" },
+  { keywords: ["travel", "travelling", "traveling"], tag: "✈️ Travel" },
+  { keywords: ["startup", "startups"], tag: "🚀 Startups" },
+  { keywords: ["marketing"], tag: "📈 Marketing" },
+  { keywords: ["fitness", "gym", "workout"], tag: "💪 Fitness" },
+  { keywords: ["music"], tag: "🎵 Music" },
+  { keywords: ["writing", "copywriting"], tag: "✍️ Writing" },
+  { keywords: ["coding", "developer", "engineering", "software"], tag: "💻 Engineering" },
+  { keywords: ["finance", "investing"], tag: "💰 Finance" },
+  { keywords: ["fashion"], tag: "👗 Fashion" },
+  { keywords: ["food", "cooking", "chef"], tag: "🍳 Food" },
+  { keywords: ["yoga"], tag: "🧘 Yoga" },
+  { keywords: ["film", "filmmaking", "video"], tag: "🎬 Film" },
+  { keywords: ["consulting"], tag: "📊 Consulting" },
+  { keywords: ["sales"], tag: "🤝 Sales" },
+  { keywords: ["law", "legal"], tag: "⚖️ Law" },
+  { keywords: ["education", "teaching"], tag: "📚 Education" },
+  { keywords: ["health", "wellness"], tag: "🩺 Health" },
+  { keywords: ["architecture"], tag: "🏛️ Architecture" },
+  { keywords: ["art", "illustration"], tag: "🎨 Art" },
+  { keywords: ["gaming"], tag: "🎮 Gaming" },
+  { keywords: ["agency"], tag: "🏢 Agency" },
+  { keywords: ["design"], tag: "🎨 Design" },
+];
+
+function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function suggestTagsFromText(text: string): string[] {
+  const lower = text.toLowerCase();
+  if (!lower.trim()) return [];
+  const matched: string[] = [];
+  for (const { keywords, tag } of INTEREST_KEYWORDS) {
+    if (matched.includes(tag)) continue;
+    // Leading word-boundary only (not trailing) — a plain substring check
+    // would let "art" match inside "startups"; requiring just the start of
+    // a word still allows suffixes like "brand" -> "brands"/"branding".
+    const hasMatch = keywords.some((kw) => new RegExp(`\\b${escapeRegExp(kw)}`).test(lower));
+    if (hasMatch) matched.push(tag);
+  }
+  return matched;
+}
 
 function labelFromUrl(url: string): string {
   try {
@@ -106,7 +165,11 @@ export default function OrderStepProfile({
     formState: { errors },
   } = useForm<ProfileSetupValues>({
     resolver: zodResolver(profileSetupSchema),
-    defaultValues: { profileStyle: "standard", extraLinks: [], ...defaultValues },
+    // The profile design itself (which layout renders) is no longer a
+    // customer decision — every new profile ships on the same premium
+    // layout, and the Unitouch team reviews/adjusts it manually before it
+    // goes live.
+    defaultValues: { profileStyle: "personal", extraLinks: [], ...defaultValues },
   });
 
   const { fields: extraLinkFields, append: appendExtraLink, remove: removeExtraLink } = useFieldArray({
@@ -120,7 +183,7 @@ export default function OrderStepProfile({
   const username = watch("username");
   const fullNameValue = watch("fullName");
   const companyValue = watch("company");
-  const profileStyle = watch("profileStyle");
+  const represents = watch("represents");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [usernameTouched, setUsernameTouched] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -128,17 +191,46 @@ export default function OrderStepProfile({
   const usernameField = register("username");
 
   const [interests, setInterests] = useState<string[]>(defaultValues?.interests ?? []);
-  const [interestInput, setInterestInput] = useState("");
+  const [interestsText, setInterestsText] = useState("");
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState("");
 
-  function addInterest() {
-    const trimmed = interestInput.trim();
-    if (!trimmed || interests.length >= MAX_INTERESTS) return;
-    setInterests((prev) => [...prev, trimmed]);
-    setInterestInput("");
+  // Regenerate suggestions a beat after the user stops typing, rather than
+  // on every keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const matched = suggestTagsFromText(interestsText).filter((tag) => !interests.includes(tag));
+      setSuggestedTags(matched);
+    }, 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interestsText]);
+
+  function addInterestTag(tag: string) {
+    if (!tag || interests.includes(tag) || interests.length >= MAX_INTERESTS) return;
+    setInterests((prev) => [...prev, tag]);
+    setSuggestedTags((prev) => prev.filter((t) => t !== tag));
   }
 
   function removeInterest(index: number) {
     setInterests((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function moveInterest(index: number, direction: -1 | 1) {
+    setInterests((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
+  function addCustomTag() {
+    const trimmed = customTagInput.trim();
+    if (!trimmed || interests.length >= MAX_INTERESTS || interests.includes(trimmed)) return;
+    setInterests((prev) => [...prev, trimmed]);
+    setCustomTagInput("");
   }
 
   // Auto-generate the profile URL from the customer's name (+ company) so
@@ -223,7 +315,7 @@ export default function OrderStepProfile({
     interests: interests.length > 0 ? interests : undefined,
     extraLinks: (formValues.extraLinks ?? []).filter((l) => l?.label && l?.url) as { label: string; url: string }[],
     isPublished: true,
-    profileStyle: formValues.profileStyle ?? "standard",
+    profileStyle: "personal",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -240,38 +332,6 @@ export default function OrderStepProfile({
   return (
     <>
       <form onSubmit={handleFormSubmit} className="flex flex-col gap-8">
-        <div>
-          <Label>Profile style</Label>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {STYLE_OPTIONS.map(({ style, title, description, demoUsername }) => (
-              <div
-                key={style}
-                role="button"
-                tabIndex={0}
-                onClick={() => setValue("profileStyle", style)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setValue("profileStyle", style);
-                }}
-                className={`cursor-pointer rounded-xl p-4 text-left transition-colors ${
-                  profileStyle === style ? "surface-card-accent" : "surface-card"
-                }`}
-              >
-                <p className="text-text-primary font-[600]">{title}</p>
-                <p className="text-text-secondary text-sm">{description}</p>
-                <a
-                  href={`/u/${demoUsername}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-accent-purple mt-2 inline-block text-xs hover:underline"
-                >
-                  Preview example →
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div>
           <Label htmlFor="username">Your profile link</Label>
           <p className="text-text-muted mb-2 -mt-1 text-xs">
@@ -303,7 +363,11 @@ export default function OrderStepProfile({
         </div>
 
         <div>
-          <Label>Profile photo (optional)</Label>
+          <Label>Profile photo / logo (optional)</Label>
+          <p className="text-text-muted mb-3 -mt-1 text-xs">
+            You can upload a photo, company logo, or skip this for now. We&apos;ll review everything
+            before your profile goes live.
+          </p>
           <div className="flex items-center gap-4">
             <div className="bg-bg-elevated border-bg-border flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border">
               {photoUrl ? (
@@ -324,7 +388,6 @@ export default function OrderStepProfile({
                 />
               </label>
               {photoError && <p className="text-error mt-1.5 text-xs">{photoError}</p>}
-              <p className="text-text-muted mt-1.5 text-xs">Stored only after your order is placed.</p>
             </div>
           </div>
         </div>
@@ -350,6 +413,30 @@ export default function OrderStepProfile({
         </div>
 
         <div>
+          <Label>Who does this profile primarily represent?</Label>
+          <p className="text-text-muted mb-3 -mt-1 text-xs">
+            This helps us optimize your profile before it goes live.
+          </p>
+          <div className="flex flex-col gap-3">
+            {REPRESENTS_OPTIONS.map(({ value, icon, title, description }) => (
+              <label
+                key={value}
+                className={`flex cursor-pointer items-start gap-3 rounded-xl p-4 transition-colors ${
+                  represents === value ? "surface-card-accent" : "surface-card"
+                }`}
+              >
+                <input type="radio" value={value} {...register("represents")} className="sr-only" />
+                <span className="text-xl leading-none">{icon}</span>
+                <span>
+                  <span className="text-text-primary block font-[600]">{title}</span>
+                  <span className="text-text-secondary block text-sm">{description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <Label htmlFor="bio">Bio</Label>
           <textarea
             id="bio"
@@ -362,23 +449,67 @@ export default function OrderStepProfile({
         </div>
 
         <div>
-          <Label>Interests / tags (optional)</Label>
+          <Label htmlFor="professional-interests">Professional interests</Label>
           <p className="text-text-muted mb-3 -mt-1 text-xs">
-            Small tags shown under your bio, like &quot;🎨 Branding&quot;. Purely decorative, not
-            clickable.
+            Describe what you do, your expertise, hobbies, industries, or anything you&apos;d like
+            people to associate with you.
           </p>
+          <textarea
+            id="professional-interests"
+            value={interestsText}
+            onChange={(e) => setInterestsText(e.target.value)}
+            rows={2}
+            placeholder="I run a branding agency, love UI design, startups, coffee, public speaking and photography."
+            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent-purple/50"
+          />
+
+          {suggestedTags.length > 0 && interests.length < MAX_INTERESTS && (
+            <div className="mt-3">
+              <p className="text-text-muted mb-2 text-xs">Suggested tags, tap to add</p>
+              <div className="flex flex-wrap gap-2">
+                {suggestedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => addInterestTag(tag)}
+                    className="border-bg-border text-text-secondary hover:border-accent-purple/50 hover:text-text-primary flex items-center gap-1.5 rounded-full border border-dashed px-3.5 py-1.5 text-sm transition-colors"
+                  >
+                    <Plus className="size-3" />
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {interests.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {interests.map((tag, index) => (
                 <span
                   key={`${tag}-${index}`}
-                  className="glass-pill glass-stroke-1 text-text-primary flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm"
+                  className="glass-pill glass-stroke-1 text-text-primary flex items-center gap-1 rounded-full py-1.5 pr-2 pl-3.5 text-sm"
                 >
                   {tag}
                   <button
                     type="button"
+                    onClick={() => moveInterest(index, -1)}
+                    disabled={index === 0}
+                    className="text-text-muted hover:text-text-primary disabled:opacity-30"
+                  >
+                    <ChevronLeft className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveInterest(index, 1)}
+                    disabled={index === interests.length - 1}
+                    className="text-text-muted hover:text-text-primary disabled:opacity-30"
+                  >
+                    <ChevronRight className="size-3" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => removeInterest(index)}
-                    className="text-text-muted hover:text-error"
+                    className="text-text-muted hover:text-error ml-0.5"
                   >
                     <X className="size-3" />
                   </button>
@@ -386,21 +517,22 @@ export default function OrderStepProfile({
               ))}
             </div>
           )}
+
           {interests.length < MAX_INTERESTS && (
-            <div className="flex gap-3">
+            <div className="mt-3 flex gap-3">
               <Input
-                value={interestInput}
-                onChange={(e) => setInterestInput(e.target.value)}
+                value={customTagInput}
+                onChange={(e) => setCustomTagInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    addInterest();
+                    addCustomTag();
                   }
                 }}
-                placeholder="🎨 Branding"
+                placeholder="Add a custom tag"
                 maxLength={30}
               />
-              <Button type="button" variant="secondary" size="md" onClick={addInterest}>
+              <Button type="button" variant="secondary" size="md" onClick={addCustomTag}>
                 <Plus className="size-4" />
                 Add
               </Button>
@@ -439,11 +571,11 @@ export default function OrderStepProfile({
               <Input id="twitter" {...register("twitter")} placeholder="https://x.com/you" />
             </div>
             <div>
-              <Label htmlFor="youtube">YouTube</Label>
+              <Label htmlFor="youtube">YouTube (optional)</Label>
               <Input id="youtube" {...register("youtube")} placeholder="https://youtube.com/@you" />
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="portfolio">Portfolio</Label>
+              <Label htmlFor="portfolio">Portfolio (optional)</Label>
               <Input id="portfolio" {...register("portfolio")} placeholder="https://yourportfolio.com" />
             </div>
           </div>
@@ -516,6 +648,17 @@ export default function OrderStepProfile({
           </Button>
         </div>
 
+        <div className="glass glass-stroke-3 flex items-start gap-3 rounded-xl p-4">
+          <Sparkles className="text-accent-purple size-5 shrink-0" />
+          <div>
+            <p className="text-text-primary font-[600]">Premium Profile Review</p>
+            <p className="text-text-secondary mt-1 text-sm">
+              Every Unitouch profile is manually reviewed and optimized by our team before it goes
+              live. We&apos;ll ensure your photos, logo, layout, and branding look professional.
+            </p>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button type="button" variant="secondary" size="lg" onClick={() => setPreviewOpen(true)} className="sm:order-1">
             <Eye className="size-4" />
@@ -543,11 +686,7 @@ export default function OrderStepProfile({
           >
             <X className="size-4" />
           </button>
-          {draftProfile.profileStyle === "personal" ? (
-            <PersonalProfile profile={draftProfile} stats={{ views: 0, saves: 0 }} preview />
-          ) : (
-            <StandardProfile profile={draftProfile} stats={{ views: 0, saves: 0 }} preview />
-          )}
+          <PersonalProfile profile={draftProfile} stats={{ views: 0, saves: 0 }} preview />
         </div>
       )}
     </>

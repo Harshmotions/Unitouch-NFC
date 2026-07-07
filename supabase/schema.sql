@@ -28,8 +28,9 @@ create table public.profiles (
   interests text[],
   extra_links jsonb not null default '[]',
   is_published boolean not null default false,
-  profile_style text not null default 'standard'
+  profile_style text not null default 'personal'
     check (profile_style in ('standard', 'personal')),
+  represents text check (represents in ('me', 'company', 'both')),
   order_id uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

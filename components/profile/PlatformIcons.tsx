@@ -59,8 +59,7 @@ export type PlatformKey =
   | "website"
   | "phone";
 
-/* Each platform's brand glyph. Every tile shares one neutral card style
-   (see PlatformTile) so brand colour is no longer rendered here. */
+/* Each platform's brand glyph. */
 export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps> }> = {
   whatsapp: { Icon: WhatsAppIcon },
   instagram: { Icon: InstagramIcon },
@@ -70,6 +69,21 @@ export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps> }> 
   email: { Icon: Mail },
   website: { Icon: Globe },
   phone: { Icon: Phone },
+};
+
+/* Real brand-colour backgrounds, like the platforms' actual app icons —
+   written as literal arbitrary-value classes (Tailwind v4's JIT scanner
+   needs these to appear verbatim in source, not built via string
+   interpolation). Icons render white on top of these. */
+const PLATFORM_BG: Record<PlatformKey, string> = {
+  phone: "bg-gradient-to-br from-[#7BED8F] to-[#1FA83C]",
+  whatsapp: "bg-gradient-to-br from-[#2EE85A] to-[#0DA746]",
+  email: "bg-gradient-to-br from-[#5AC8FA] to-[#2563EB]",
+  website: "bg-gradient-to-br from-[#5AC8FA] to-[#0284C7]",
+  instagram: "bg-gradient-to-br from-[#FED373] via-[#E1306C] to-[#833AB4]",
+  linkedin: "bg-gradient-to-br from-[#0A66C2] to-[#004182]",
+  twitter: "bg-gradient-to-br from-[#3A3A3A] to-[#000000]",
+  youtube: "bg-gradient-to-br from-[#FF3B30] to-[#CC0000]",
 };
 
 /* Custom/arbitrary links (added during checkout, no known PlatformKey) show
@@ -85,8 +99,10 @@ function faviconUrl(href: string): string | null {
   }
 }
 
-/* One grid cell: just the circular icon badge with its label underneath —
-   no outer card. Every platform shares this one neutral badge style. */
+/* One grid cell: the app-icon-style badge (rounded square, real brand
+   colour/gradient — like the platform's actual home-screen icon) with its
+   label underneath. Custom/arbitrary links (no known PlatformKey) fall back
+   to a neutral badge since there's no brand colour to key off of. */
 export function PlatformTile({
   platform,
   label,
@@ -101,6 +117,7 @@ export function PlatformTile({
   const [faviconFailed, setFaviconFailed] = useState(false);
   const favicon = !platform ? faviconUrl(href) : null;
   const PlatformGlyph = platform ? PLATFORMS[platform].Icon : null;
+  const bg = platform ? PLATFORM_BG[platform] : "bg-bg-elevated";
 
   return (
     <a
@@ -110,27 +127,29 @@ export function PlatformTile({
       onClick={onClick}
       className="group flex flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94]"
     >
-      <span className="bg-bg-elevated flex size-16 items-center justify-center rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)]">
+      <span
+        className={`${bg} flex size-12 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)] sm:size-14`}
+      >
         {PlatformGlyph ? (
-          <PlatformGlyph className="text-text-primary size-7" />
+          <PlatformGlyph className="size-5 text-white sm:size-6" />
         ) : favicon && !faviconFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={favicon}
             alt=""
-            className="size-7 object-contain"
+            className="size-5 object-contain sm:size-6"
             onError={() => setFaviconFailed(true)}
           />
         ) : (
-          <Link2 className="text-text-primary size-7" />
+          <Link2 className="text-text-primary size-5 sm:size-6" />
         )}
       </span>
-      <span className="text-text-secondary truncate text-sm">{label}</span>
+      <span className="text-text-secondary truncate text-xs">{label}</span>
     </a>
   );
 }
 
-/* Consistent 3-column app-icon grid — equal-width cells, tiles centred
+/* Consistent 5-column app-icon grid — equal-width cells, tiles centred
    within each cell now that they're smaller than the column. */
 export function PlatformGrid({
   items,
@@ -140,7 +159,7 @@ export function PlatformGrid({
   onItemClick?: (platform: PlatformKey) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 place-items-center gap-x-3 gap-y-5">
+    <div className="grid grid-cols-5 place-items-center gap-x-1.5 gap-y-4">
       {items.map((item) => (
         <PlatformTile
           key={item.label}

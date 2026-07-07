@@ -142,6 +142,7 @@ export async function POST(request: Request) {
       extra_links: profile.extraLinks ?? [],
       is_published: true,
       profile_style: profile.profileStyle,
+      represents: profile.represents || null,
       order_id: orderRow.id,
     })
     .select("id")

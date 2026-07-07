@@ -123,7 +123,10 @@ export default function PersonalProfile({
               <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
               {profile.isPublished && <BadgeCheck className="text-verified size-5" />}
             </div>
-            <p className="text-text-secondary text-sm">{profile.designation}</p>
+            <p className="text-text-secondary text-sm">
+              {profile.designation}
+              {profile.company ? ` · ${profile.company}` : ""}
+            </p>
 
             {profile.interests && profile.interests.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">

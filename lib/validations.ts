@@ -37,7 +37,10 @@ export const profileSetupSchema = z.object({
   twitter: z.string().optional(),
   youtube: z.string().optional(),
   portfolio: z.string().optional(),
-  profileStyle: z.enum(["standard", "personal"]),
+  profileStyle: z.enum(["standard", "personal"]).default("personal"),
+  // Internal-only, informs the manual design review — never shown on the
+  // public profile page.
+  represents: z.enum(["me", "company", "both"]).optional(),
   interests: z.array(z.string().min(1).max(30)).max(6, "Up to 6 tags").optional(),
   extraLinks: z
     .array(z.object({ label: z.string().min(1, "Add a label").max(40), url: z.string().url("Enter a valid URL") }))
