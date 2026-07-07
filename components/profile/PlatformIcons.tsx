@@ -125,23 +125,23 @@ export function PlatformTile({
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="group flex flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94]"
+      className="group flex w-[72px] shrink-0 flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94] sm:w-[84px]"
     >
       <span
-        className={`${bg} flex size-12 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)] sm:size-14`}
+        className={`${bg} flex size-[72px] items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)] sm:size-[84px]`}
       >
         {PlatformGlyph ? (
-          <PlatformGlyph className="size-5 text-white sm:size-6" />
+          <PlatformGlyph className="size-[30px] text-white sm:size-9" />
         ) : favicon && !faviconFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={favicon}
             alt=""
-            className="size-5 object-contain sm:size-6"
+            className="size-[30px] object-contain sm:size-9"
             onError={() => setFaviconFailed(true)}
           />
         ) : (
-          <Link2 className="text-text-primary size-5 sm:size-6" />
+          <Link2 className="text-text-primary size-[30px] sm:size-9" />
         )}
       </span>
       <span className="text-text-secondary truncate text-xs">{label}</span>
@@ -149,8 +149,13 @@ export function PlatformTile({
   );
 }
 
-/* Consistent 5-column app-icon grid — equal-width cells, tiles centred
-   within each cell now that they're smaller than the column. */
+/* Fixed-width (not 1fr) grid columns, sized to match each tile, and the
+   column count itself matches min(items, 5) — not a hardcoded 5 — so a row
+   of 3 or 4 sizes its track to exactly that many tiles and centers as its
+   own tight block, rather than centering inside a 5-wide track with a
+   reserved-but-empty trailing column pulling it off-centre. Once past 5
+   items the track caps at 5 and wraps, with the extra row still filling
+   column 1 first (left-to-right) instead of centering on its own. */
 export function PlatformGrid({
   items,
   onItemClick,
@@ -158,8 +163,13 @@ export function PlatformGrid({
   items: { platform?: PlatformKey; label: string; href: string }[];
   onItemClick?: (platform: PlatformKey) => void;
 }) {
+  const columns = Math.min(items.length, 5) || 1;
+
   return (
-    <div className="grid grid-cols-5 place-items-center gap-x-1.5 gap-y-4">
+    <div
+      className="grid justify-center gap-x-3 gap-y-4 [--tile-size:72px] sm:[--tile-size:84px]"
+      style={{ gridTemplateColumns: `repeat(${columns}, var(--tile-size))` }}
+    >
       {items.map((item) => (
         <PlatformTile
           key={item.label}
