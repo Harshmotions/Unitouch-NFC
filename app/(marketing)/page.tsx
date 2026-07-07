@@ -3,7 +3,6 @@ import SocialProof from "@/components/marketing/SocialProof";
 import ProductShowcase from "@/components/marketing/ProductShowcase";
 import HowItWorks from "@/components/marketing/HowItWorks";
 import Features from "@/components/marketing/Features";
-import ProfileDemo from "@/components/marketing/ProfileDemo";
 import Pricing from "@/components/marketing/Pricing";
 import Testimonials from "@/components/marketing/Testimonials";
 import FAQ from "@/components/marketing/FAQ";
@@ -17,7 +16,6 @@ export default function Home() {
       <ProductShowcase />
       <HowItWorks />
       <Features />
-      <ProfileDemo />
       <Pricing />
       <Testimonials />
       <FAQ />

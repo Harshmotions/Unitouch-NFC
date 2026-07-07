@@ -12,7 +12,6 @@ const NAV_LINKS = [
   { label: "Features", href: "#features" },
   { label: "How It Works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Demo Profile", href: "#profile-demo" },
 ];
 
 export default function Navbar() {
@@ -88,6 +87,12 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+          <Link
+            href="/u/priya"
+            className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
+          >
+            Demo Profile
+          </Link>
         </div>
 
         <div className="hidden md:block">
@@ -124,6 +129,13 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+          <Link
+            href="/u/priya"
+            className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
+            onClick={() => setMenuOpen(false)}
+          >
+            Demo Profile
+          </Link>
           <Button variant="primary" size="sm" href="/order">
             Order Your Card
           </Button>

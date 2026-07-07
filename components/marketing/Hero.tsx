@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ChevronDown, Zap, RefreshCw, BarChart3 } from "lucide-react";
 import gsap from "gsap";
 import Button from "@/components/ui/Button";
-import { handleHashLinkClick } from "@/lib/scroll";
 
 const BADGES = [
   { icon: Zap, label: "Instant NFC Tap" },
@@ -157,8 +156,7 @@ export default function Hero() {
             <Button
               variant="secondary"
               size="lg"
-              href="#profile-demo"
-              onClick={handleHashLinkClick("#profile-demo")}
+              href="/u/priya"
               className="glass-stroke-2 h-[33px] shrink-0 px-3 text-[11px] sm:h-12 sm:px-7 sm:text-base"
             >
               See a Live Profile
