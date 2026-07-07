@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Share2, Check, BadgeCheck, Eye, Bookmark, Download, MapPin } from "lucide-react";
 import type { Profile, EventType } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
@@ -178,6 +179,19 @@ export default function PersonalProfile({
             />
           </div>
         )}
+
+        <div className="mx-auto mt-10 flex w-[calc(100%-2.5rem)] flex-col items-center gap-4 border-t border-white/10 pt-6">
+          <Link href="/" className="flex items-center gap-1.5 opacity-70 transition-opacity hover:opacity-100">
+            <Image src="/logo.png" alt="" width={16} height={16} />
+            <span className="text-text-muted text-xs font-[500]">This profile is powered by Unitouch</span>
+          </Link>
+          <Link
+            href="/"
+            className="glass glass-stroke-2 text-text-primary rounded-full px-4 py-2 text-xs font-[500]"
+          >
+            Get your NFC card →
+          </Link>
+        </div>
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4">
