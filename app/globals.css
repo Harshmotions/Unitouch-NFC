@@ -81,6 +81,10 @@
 
 * {
   box-sizing: border-box;
+  /* Unlayered, so it wins over both the browser's UA `a/button { cursor:
+     pointer }` and Tailwind's layered cursor-* utilities — this is meant to
+     replace the system cursor everywhere, not just set a fallback. */
+  cursor: url("/Cursor.svg") 4 4, auto;
 }
 
 /* scroll-behavior intentionally omitted — Lenis (components/SmoothScroll.tsx)

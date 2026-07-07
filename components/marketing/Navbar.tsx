@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import gsap from "gsap";
 import Button from "@/components/ui/Button";
-import { handleHashLinkClick } from "@/lib/scroll";
+import { handleHashLinkClick, smoothScrollToTop } from "@/lib/scroll";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -16,8 +18,18 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const navRef = useRef<HTMLElement>(null);
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Already on the homepage — a Link to the same route is a no-op, so
+  // scroll back to the top ourselves instead of just sitting there.
+  function handleLogoClick(e: MouseEvent) {
+    if (pathname === "/") {
+      e.preventDefault();
+      smoothScrollToTop();
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -69,7 +81,7 @@ export default function Navbar() {
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2">
           <Image src="/logo.png" alt="Unitouch" width={28} height={28} />
           <span className="font-display text-text-primary text-lg font-[600]">
             Unitouch

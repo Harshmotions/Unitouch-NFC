@@ -35,3 +35,13 @@ export function handleHashLinkClick(hash: string) {
     smoothScrollToHash(hash);
   };
 }
+
+/* Smooth-scrolls to the very top of the page via Lenis, falling back to
+   native smooth scroll the same way smoothScrollToHash does. */
+export function smoothScrollToTop() {
+  if (window.lenisInstance) {
+    window.lenisInstance.scrollTo(0, { offset: 0 });
+    return;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}

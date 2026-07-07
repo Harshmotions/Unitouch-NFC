@@ -190,6 +190,25 @@ export default function OrderStepProfile({
   const [photoError, setPhotoError] = useState<string | null>(null);
   const usernameField = register("username");
 
+  // The wizard never changes the URL between steps, so without this the
+  // browser's back button skips straight past "close the preview" and
+  // "go back a step" to whatever page linked into /order. Pushing a history
+  // entry when the preview opens means back closes the preview first,
+  // landing the customer back on this same step instead of leaving it.
+  useEffect(() => {
+    if (!previewOpen) return;
+    window.history.pushState({ preview: true }, "");
+    const handlePopState = () => setPreviewOpen(false);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [previewOpen]);
+
+  function closePreview() {
+    // Consume the pushed history entry via back() instead of just flipping
+    // state, so a stray forward-navigable entry doesn't linger.
+    window.history.back();
+  }
+
   const [interests, setInterests] = useState<string[]>(defaultValues?.interests ?? []);
   const [interestsText, setInterestsText] = useState("");
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
@@ -681,7 +700,7 @@ export default function OrderStepProfile({
       {previewOpen && (
         <div className="bg-bg-base fixed inset-0 z-50 overflow-y-auto">
           <button
-            onClick={() => setPreviewOpen(false)}
+            onClick={closePreview}
             className="glass-icon-btn glass-stroke-3 fixed top-5 right-5 z-50 flex size-10 items-center justify-center rounded-full text-text-primary"
           >
             <X className="size-4" />
