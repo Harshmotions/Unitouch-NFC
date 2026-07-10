@@ -32,7 +32,7 @@ export const CARD_VARIANTS: CardVariant[] = [
     price: 3999,
     priceInPaise: 399900,
     features: [
-      "5x NFC cards",
+      "5x NFC Premium Cards",
       "Bulk team pricing",
       "Centralized profile setup",
       "Dedicated WhatsApp support",
