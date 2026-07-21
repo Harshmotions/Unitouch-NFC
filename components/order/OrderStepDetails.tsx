@@ -44,12 +44,17 @@ export default function OrderStepDetails({
               key={variant.id}
               type="button"
               onClick={() => setValue("cardType", variant.id)}
-              className={`rounded-xl p-4 text-left transition-colors ${
+              className={`flex flex-col rounded-xl p-4 text-left transition-colors ${
                 selectedCardType === variant.id ? "surface-card-accent" : "surface-card"
               }`}
             >
               <p className="text-text-primary font-[600]">{variant.name}</p>
               <p className="text-text-secondary text-sm">₹{variant.price.toLocaleString("en-IN")}</p>
+              <ul className="text-text-muted mt-3 flex flex-col gap-1 text-xs">
+                {variant.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
             </button>
           ))}
         </div>
