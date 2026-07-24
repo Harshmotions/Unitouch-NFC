@@ -73,6 +73,7 @@ export async function POST(request: Request) {
   }
 
   let avatarUrl: string | null = null;
+  let uploadedPhotoPath: string | null = null;
   if (photo instanceof File) {
     const ext = photo.name.split(".").pop() || "jpg";
     const path = `${username}-${Date.now()}.${ext}`;
@@ -84,8 +85,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not upload photo. Please try again." }, { status: 500 });
     }
 
+    uploadedPhotoPath = path;
     const { data: publicUrlData } = supabase.storage.from("profile-photos").getPublicUrl(path);
     avatarUrl = publicUrlData.publicUrl;
+  }
+
+  /* Supabase's REST client has no multi-statement transaction, so the
+     order+profile pair is made all-or-nothing by undoing the earlier writes
+     when a later one fails. Without this a failed profile insert leaves a
+     row in `orders` marked paid with no profile attached — exactly the case
+     that used to return "Order was placed but profile setup failed". */
+  async function rollback(orderId?: string) {
+    if (orderId) {
+      await supabase.from("orders").delete().eq("id", orderId);
+    }
+    if (uploadedPhotoPath) {
+      await supabase.storage.from("profile-photos").remove([uploadedPhotoPath]);
+    }
   }
 
   const orderNumber = generateOrderNumber();
@@ -116,6 +132,7 @@ export async function POST(request: Request) {
     .single();
 
   if (orderError || !orderRow) {
+    await rollback();
     return NextResponse.json({ error: "Could not save your order. Please try again." }, { status: 500 });
   }
 
@@ -149,7 +166,17 @@ export async function POST(request: Request) {
     .single();
 
   if (profileError || !profileRow) {
-    return NextResponse.json({ error: "Order was placed but profile setup failed. We'll follow up." }, { status: 500 });
+    await rollback(orderRow.id);
+
+    /* 23505 = unique violation. The pre-flight check above can still lose a
+       race to a simultaneous checkout, in which case the username unique
+       index is what actually catches it — report that as the same friendly
+       409 the pre-flight path returns rather than a generic failure. */
+    if (profileError?.code === "23505") {
+      return NextResponse.json({ error: "That username was just taken. Please pick another." }, { status: 409 });
+    }
+
+    return NextResponse.json({ error: "Could not complete your order. Please try again." }, { status: 500 });
   }
 
   await supabase.from("orders").update({ profile_id: profileRow.id }).eq("id", orderRow.id);

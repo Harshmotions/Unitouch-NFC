@@ -12,11 +12,13 @@ export default function OrderStepPayment({
   profileSetup,
   photoFile,
   onBack,
+  onComplete,
 }: {
   orderDetails: OrderDetailsValues;
   profileSetup: ProfileSetupValues;
   photoFile: File | null;
   onBack: () => void;
+  onComplete?: () => void;
 }) {
   const router = useRouter();
   const [paying, setPaying] = useState(false);
@@ -46,16 +48,28 @@ export default function OrderStepPayment({
     form.set("profileSetup", JSON.stringify(profileSetup));
     if (photoFile) form.set("photo", photoFile);
 
-    const res = await fetch("/api/orders/checkout", { method: "POST", body: form });
-    const data = await res.json();
+    /* A network drop or a non-JSON error response (e.g. an HTML 502 from the
+       host) both reject here. Without this catch the spinner stays on
+       forever and the customer has to reload and refill all three steps. */
+    try {
+      const res = await fetch("/api/orders/checkout", { method: "POST", body: form });
+      const data = await res.json().catch(() => null);
 
-    if (!res.ok) {
+      if (!res.ok) {
+        setPaying(false);
+        setError(data?.error ?? "Something went wrong, please try again.");
+        return;
+      }
+
+      // Only drop the saved draft once the order is safely persisted.
+      onComplete?.();
+      router.push(
+        `/order/success?orderNumber=${encodeURIComponent(data.orderNumber)}&username=${encodeURIComponent(data.username)}`,
+      );
+    } catch {
       setPaying(false);
-      setError(data.error ?? "Something went wrong, please try again.");
-      return;
+      setError("We couldn't reach the server. Check your connection and try again.");
     }
-
-    router.push(`/order/success?orderNumber=${data.orderNumber}&username=${data.username}`);
   }
 
   return (
