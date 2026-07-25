@@ -9,8 +9,11 @@ create extension if not exists "pgcrypto";
 
 create table public.profiles (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
   username text not null unique,
-  full_name text not null,
+  -- Optional so a placeholder profile can be created at payment with just
+  -- username + print image; the studio fills the rest in later.
+  full_name text,
   designation text,
   company text,
   phone text,
@@ -31,10 +34,14 @@ create table public.profiles (
   profile_style text not null default 'personal'
     check (profile_style in ('standard', 'personal')),
   represents text check (represents in ('me', 'company', 'both')),
+  -- false = paid placeholder awaiting the digital studio; true = user finished.
+  studio_completed boolean not null default false,
   order_id uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create index if not exists profiles_user_id_idx on public.profiles(user_id);
 
 create or replace function public.set_updated_at()
 returns trigger as $$
@@ -80,6 +87,7 @@ alter table public.analytics_events enable row level security;
 
 create table public.orders (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
   order_number text not null unique,
   full_name text not null,
   email text not null,
@@ -102,6 +110,8 @@ create table public.orders (
   profile_id uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+create index if not exists orders_user_id_idx on public.orders(user_id);
 
 alter table public.orders enable row level security;
 -- Same as analytics_events — service-role only, no anon policies.
