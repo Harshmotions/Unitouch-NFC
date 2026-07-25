@@ -7,6 +7,26 @@ import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
 
+/* Pull a human-readable string out of whatever an auth call rejects with —
+   a Supabase AuthError, a plain fetch failure, or something with no usable
+   message at all — so the UI never renders a raw object (which showed up as
+   a stray "{}"). Falls back to the provided default. */
+function messageFrom(err: unknown, fallback: string): string {
+  if (err && typeof err === "object" && "message" in err) {
+    const m = (err as { message?: unknown }).message;
+    if (typeof m === "string") {
+      const trimmed = m.trim();
+      /* Some auth errors (e.g. AuthRetryableFetchError on a 500/network fail)
+         carry a non-human message like "{}" — ignore anything that's only
+         braces/brackets/quotes/whitespace and use the friendly fallback. */
+      if (trimmed && trimmed !== "null" && !/^[{}[\]"'\s]*$/.test(trimmed)) {
+        return trimmed;
+      }
+    }
+  }
+  return fallback;
+}
+
 /* Email one-time-code sign in. Two phases: enter email -> Supabase emails a
    6-digit code -> enter code to establish a session. Reusable: pass
    onAuthenticated to react to a successful sign in (the order wizard will use
@@ -59,18 +79,25 @@ export default function OtpSignIn({
       return;
     }
     setBusy(true);
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { shouldCreateUser: true },
-    });
-    setBusy(false);
-    if (otpError) {
-      setError(otpError.message);
-      return;
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: { shouldCreateUser: true },
+      });
+      if (otpError) {
+        console.error("signInWithOtp failed:", otpError);
+        setError(messageFrom(otpError, "We couldn't send the code. Please try again in a moment."));
+        return;
+      }
+      setEmail(trimmed);
+      setPhase("code");
+      setNotice(`We sent a 6-digit code to ${trimmed}. Enter it below.`);
+    } catch (err) {
+      console.error("signInWithOtp threw:", err);
+      setError("We couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
     }
-    setEmail(trimmed);
-    setPhase("code");
-    setNotice(`We sent a 6-digit code to ${trimmed}. Enter it below.`);
   }
 
   async function verifyCode(e: React.FormEvent) {
@@ -82,19 +109,26 @@ export default function OtpSignIn({
       return;
     }
     setBusy(true);
-    const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: "email",
-    });
-    setBusy(false);
-    if (verifyError) {
-      setError(verifyError.message);
-      return;
-    }
-    if (data.user) {
-      setUser(data.user);
-      onAuthenticated?.(data.user);
+    try {
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "email",
+      });
+      if (verifyError) {
+        console.error("verifyOtp failed:", verifyError);
+        setError(messageFrom(verifyError, "That code didn't work. Request a new one and try again."));
+        return;
+      }
+      if (data.user) {
+        setUser(data.user);
+        onAuthenticated?.(data.user);
+      }
+    } catch (err) {
+      console.error("verifyOtp threw:", err);
+      setError("We couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
