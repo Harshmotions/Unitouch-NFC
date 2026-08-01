@@ -36,23 +36,32 @@
   - Verified end-to-end with a temporary test user: placeholder → edit →
     publish → live `/u/[username]`.
 
-## The refactor is functionally complete.
-All five phases are built and verified. Remaining before merge to `main`:
-email SMTP (so real sign-in works — see below), then a real human
-click-through of the whole flow (incl. an actual image upload, which can't be
-automated). Consider opening the PR for review now; hold the merge until the
-click-through.
+## The refactor is functionally COMPLETE and human-verified end-to-end.
+All five phases built and verified. Email SMTP is now working (Resend via the
+verified `unitouch.in` domain) and a full manual click-through succeeded:
+order → email-OTP sign-in → identity (+ real logo upload) → test payment →
+studio → publish → live `/u/[username]`. Ready to open the PR and merge
+`feat/checkout-refactor` into `main` whenever desired.
 
-## Deferred / blocked
-- **Email delivery for OTP sign-in** is NOT working. Supabase's built-in email
-  only sends a magic *link* (template locked without SMTP) and is
-  rate-limited. Decision: use Resend SMTP, but `onboarding@resend.dev` won't
-  send over SMTP — needs a **verified domain** (DNS access) or a fallback
-  SMTP. Until then, sign-in can't be completed through the UI. Auth *code* is
-  correct and done; this is purely email delivery config.
-- Verifying auth-gated flows locally without email: create a test user via
-  the admin API + a temporary (uncommitted) `/api/dev-login` password route to
-  set a session; delete both afterwards.
+## UI polish — DEFERRED (noticed during the first full run; do later)
+On the public profile page (`/u/[username]`, personal style):
+- Social/contact icons are too big and look a bit off — resize/refine.
+- Responsive: it renders a mobile-width layout on desktop too. Desktop should
+  get a proper desktop layout; mobile keeps the mobile one.
+- The top-left button (back control) needs fixing (styling/position).
+
+## Auth / email — DONE (notes for reference)
+- Resend SMTP connected in Supabase (host smtp.resend.com:465, user `resend`,
+  sender `noreply@unitouch.in`). Domain `unitouch.in` verified in Resend
+  (DKIM `resend._domainkey`, SPF/MX on `send`, DMARC `_dmarc`) via BigRock.
+- **"Confirm email" is turned OFF** in Supabase — required so `signInWithOtp`
+  sends the Magic Link OTP (code) instead of a signup-confirmation link. OTP
+  itself proves email ownership, so this is safe.
+- Supabase sends an **8-digit** OTP here; the sign-in form accepts 6-8 digits.
+- Both "Confirm signup" and "Magic Link" email templates use `{{ .Token }}`.
+- Verifying auth-gated flows without a live inbox: create a test user via the
+  admin API + a temporary (uncommitted) `/api/dev-login` password route to set
+  a session; delete both afterwards.
 
 ## Env / infra notes
 - `.env.local` present (git-ignored). Supabase project ref: `kzifcvhzhbvojvetqcri`.
