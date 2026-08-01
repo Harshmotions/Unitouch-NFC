@@ -28,7 +28,8 @@ function messageFrom(err: unknown, fallback: string): string {
 }
 
 /* Email one-time-code sign in. Two phases: enter email -> Supabase emails a
-   6-digit code -> enter code to establish a session. Reusable: pass
+   numeric code (6-8 digits, per the project's Supabase OTP-length setting) ->
+   enter code to establish a session. Reusable: pass
    onAuthenticated to react to a successful sign in (the order wizard will use
    this to unlock the rest of Step 1). Renders a signed-in summary when a
    session already exists. */
@@ -91,7 +92,7 @@ export default function OtpSignIn({
       }
       setEmail(trimmed);
       setPhase("code");
-      setNotice(`We sent a 6-digit code to ${trimmed}. Enter it below.`);
+      setNotice(`We sent a code to ${trimmed}. Enter it below.`);
     } catch (err) {
       console.error("signInWithOtp threw:", err);
       setError("We couldn't reach the server. Check your connection and try again.");
@@ -104,8 +105,8 @@ export default function OtpSignIn({
     e.preventDefault();
     setError(null);
     const token = code.trim();
-    if (!/^\d{6}$/.test(token)) {
-      setError("Enter the 6-digit code from your email.");
+    if (!/^\d{6,8}$/.test(token)) {
+      setError("Enter the code from your email.");
       return;
     }
     setBusy(true);
@@ -185,15 +186,15 @@ export default function OtpSignIn({
       {phase === "code" && (
         <form onSubmit={verifyCode} className="flex flex-col gap-3">
           <div>
-            <Label htmlFor="auth-code">6-digit code</Label>
+            <Label htmlFor="auth-code">Verification code</Label>
             <Input
               id="auth-code"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={6}
+              maxLength={8}
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-              placeholder="123456"
+              placeholder="Code from your email"
             />
           </div>
           <Button variant="primary" size="lg" type="submit" loading={busy} disabled={busy}>
