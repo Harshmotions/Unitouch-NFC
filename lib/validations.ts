@@ -78,3 +78,10 @@ export const profileSetupSchema = z.object({
 });
 
 export type ProfileSetupValues = z.input<typeof profileSetupSchema>;
+
+// Step 3 — the digital studio edits an existing profile. Same fields as the
+// original profile setup, minus username (fixed at checkout, not editable
+// here). profileStyle is accepted but ignored by the update route — the
+// layout is set from the account type at checkout, not chosen in the studio.
+export const studioUpdateSchema = profileSetupSchema.omit({ username: true });
+export type StudioUpdateValues = z.input<typeof studioUpdateSchema>;
