@@ -1,5 +1,5 @@
 import type { Profile } from "@/types";
-import { createPublicServerClient } from "@/lib/supabase/server";
+import { createPublicServerClient, createServiceRoleClient } from "@/lib/supabase/server";
 
 /* Shape of a row exactly as Postgres returns it (snake_case). */
 interface ProfileRow {
@@ -71,6 +71,20 @@ export async function getPublishedProfile(username: string): Promise<Profile | n
     .select("*")
     .eq("username", username)
     .single();
+
+  if (error || !data) return null;
+  return mapProfileRow(data as ProfileRow);
+}
+
+/* Loads a profile the given user owns, published or not — for the digital
+   studio, where the row is still an unpublished placeholder. Uses the
+   service-role client (RLS would hide unpublished rows). Pass a username to
+   target a specific profile, otherwise returns the user's most recent one. */
+export async function getEditableProfile(userId: string, username?: string): Promise<Profile | null> {
+  const supabase = createServiceRoleClient();
+  let query = supabase.from("profiles").select("*").eq("user_id", userId);
+  if (username) query = query.eq("username", username.trim().toLowerCase());
+  const { data, error } = await query.order("created_at", { ascending: false }).limit(1).maybeSingle();
 
   if (error || !data) return null;
   return mapProfileRow(data as ProfileRow);

@@ -83,5 +83,12 @@ export type ProfileSetupValues = z.input<typeof profileSetupSchema>;
 // original profile setup, minus username (fixed at checkout, not editable
 // here). profileStyle is accepted but ignored by the update route — the
 // layout is set from the account type at checkout, not chosen in the studio.
-export const studioUpdateSchema = profileSetupSchema.omit({ username: true });
+export const studioUpdateSchema = profileSetupSchema.omit({ username: true }).extend({
+  // A radio group with nothing selected yields null (or ""), neither of which
+  // a bare optional enum accepts — normalize both to "not set".
+  represents: z.preprocess(
+    (v) => (v === "" || v === null ? undefined : v),
+    z.enum(["me", "company", "both"]).optional(),
+  ),
+});
 export type StudioUpdateValues = z.input<typeof studioUpdateSchema>;
