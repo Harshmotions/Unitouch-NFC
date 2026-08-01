@@ -28,6 +28,9 @@ export default async function OrderSuccessPage({
         {" "}— you&apos;re signed in, so you can do it now or come back anytime.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
+        <Button variant="primary" size="md" href={username ? `/studio?username=${encodeURIComponent(username)}` : "/studio"}>
+          Build your profile
+        </Button>
         <Button variant="secondary" size="md" href="/">
           Back to home
         </Button>

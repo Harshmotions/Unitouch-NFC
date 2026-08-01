@@ -22,18 +22,26 @@
   identity taken from session; image upload; success page reflects
   placeholder profile. Verified end-to-end with a temporary test user.
 
-## Next: Phase 5 — Digital Studio (HEAVY)
-Post-payment builder where the signed-in user completes the placeholder
-profile and publishes it. Scope:
-- Studio UI: bio, socials, tags/interests, extra links, profile style/theme,
-  full smartphone live preview (adapt existing `OrderStepProfile`).
-- Image override (different image for the digital profile vs print asset).
-- New `/api/profiles/update` route: auth + ownership check, `UPDATE` (not
-  insert) on the user's placeholder profile; publish = set `is_published` +
-  `studio_completed` true.
-- Load the signed-in user's placeholder profile into the studio.
-- A studio route/page, returnable later (user is authenticated).
-- Then clean up now-dead `OrderStepDetails` / `OrderStepPayment`.
+- **Phase 5 — Digital Studio**:
+  - `/api/profiles/update` (5a): auth + ownership check, UPDATEs (never
+    inserts) the user's profile; optional image override; publish sets
+    is_published + studio_completed true.
+  - Studio UI + page (5b): `components/studio/ProfileStudio.tsx` +
+    `app/studio/page.tsx` (auth-gated, loads the user's profile via
+    `getEditableProfile`). Save draft / Publish, live preview, image override.
+    `lib/interests.ts` holds the shared tag-suggestion helpers.
+  - Wiring + cleanup (5c): success page → "Build your profile"
+    (`/studio?username=`); deleted now-dead `OrderStepDetails`,
+    `OrderStepPayment`, `OrderStepProfile`.
+  - Verified end-to-end with a temporary test user: placeholder → edit →
+    publish → live `/u/[username]`.
+
+## The refactor is functionally complete.
+All five phases are built and verified. Remaining before merge to `main`:
+email SMTP (so real sign-in works — see below), then a real human
+click-through of the whole flow (incl. an actual image upload, which can't be
+automated). Consider opening the PR for review now; hold the merge until the
+click-through.
 
 ## Deferred / blocked
 - **Email delivery for OTP sign-in** is NOT working. Supabase's built-in email
