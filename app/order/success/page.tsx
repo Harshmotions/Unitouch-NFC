@@ -18,14 +18,16 @@ export default async function OrderSuccessPage({
         </p>
       )}
       <p className="text-text-secondary mb-8 max-w-md">
-        Your profile is live and your card is on its way. We&apos;ll email you with shipping updates.
+        Your card is on its way. Next, finish building your digital profile
+        {username && (
+          <>
+            {" "}
+            at <span className="text-text-primary font-[600]">unitouch.in/u/{username}</span>
+          </>
+        )}
+        {" "}— you&apos;re signed in, so you can do it now or come back anytime.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
-        {username && (
-          <Button variant="primary" size="md" href={`/u/${username}`}>
-            View your profile
-          </Button>
-        )}
         <Button variant="secondary" size="md" href="/">
           Back to home
         </Button>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { orderDetailsSchema, profileSetupSchema } from "@/lib/validations";
+import { identitySchema, shippingPaymentSchema } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
-import { createServiceRoleClient } from "@/lib/supabase/server";
+import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -10,55 +10,70 @@ function generateOrderNumber(): string {
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
-/* The only route in the app that writes to `orders` or `profiles`. Called
-   once, after the (currently mock) payment step reports success — nothing
-   upstream of this point has touched the database or Storage. */
+/* Buy-Now-Build-Later checkout. Requires an authenticated user; creates the
+   order + a placeholder profile atomically via the create_order_with_profile
+   RPC (one transaction — a paid order can never exist without its profile).
+   The digital profile is filled in later in the studio. */
 export async function POST(request: Request) {
+  // 1. Must be signed in. Identity of the buyer comes from the session, never
+  //    from the client payload.
+  const authClient = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Please sign in to complete your order." }, { status: 401 });
+  }
+
   const form = await request.formData().catch(() => null);
   if (!form) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const orderDetailsRaw = form.get("orderDetails");
-  const profileSetupRaw = form.get("profileSetup");
-  const photo = form.get("photo");
+  const identityRaw = form.get("identity");
+  const shippingRaw = form.get("shippingPayment");
+  const logo = form.get("logo");
 
-  if (typeof orderDetailsRaw !== "string" || typeof profileSetupRaw !== "string") {
+  if (typeof identityRaw !== "string" || typeof shippingRaw !== "string") {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const orderParsed = orderDetailsSchema.safeParse(JSON.parse(orderDetailsRaw));
-  if (!orderParsed.success) {
-    return NextResponse.json({ error: orderParsed.error.issues[0]?.message ?? "Invalid order details" }, { status: 400 });
+  const idParsed = identitySchema.safeParse(JSON.parse(identityRaw));
+  if (!idParsed.success) {
+    return NextResponse.json({ error: idParsed.error.issues[0]?.message ?? "Invalid details" }, { status: 400 });
+  }
+  const spParsed = shippingPaymentSchema.safeParse(JSON.parse(shippingRaw));
+  if (!spParsed.success) {
+    return NextResponse.json({ error: spParsed.error.issues[0]?.message ?? "Invalid details" }, { status: 400 });
   }
 
-  const profileParsed = profileSetupSchema.safeParse(JSON.parse(profileSetupRaw));
-  if (!profileParsed.success) {
-    return NextResponse.json({ error: profileParsed.error.issues[0]?.message ?? "Invalid profile details" }, { status: 400 });
-  }
+  const identity = idParsed.data;
+  const sp = spParsed.data;
+  const username = identity.username.trim().toLowerCase();
 
-  const order = orderParsed.data;
-  const profile = profileParsed.data;
-  const username = profile.username.trim().toLowerCase();
-
-  const variant = CARD_VARIANTS.find((v) => v.id === order.cardType);
+  const variant = CARD_VARIANTS.find((v) => v.id === sp.cardType);
   if (!variant) {
     return NextResponse.json({ error: "Invalid card type" }, { status: 400 });
   }
 
-  if (photo instanceof File) {
-    if (photo.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json({ error: "Photo must be under 5MB" }, { status: 400 });
+  // A logo is mandatory for business cards.
+  if (identity.accountType === "business" && !(logo instanceof File)) {
+    return NextResponse.json({ error: "A logo is required for business cards." }, { status: 400 });
+  }
+
+  if (logo instanceof File) {
+    if (logo.size > MAX_PHOTO_BYTES) {
+      return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
     }
-    if (!photo.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Photo must be an image" }, { status: 400 });
+    if (!logo.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Image must be an image file" }, { status: 400 });
     }
   }
 
   const supabase = createServiceRoleClient();
 
-  // Re-check availability server-side — the client-side check is just UX,
-  // this is the actual guard against a race between two checkouts.
+  // Pre-flight username check — UX only; the unique index inside the RPC is
+  // the real guard against a race between two simultaneous checkouts.
   const { data: existing, error: existingError } = await supabase
     .from("profiles")
     .select("id")
@@ -72,114 +87,62 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That username was just taken. Please pick another." }, { status: 409 });
   }
 
+  // Upload the print image (logo / profile picture) before the write.
   let avatarUrl: string | null = null;
   let uploadedPhotoPath: string | null = null;
-  if (photo instanceof File) {
-    const ext = photo.name.split(".").pop() || "jpg";
+  if (logo instanceof File) {
+    const ext = logo.name.split(".").pop() || "jpg";
     const path = `${username}-${Date.now()}.${ext}`;
     const { error: uploadError } = await supabase.storage
       .from("profile-photos")
-      .upload(path, photo, { contentType: photo.type, upsert: false });
+      .upload(path, logo, { contentType: logo.type, upsert: false });
 
     if (uploadError) {
-      return NextResponse.json({ error: "Could not upload photo. Please try again." }, { status: 500 });
+      return NextResponse.json({ error: "Could not upload image. Please try again." }, { status: 500 });
     }
-
     uploadedPhotoPath = path;
-    const { data: publicUrlData } = supabase.storage.from("profile-photos").getPublicUrl(path);
-    avatarUrl = publicUrlData.publicUrl;
-  }
-
-  /* Supabase's REST client has no multi-statement transaction, so the
-     order+profile pair is made all-or-nothing by undoing the earlier writes
-     when a later one fails. Without this a failed profile insert leaves a
-     row in `orders` marked paid with no profile attached — exactly the case
-     that used to return "Order was placed but profile setup failed". */
-  async function rollback(orderId?: string) {
-    if (orderId) {
-      await supabase.from("orders").delete().eq("id", orderId);
-    }
-    if (uploadedPhotoPath) {
-      await supabase.storage.from("profile-photos").remove([uploadedPhotoPath]);
-    }
+    avatarUrl = supabase.storage.from("profile-photos").getPublicUrl(path).data.publicUrl;
   }
 
   const orderNumber = generateOrderNumber();
-  const amount = variant.priceInPaise * order.quantity;
+  const amount = variant.priceInPaise * sp.quantity;
+  const profileStyle = identity.accountType === "business" ? "standard" : "personal";
 
-  const { data: orderRow, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      order_number: orderNumber,
-      full_name: order.fullName,
-      email: order.email,
-      phone: order.phone,
-      card_type: order.cardType,
-      quantity: order.quantity,
-      shipping_address: {
-        line1: order.line1,
-        line2: order.line2,
-        city: order.city,
-        state: order.state,
-        pincode: order.pincode,
-      },
-      additional_notes: order.additionalNotes || null,
-      payment_status: "paid",
-      order_status: "received",
-      amount,
-    })
-    .select("id")
-    .single();
+  const { error: rpcError } = await supabase.rpc("create_order_with_profile", {
+    p_user_id: user.id,
+    p_order_number: orderNumber,
+    p_full_name: identity.displayName,
+    p_email: user.email ?? "",
+    p_phone: sp.phone,
+    p_card_type: sp.cardType,
+    p_quantity: sp.quantity,
+    p_shipping_address: {
+      line1: sp.line1,
+      line2: sp.line2 ?? "",
+      city: sp.city,
+      state: sp.state,
+      pincode: sp.pincode,
+    },
+    p_amount: amount,
+    p_additional_notes: sp.additionalNotes ?? "",
+    p_username: username,
+    p_avatar_url: avatarUrl,
+    p_profile_style: profileStyle,
+  });
 
-  if (orderError || !orderRow) {
-    await rollback();
-    return NextResponse.json({ error: "Could not save your order. Please try again." }, { status: 500 });
-  }
-
-  const { data: profileRow, error: profileError } = await supabase
-    .from("profiles")
-    .insert({
-      username,
-      full_name: profile.fullName,
-      designation: profile.designation || null,
-      company: profile.company || null,
-      phone: order.phone,
-      whatsapp: profile.whatsapp || null,
-      email: order.email,
-      website: profile.website || null,
-      instagram: profile.instagram || null,
-      linkedin: profile.linkedin || null,
-      twitter: profile.twitter || null,
-      youtube: profile.youtube || null,
-      portfolio: profile.portfolio || null,
-      location: profile.location || null,
-      bio: profile.bio || null,
-      avatar_url: avatarUrl,
-      interests: profile.interests ?? [],
-      extra_links: profile.extraLinks ?? [],
-      is_published: true,
-      profile_style: profile.profileStyle,
-      represents: profile.represents || null,
-      order_id: orderRow.id,
-    })
-    .select("id")
-    .single();
-
-  if (profileError || !profileRow) {
-    await rollback(orderRow.id);
-
-    /* 23505 = unique violation. The pre-flight check above can still lose a
-       race to a simultaneous checkout, in which case the username unique
-       index is what actually catches it — report that as the same friendly
-       409 the pre-flight path returns rather than a generic failure. */
-    if (profileError?.code === "23505") {
+  if (rpcError) {
+    // The RPC is atomic on the DB side, but the uploaded file isn't part of
+    // that transaction — remove it so a failed order leaves no orphaned image.
+    if (uploadedPhotoPath) {
+      await supabase.storage.from("profile-photos").remove([uploadedPhotoPath]);
+    }
+    // 23505 = unique violation: the username was taken between the pre-flight
+    // check and the insert. Report it the same friendly way.
+    if (rpcError.code === "23505") {
       return NextResponse.json({ error: "That username was just taken. Please pick another." }, { status: 409 });
     }
-
     return NextResponse.json({ error: "Could not complete your order. Please try again." }, { status: 500 });
   }
-
-  await supabase.from("orders").update({ profile_id: profileRow.id }).eq("id", orderRow.id);
 
   return NextResponse.json({ orderNumber, username });
 }

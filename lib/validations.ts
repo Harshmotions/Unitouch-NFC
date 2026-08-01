@@ -19,6 +19,35 @@ export const orderDetailsSchema = z.object({
    coerces it on submit. */
 export type OrderDetailsValues = z.input<typeof orderDetailsSchema>;
 
+/* --- New "Buy Now, Build Later" checkout (Phase 4) ---------------------- */
+
+// Step 1 — identity captured before payment. Contact email comes from the
+// authenticated session, not this form.
+export const identitySchema = z.object({
+  accountType: z.enum(["personal", "business"]),
+  displayName: z.string().min(2, "Enter your name"),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be 30 characters or fewer")
+    .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers, and hyphens only"),
+});
+export type IdentityValues = z.input<typeof identitySchema>;
+
+// Step 2 — shipping, contact phone, and the card being purchased.
+export const shippingPaymentSchema = z.object({
+  phone: z.string().min(8, "Enter a valid phone number"),
+  cardType: z.enum(["standard", "premium", "team"]),
+  quantity: z.coerce.number().int().min(1).max(50),
+  line1: z.string().min(3, "Enter your address"),
+  line2: z.string().optional(),
+  city: z.string().min(2, "Enter your city"),
+  state: z.string().min(2, "Enter your state"),
+  pincode: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+  additionalNotes: z.string().optional(),
+});
+export type ShippingPaymentValues = z.input<typeof shippingPaymentSchema>;
+
 export const profileSetupSchema = z.object({
   username: z
     .string()
