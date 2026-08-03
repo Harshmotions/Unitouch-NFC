@@ -112,7 +112,7 @@ export default function OrderStepShippingPayment({
       {/* Card selection */}
       <div>
         <Label>Choose your card</Label>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {CARD_VARIANTS.map((v) => (
             <button
               key={v.id}

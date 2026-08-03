@@ -1,5 +1,5 @@
 import Button from "@/components/ui/Button";
-import { CARD_VARIANTS } from "@/lib/pricing";
+import { CARD_VARIANTS, CUSTOM_PACKAGE } from "@/lib/pricing";
 
 export default function Pricing() {
   return (
@@ -44,6 +44,17 @@ export default function Pricing() {
               </Button>
             </div>
           ))}
+
+          {/* Team-size orders aren't self-serve — scoped and priced manually. */}
+          <div className="surface-card flex flex-col rounded-2xl p-8">
+            <h3 className="font-display text-text-primary mb-1.5 font-[600]">{CUSTOM_PACKAGE.title}</h3>
+            <p className="text-text-secondary mb-8 flex-1 text-sm leading-relaxed">
+              {CUSTOM_PACKAGE.description}
+            </p>
+            <Button variant="secondary" size="md" href={CUSTOM_PACKAGE.href} className="w-full">
+              {CUSTOM_PACKAGE.cta} →
+            </Button>
+          </div>
         </div>
       </div>
     </section>
