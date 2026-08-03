@@ -84,7 +84,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section id="hero" className="relative isolate flex flex-col overflow-hidden bg-bg-base px-6 pt-24 pb-4 md:min-h-[100svh] md:pb-16">
+    <section className="relative isolate flex flex-col overflow-hidden bg-bg-base px-6 pt-24 pb-4 md:min-h-[100svh] md:pb-16">
       {/* ambient page-wide wash */}
       <div
         className="pointer-events-none absolute inset-0"
