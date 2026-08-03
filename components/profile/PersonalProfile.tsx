@@ -62,145 +62,165 @@ export default function PersonalProfile({
   ];
   const visibleLinks = links.filter(withHref);
 
+  function handleSaveContact() {
+    downloadVCard(profile);
+    safeTrack("contact_save", profile.username);
+  }
+
   return (
-    <main className="bg-bg-base min-h-screen pb-32">
-      {/* contained column — full-bleed on mobile, centred card on desktop */}
-      <div className="relative mx-auto max-w-xl">
-        <div className="relative h-[52vh] max-h-[560px] w-full overflow-hidden md:rounded-b-[2.5rem]">
-          {profile.avatarUrl ? (
-            <Image
-              src={profile.avatarUrl}
-              alt={profile.fullName}
-              fill
-              priority
-              className="object-cover object-top"
-            />
-          ) : (
+    <main className="bg-bg-base min-h-screen pb-32 lg:pb-0">
+      {/* Stacked column on mobile; two-column split (hero | details) on desktop. */}
+      <div className="lg:mx-auto lg:flex lg:min-h-screen lg:max-w-6xl">
+        {/* Hero — top on mobile, left half (sticky, full height) on desktop. */}
+        <div className="relative mx-auto w-full max-w-xl lg:mx-0 lg:w-1/2 lg:max-w-none lg:shrink-0">
+          <div className="relative h-[52vh] max-h-[560px] w-full overflow-hidden md:rounded-b-[2.5rem] lg:sticky lg:top-0 lg:h-screen lg:max-h-none lg:rounded-none">
+            {profile.avatarUrl ? (
+              <Image
+                src={profile.avatarUrl}
+                alt={profile.fullName}
+                fill
+                priority
+                className="object-cover object-top"
+              />
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(120% 80% at 20% 0%, var(--color-accent-purple-glow-soft), transparent 60%), linear-gradient(160deg, #1b1030 0%, #100a1c 45%, #080808 100%)",
+                }}
+              />
+            )}
+            {/* long, multi-stop wipe so the photo melts into the page — no hard edge */}
             <div
-              className="absolute inset-0"
+              className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(120% 80% at 20% 0%, var(--color-accent-purple-glow-soft), transparent 60%), linear-gradient(160deg, #1b1030 0%, #100a1c 45%, #080808 100%)",
+                  "linear-gradient(to top, var(--color-bg-base) 4%, rgba(8,8,8,0.85) 22%, rgba(8,8,8,0.35) 42%, transparent 72%)",
               }}
             />
-          )}
-          {/* long, multi-stop wipe so the photo melts into the page — no hard edge */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to top, var(--color-bg-base) 4%, rgba(8,8,8,0.85) 22%, rgba(8,8,8,0.35) 42%, transparent 72%)",
-            }}
-          />
-          {/* top scrim so the floating glass controls stay legible over light photos */}
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-32"
-            style={{
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)",
-            }}
-          />
-
-          <div className="absolute inset-x-5 top-6 flex items-center justify-end">
-            <button
-              onClick={async () => {
-                await shareProfile(profile.fullName, profile.username);
-                setShared(true);
-                setTimeout(() => setShared(false), 1500);
+            {/* top scrim so the floating glass controls stay legible over light photos */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-32"
+              style={{
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)",
               }}
-              className="glass-icon-btn glass-stroke-4 flex size-10 items-center justify-center rounded-full text-text-primary"
+            />
+
+            <div className="absolute inset-x-5 top-6 flex items-center justify-end">
+              <button
+                onClick={async () => {
+                  await shareProfile(profile.fullName, profile.username);
+                  setShared(true);
+                  setTimeout(() => setShared(false), 1500);
+                }}
+                className="glass-icon-btn glass-stroke-4 flex size-10 items-center justify-center rounded-full text-text-primary"
+              >
+                {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
+              </button>
+            </div>
+
+            <div className="absolute inset-x-6 bottom-6">
+              {profile.location && (
+                <div className="text-text-primary/90 mb-1.5 flex items-center gap-1.5 text-sm">
+                  <MapPin className="size-3.5" />
+                  {profile.location}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
+                {profile.isPublished && <BadgeCheck className="text-verified size-5" />}
+              </div>
+              <p className="text-text-secondary text-sm">
+                {profile.designation}
+                {profile.company ? ` · ${profile.company}` : ""}
+              </p>
+
+              {profile.interests && profile.interests.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {profile.interests.map((tag, i) => (
+                    <span
+                      key={tag}
+                      className={`glass-pill glass-stroke-${((i + 2) % 4) + 1} text-text-primary rounded-full px-4 py-2 text-sm font-[500]`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Details — below hero on mobile, right half (vertically centred) on desktop. */}
+        <div className="mx-auto w-full max-w-xl lg:mx-0 lg:flex lg:w-1/2 lg:max-w-none lg:flex-col lg:justify-center lg:px-12 lg:py-16">
+          <div className="mx-auto mt-4 w-[calc(100%-2.5rem)] lg:mt-0 lg:w-full">
+            <div className="rounded-2xl border border-white/10 bg-bg-elevated/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_50px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+              {profile.bio && (
+                <p className="text-text-secondary text-sm leading-relaxed">{profile.bio}</p>
+              )}
+
+              <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-4">
+                <div className="flex items-center gap-1.5">
+                  <Eye className="text-accent-purple size-4" />
+                  <span className="text-text-primary text-sm font-[600]">{stats.views.toLocaleString()}</span>
+                  <span className="text-text-muted text-xs">views</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Bookmark className="text-accent-purple size-4" />
+                  <span className="text-text-primary text-sm font-[600]">{stats.saves.toLocaleString()}</span>
+                  <span className="text-text-muted text-xs">saves</span>
+                </div>
+              </div>
+              <p className="text-text-muted mt-3 text-xs">
+                Unitouch member since {formatMemberSince(profile.createdAt)}
+              </p>
+            </div>
+          </div>
+
+          {visibleLinks.length > 0 && (
+            <div className="mx-auto mt-5 w-[calc(100%-2.5rem)] lg:w-full">
+              <PlatformGrid
+                items={visibleLinks}
+                onItemClick={(platform) => {
+                  const eventType = PLATFORM_EVENTS[platform];
+                  if (eventType) safeTrack(eventType, profile.username);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Save Contact — inline on desktop (the fixed mobile bar is hidden at lg). */}
+          <div className="mx-auto mt-6 hidden w-[calc(100%-2.5rem)] lg:block lg:w-full">
+            <button
+              onClick={handleSaveContact}
+              className="bg-accent-purple text-bg-base flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
             >
-              {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
+              <Download className="size-4" />
+              Save Contact
             </button>
           </div>
 
-          <div className="absolute inset-x-6 bottom-6">
-            {profile.location && (
-              <div className="text-text-primary/90 mb-1.5 flex items-center gap-1.5 text-sm">
-                <MapPin className="size-3.5" />
-                {profile.location}
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
-              {profile.isPublished && <BadgeCheck className="text-verified size-5" />}
-            </div>
-            <p className="text-text-secondary text-sm">
-              {profile.designation}
-              {profile.company ? ` · ${profile.company}` : ""}
-            </p>
-
-            {profile.interests && profile.interests.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {profile.interests.map((tag, i) => (
-                  <span
-                    key={tag}
-                    className={`glass-pill glass-stroke-${((i + 2) % 4) + 1} text-text-primary rounded-full px-4 py-2 text-sm font-[500]`}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
+          <div className="mx-auto mt-10 flex w-[calc(100%-2.5rem)] flex-col items-center gap-4 border-t border-white/10 pt-6 lg:w-full">
+            <Link href="/" className="flex items-center gap-1.5 opacity-70 transition-opacity hover:opacity-100">
+              <Image src="/logo.png" alt="" width={16} height={16} />
+              <span className="text-text-muted text-xs font-[500]">This profile is powered by Unitouch</span>
+            </Link>
+            <Link
+              href="/"
+              className="glass glass-stroke-2 text-text-primary rounded-full px-4 py-2 text-xs font-[500]"
+            >
+              Get your NFC card →
+            </Link>
           </div>
-        </div>
-
-        <div className="mx-auto mt-4 w-[calc(100%-2.5rem)]">
-          <div className="rounded-2xl border border-white/10 bg-bg-elevated/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_50px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl">
-            {profile.bio && (
-              <p className="text-text-secondary text-sm leading-relaxed">{profile.bio}</p>
-            )}
-
-            <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-4">
-              <div className="flex items-center gap-1.5">
-                <Eye className="text-accent-purple size-4" />
-                <span className="text-text-primary text-sm font-[600]">{stats.views.toLocaleString()}</span>
-                <span className="text-text-muted text-xs">views</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Bookmark className="text-accent-purple size-4" />
-                <span className="text-text-primary text-sm font-[600]">{stats.saves.toLocaleString()}</span>
-                <span className="text-text-muted text-xs">saves</span>
-              </div>
-            </div>
-            <p className="text-text-muted mt-3 text-xs">
-              Unitouch member since {formatMemberSince(profile.createdAt)}
-            </p>
-          </div>
-        </div>
-
-        {visibleLinks.length > 0 && (
-          <div className="mx-auto mt-5 w-[calc(100%-2.5rem)]">
-            <PlatformGrid
-              items={visibleLinks}
-              onItemClick={(platform) => {
-                const eventType = PLATFORM_EVENTS[platform];
-                if (eventType) safeTrack(eventType, profile.username);
-              }}
-            />
-          </div>
-        )}
-
-        <div className="mx-auto mt-10 flex w-[calc(100%-2.5rem)] flex-col items-center gap-4 border-t border-white/10 pt-6">
-          <Link href="/" className="flex items-center gap-1.5 opacity-70 transition-opacity hover:opacity-100">
-            <Image src="/logo.png" alt="" width={16} height={16} />
-            <span className="text-text-muted text-xs font-[500]">This profile is powered by Unitouch</span>
-          </Link>
-          <Link
-            href="/"
-            className="glass glass-stroke-2 text-text-primary rounded-full px-4 py-2 text-xs font-[500]"
-          >
-            Get your NFC card →
-          </Link>
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4">
+      {/* Save Contact — fixed bottom bar on mobile only. */}
+      <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4 lg:hidden">
         <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
         <button
-          onClick={() => {
-            downloadVCard(profile);
-            safeTrack("contact_save", profile.username);
-          }}
+          onClick={handleSaveContact}
           className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-xl items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
         >
           <Download className="size-4" />
