@@ -35,12 +35,12 @@ const FAQS = [
   {
     question: "Can I order for my entire team?",
     answer:
-      "Yes, the Team Pack bundles 5 cards for groups, or you can place multiple individual orders.",
+      "Yes — for groups we put together a custom package with bulk pricing and centralized setup. Reach out and we'll scope it, or place multiple individual orders yourself.",
   },
   {
     question: "What's the difference between plans?",
     answer:
-      "Standard covers the essentials. Premium adds a priority design turnaround and profile analytics. Team Pack bundles 5 cards at a lower per-card price.",
+      "Standard covers the essentials. Premium adds a priority design turnaround and profile analytics. Ordering for a whole team? We'll set up a custom package for you.",
   },
 ];
 

@@ -1,4 +1,5 @@
 import Navbar from "@/components/marketing/Navbar";
+import StickyOrderBar from "@/components/marketing/StickyOrderBar";
 
 export default function MarketingLayout({
   children,
@@ -9,6 +10,7 @@ export default function MarketingLayout({
     <>
       <Navbar />
       {children}
+      <StickyOrderBar />
     </>
   );
 }

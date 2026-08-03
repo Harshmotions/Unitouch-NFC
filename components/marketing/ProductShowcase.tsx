@@ -7,11 +7,11 @@ export default function ProductShowcase() {
         <div className="mb-16 flex flex-col items-center gap-4 text-center">
           <span className="eyebrow">Card Tiers</span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
-            Three finishes. One standard.
+            Two finishes. One standard.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
           {CARD_VARIANTS.map((variant) => (
             <div
               key={variant.id}
