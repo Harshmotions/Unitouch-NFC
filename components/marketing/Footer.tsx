@@ -13,7 +13,7 @@ const LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] px-6 py-16">
+    <footer id="site-footer" className="border-t border-white/[0.06] px-6 py-16">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-8 sm:flex-row sm:items-start">
         <div className="flex flex-col items-center gap-2 sm:items-start">
           <Link href="/" className="flex items-center gap-2">
