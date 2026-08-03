@@ -3,34 +3,35 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 
-/* Thumb-reach order CTA that slides up from the bottom as the pricing section
-   (the 3 card packs) comes into view, and hides again when the footer comes
-   into view (so it doesn't stack on top of the footer's own CTA). Homepage
-   only — mounted in the marketing layout. Reads #pricing and #site-footer
-   positions on scroll.
+/* Thumb-reach order CTA that slides up from the bottom just after the hero
+   (first screen) has been scrolled through, and hides again when the footer
+   comes into view (so it doesn't stack on top of the footer's own CTA).
+   Homepage only — mounted in the marketing layout. Reads #hero and
+   #site-footer positions on scroll.
 
    Uses a scroll listener (like the navbar) rather than IntersectionObserver
    so it behaves predictably with Lenis smooth scroll. */
 
-// How far the pricing section's top must reach up the viewport before the bar
-// shows, as a fraction of viewport height (0 = at the very top, 1 = just
-// peeking in from the bottom). Higher = appears earlier. Tweak to taste.
-const SHOW_AT = 0.75;
+// Fraction of the hero (first screen) that must be scrolled past before the
+// bar shows. 1 = exactly when the hero fully leaves the top; lower = earlier.
+const SHOW_AFTER = 0.85;
 
 export default function StickyOrderBar() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const update = () => {
-      const pricing = document.getElementById("pricing");
+      const hero = document.getElementById("hero");
       const footer = document.getElementById("site-footer");
-      // Show once the top of the pricing section has scrolled up into view.
-      const reachedPricing = pricing
-        ? pricing.getBoundingClientRect().top <= window.innerHeight * SHOW_AT
-        : false;
+      // Show once the hero has been scrolled ~past the first screen.
+      let scrolledPastHero = false;
+      if (hero) {
+        const r = hero.getBoundingClientRect();
+        scrolledPastHero = r.height > 0 && -r.top >= r.height * SHOW_AFTER;
+      }
       // At the footer once any part of it has entered the viewport.
       const atFooter = footer ? footer.getBoundingClientRect().top <= window.innerHeight : false;
-      setVisible(reachedPricing && !atFooter);
+      setVisible(scrolledPastHero && !atFooter);
     };
 
     update();
