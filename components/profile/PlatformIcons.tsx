@@ -125,23 +125,23 @@ export function PlatformTile({
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="group flex w-[72px] shrink-0 flex-col items-center gap-2.5 transition-transform duration-200 active:scale-[0.94] sm:w-[84px]"
+      className="group flex w-14 shrink-0 flex-col items-center gap-2 transition-transform duration-200 active:scale-[0.94] sm:w-16"
     >
       <span
-        className={`${bg} flex size-[72px] items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)] sm:size-[84px]`}
+        className={`${bg} flex size-14 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)] sm:size-16`}
       >
         {PlatformGlyph ? (
-          <PlatformGlyph className="size-[30px] text-white sm:size-9" />
+          <PlatformGlyph className="size-6 text-white sm:size-7" />
         ) : favicon && !faviconFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={favicon}
             alt=""
-            className="size-[30px] object-contain sm:size-9"
+            className="size-6 object-contain sm:size-7"
             onError={() => setFaviconFailed(true)}
           />
         ) : (
-          <Link2 className="text-text-primary size-[30px] sm:size-9" />
+          <Link2 className="text-text-primary size-6 sm:size-7" />
         )}
       </span>
       <span className="text-text-secondary truncate text-xs">{label}</span>
@@ -167,7 +167,7 @@ export function PlatformGrid({
 
   return (
     <div
-      className="grid justify-center gap-x-3 gap-y-4 [--tile-size:72px] sm:[--tile-size:84px]"
+      className="grid justify-center gap-x-3 gap-y-4 [--tile-size:56px] sm:[--tile-size:64px]"
       style={{ gridTemplateColumns: `repeat(${columns}, var(--tile-size))` }}
     >
       {items.map((item) => (
