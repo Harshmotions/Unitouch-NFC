@@ -512,11 +512,14 @@ export default function ProfileStudio({ initialProfile }: { initialProfile: Prof
 
       {previewOpen && (
         <div className="bg-bg-base fixed inset-0 z-50 overflow-y-auto">
+          {/* Top-left so it doesn't collide with the profile's own share
+              button (top-right). Labelled "Back" since this returns to editing. */}
           <button
             onClick={() => setPreviewOpen(false)}
-            className="glass-icon-btn glass-stroke-3 text-text-primary fixed top-5 right-5 z-50 flex size-10 items-center justify-center rounded-full"
+            className="glass glass-stroke-3 text-text-primary fixed top-5 left-5 z-50 flex h-10 items-center gap-1.5 rounded-full pr-4 pl-3 text-sm font-[500]"
           >
-            <X className="size-4" />
+            <ChevronLeft className="size-4" />
+            Back
           </button>
           <PersonalProfile profile={draftProfile} stats={{ views: 0, saves: 0 }} preview />
         </div>
