@@ -25,7 +25,19 @@ const REPRESENTS_OPTIONS = [
    and publishes it. Mirrors the old profile-setup fields, but loads from the
    saved row, can override the profile image, and saves via
    /api/profiles/update (UPDATE, not insert). Username is fixed here. */
-export default function ProfileStudio({ initialProfile }: { initialProfile: Profile }) {
+export default function ProfileStudio({
+  initialProfile,
+  updateEndpoint = "/api/profiles/update",
+  backHref,
+}: {
+  initialProfile: Profile;
+  /* Lets the admin dashboard reuse this exact form against its own
+     ownership-free update route instead of the customer one. */
+  updateEndpoint?: string;
+  /* Shown as a "back to list" link on the published-success screen — only
+     relevant for the admin context, where there's a list to return to. */
+  backHref?: string;
+}) {
   const {
     register,
     handleSubmit,
@@ -164,7 +176,7 @@ export default function ProfileStudio({ initialProfile }: { initialProfile: Prof
     if (imageFile) form.set("image", imageFile);
 
     try {
-      const res = await fetch("/api/profiles/update", { method: "POST", body: form });
+      const res = await fetch(updateEndpoint, { method: "POST", body: form });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setBusy(null);
@@ -206,6 +218,11 @@ export default function ProfileStudio({ initialProfile }: { initialProfile: Prof
           <Button variant="secondary" size="md" onClick={() => setPublished(false)}>
             Keep editing
           </Button>
+          {backHref && (
+            <Button variant="ghost" size="md" href={backHref}>
+              Back to list
+            </Button>
+          )}
         </div>
       </div>
     );

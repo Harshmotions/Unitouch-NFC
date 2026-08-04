@@ -170,3 +170,23 @@ $$;
 revoke execute on function public.create_order_with_profile(
   uuid, text, text, text, text, text, integer, jsonb, integer, text, text, text, text
 ) from anon, authenticated;
+
+-- admin_audit_log --------------------------------------------------------
+-- One row per admin edit to any profile, for accountability — admins skip
+-- the normal OTP + ownership check the customer studio route enforces, so
+-- there's no other trail of who changed what.
+
+create table public.admin_audit_log (
+  id uuid primary key default gen_random_uuid(),
+  admin_email text not null,
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  username text not null,
+  changes jsonb not null,
+  published boolean,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists admin_audit_log_profile_id_idx on public.admin_audit_log(profile_id);
+
+alter table public.admin_audit_log enable row level security;
+-- Same as analytics_events/orders — service-role only, no anon policies.
