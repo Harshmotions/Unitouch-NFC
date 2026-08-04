@@ -9,6 +9,7 @@ import { Menu, X } from "lucide-react";
 import gsap from "gsap";
 import Button from "@/components/ui/Button";
 import { handleHashLinkClick, smoothScrollToTop } from "@/lib/scroll";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
@@ -21,6 +22,17 @@ export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // null = session not checked yet (render no CTA to avoid a signed-out flash).
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(!!session?.user);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   // Already on the homepage — a Link to the same route is a no-op, so
   // scroll back to the top ourselves instead of just sitting there.
@@ -107,10 +119,20 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <div className="hidden md:block">
-          <Button variant="primary" size="sm" href="/order">
-            Order Your Card
-          </Button>
+        <div className="hidden min-h-9 items-center md:flex">
+          {signedIn === true && (
+            <Button variant="primary" size="sm" href="/studio">
+              Customize Profile
+            </Button>
+          )}
+          {signedIn === false && (
+            <Link
+              href="/login"
+              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
+            >
+              Already a customer? <span className="text-text-primary font-[500]">Log in</span>
+            </Link>
+          )}
         </div>
 
         <button
@@ -148,9 +170,20 @@ export default function Navbar() {
           >
             Demo Profile
           </Link>
-          <Button variant="primary" size="sm" href="/order">
-            Order Your Card
-          </Button>
+          {signedIn === true && (
+            <Button variant="primary" size="sm" href="/studio">
+              Customize Profile
+            </Button>
+          )}
+          {signedIn === false && (
+            <Link
+              href="/login"
+              onClick={() => setMenuOpen(false)}
+              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
+            >
+              Already a customer? <span className="text-text-primary font-[500]">Log in</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

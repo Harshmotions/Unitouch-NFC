@@ -34,7 +34,7 @@ export interface Order {
   fullName: string;
   email: string;
   phone: string;
-  cardType: "standard" | "premium" | "team";
+  cardType: "standard" | "premium";
   quantity: number;
   shippingAddress: ShippingAddress;
   profilePhotoUrl?: string;
@@ -90,7 +90,7 @@ export type EventType =
   | "portfolio_click";
 
 export interface CardVariant {
-  id: "standard" | "premium" | "team";
+  id: "standard" | "premium";
   name: string;
   price: number;
   priceInPaise: number;

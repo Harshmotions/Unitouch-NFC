@@ -26,16 +26,14 @@ export const CARD_VARIANTS: CardVariant[] = [
       "Profile analytics dashboard",
     ],
   },
-  {
-    id: "team",
-    name: "Team Pack",
-    price: 3999,
-    priceInPaise: 399900,
-    features: [
-      "5x NFC Premium Cards",
-      "Bulk team pricing",
-      "Centralized profile setup",
-      "Dedicated WhatsApp support",
-    ],
-  },
 ];
+
+/* Teams don't self-serve through checkout — larger/bulk orders are scoped
+   and priced manually. Rendered as a third "let's talk" card alongside the
+   two purchasable variants on the marketing pricing section. */
+export const CUSTOM_PACKAGE = {
+  title: "Need a custom package for your team?",
+  description: "Bulk pricing, centralized setup, and dedicated support — tailored to your team's size.",
+  cta: "Let's discuss",
+  href: "mailto:unitouchnfc@gmail.com?subject=Custom%20team%20package",
+};

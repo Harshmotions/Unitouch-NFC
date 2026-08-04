@@ -19,7 +19,7 @@ const TESTIMONIALS = [
   {
     name: "Karan Bhatia",
     role: "Co-founder, Driftwork",
-    quote: "Our whole team ordered the Team Pack. Onboarding new hires with a card now takes minutes instead of a design request.",
+    quote: "We reached out for a custom package for the whole team. Onboarding new hires with a card now takes minutes instead of a design request.",
   },
 ];
 
