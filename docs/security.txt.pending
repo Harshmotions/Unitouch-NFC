@@ -1,0 +1,20 @@
+# PENDING — not yet published.
+#
+# Audit item #11 (Publish Security Contact). Deliberately parked outside
+# public/ so it is NOT served: security@unitouch.in currently bounces
+# ("address not found"), and advertising a contact that black-holes reports
+# is worse than advertising none.
+#
+# To ship: create the security@unitouch.in alias in Google Workspace (the
+# domain already has Google MX records), or swap the Contact line for an
+# address that is actually monitored, then move this file to
+# public/.well-known/security.txt and redeploy.
+
+# Security contact for unitouch.in
+# https://securitytxt.org/ — RFC 9116
+# Renew the Expires date annually; an expired file is treated as invalid.
+
+Contact: mailto:security@unitouch.in
+Expires: 2027-08-13T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.unitouch.in/.well-known/security.txt
