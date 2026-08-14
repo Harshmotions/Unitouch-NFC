@@ -1,0 +1,28 @@
+version: 2
+
+# NOTE: this file only takes effect once Dependabot is switched on for the
+# repository: GitHub → Settings → Code security → enable "Dependabot alerts"
+# and "Dependabot security updates".
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Majors are opt-in: a Next.js/React major is a migration, not a bump, and
+    # shouldn't arrive as surprise PR noise. Security updates still come
+    # through regardless of this ignore.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # One PR for the routine patch/minor churn instead of a dozen.
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

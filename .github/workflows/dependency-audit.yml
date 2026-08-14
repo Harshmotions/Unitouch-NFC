@@ -1,0 +1,40 @@
+name: Dependency audit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Catches newly-disclosed CVEs in dependencies we haven't touched.
+    - cron: "0 6 * * 1"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Two-tier on purpose. As of 2026-08 three high advisories (postcss,
+      # sharp) are reachable only through next@15's own pinned deps and can't
+      # be fixed without the next@16 major migration. Gating PRs on
+      # moderate-and-worse would mean a permanently red check that everyone
+      # learns to ignore — so moderate+ is reported for visibility, and only
+      # critical actually blocks. Once next@16 lands, tighten the gate below
+      # to --audit-level=high.
+      - name: Report moderate+ advisories (non-blocking)
+        continue-on-error: true
+        run: npm audit --audit-level=moderate
+
+      - name: Fail on critical advisories
+        run: npm audit --audit-level=critical
+
+      - name: Lint
+        if: always()
+        run: npm run lint
