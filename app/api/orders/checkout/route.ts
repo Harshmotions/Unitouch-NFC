@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { identitySchema, shippingPaymentSchema } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { processImageUpload, UploadRejected } from "@/lib/uploads";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -61,13 +62,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "A logo is required for business cards." }, { status: 400 });
   }
 
-  if (logo instanceof File) {
-    if (logo.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
-    }
-    if (!logo.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Image must be an image file" }, { status: 400 });
-    }
+  if (logo instanceof File && logo.size > MAX_PHOTO_BYTES) {
+    return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
   }
 
   const supabase = createServiceRoleClient();
@@ -91,11 +87,18 @@ export async function POST(request: Request) {
   let avatarUrl: string | null = null;
   let uploadedPhotoPath: string | null = null;
   if (logo instanceof File) {
-    const ext = logo.name.split(".").pop() || "jpg";
-    const path = `${username}-${Date.now()}.${ext}`;
+    let processed;
+    try {
+      processed = await processImageUpload(logo);
+    } catch (err) {
+      const message = err instanceof UploadRejected ? err.message : "Could not process that image.";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    const path = `${username}-${Date.now()}.${processed.ext}`;
     const { error: uploadError } = await supabase.storage
       .from("profile-photos")
-      .upload(path, logo, { contentType: logo.type, upsert: false });
+      .upload(path, processed.buffer, { contentType: processed.contentType, upsert: false });
 
     if (uploadError) {
       return NextResponse.json({ error: "Could not upload image. Please try again." }, { status: 500 });
