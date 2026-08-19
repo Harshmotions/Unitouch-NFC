@@ -3,6 +3,7 @@ import { identitySchema, shippingPaymentSchema } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
+import { verifyOrigin } from "@/lib/csrf";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -16,6 +17,10 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
    RPC (one transaction — a paid order can never exist without its profile).
    The digital profile is filled in later in the studio. */
 export async function POST(request: Request) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   // 1. Must be signed in. Identity of the buyer comes from the session, never
   //    from the client payload.
   const authClient = await createServerSupabaseClient();

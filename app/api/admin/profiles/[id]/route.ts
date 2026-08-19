@@ -3,6 +3,7 @@ import { studioUpdateSchema } from "@/lib/validations";
 import { isAdminEmail } from "@/lib/admin";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
+import { verifyOrigin } from "@/lib/csrf";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -12,6 +13,10 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
    write is logged to admin_audit_log for accountability, since this route
    deliberately skips the ownership check the customer route enforces. */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const { id } = await params;
 
   const authClient = await createServerSupabaseClient();

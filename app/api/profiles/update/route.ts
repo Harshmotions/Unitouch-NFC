@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { studioUpdateSchema } from "@/lib/validations";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
+import { verifyOrigin } from "@/lib/csrf";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -11,6 +12,10 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
    live at /u/[username]. Ownership is enforced by matching the row's user_id
    to the session user (the service-role client bypasses RLS). */
 export async function POST(request: Request) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const authClient = await createServerSupabaseClient();
   const {
     data: { user },
