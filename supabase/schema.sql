@@ -82,6 +82,56 @@ create table public.analytics_events (
 alter table public.analytics_events enable row level security;
 -- Intentionally no anon/authenticated policies — only the service-role
 -- key (which bypasses RLS) reads or writes this table.
+-- Deprecated as of the 2026-08 security audit (#03 Harden Analytics): one
+-- row per event with arbitrary JSON metadata is an unbounded-growth /
+-- data-pollution risk. No code writes here anymore — see daily_analytics
+-- below. Table (and any historical rows) kept for now; dropping it is a
+-- separate, deliberate decision.
+
+-- daily_analytics ---------------------------------------------------------
+-- Replaces analytics_events as the write path (audit #03): one row per
+-- (username, day, event_type), incremented in place, so table size is
+-- bounded by profiles x days x event types instead of growing with traffic.
+
+create table public.daily_analytics (
+  id uuid primary key default gen_random_uuid(),
+  username text not null,
+  event_date date not null default current_date,
+  event_type text not null check (event_type in (
+    'page_view', 'whatsapp_click', 'website_click', 'contact_save',
+    'instagram_click', 'linkedin_click', 'email_click', 'phone_click',
+    'youtube_click', 'portfolio_click'
+  )),
+  count integer not null default 0,
+  unique (username, event_date, event_type)
+);
+
+create index if not exists daily_analytics_username_idx on public.daily_analytics(username);
+
+alter table public.daily_analytics enable row level security;
+-- Same as analytics_events — service-role only, no anon policies.
+
+-- Atomic increment — avoids a read-then-write race between concurrent
+-- requests for the same username/day/event_type.
+create or replace function public.increment_daily_analytics(
+  p_username text,
+  p_event_type text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.daily_analytics (username, event_date, event_type, count)
+  values (p_username, current_date, p_event_type, 1)
+  on conflict (username, event_date, event_type)
+  do update set count = public.daily_analytics.count + 1;
+end;
+$$;
+
+revoke execute on function public.increment_daily_analytics(text, text)
+from anon, authenticated;
 
 -- orders ----------------------------------------------------------------
 
