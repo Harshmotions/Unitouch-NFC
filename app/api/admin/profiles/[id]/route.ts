@@ -4,6 +4,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
+import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -26,6 +27,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!user || !isAdminEmail(user.email)) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
+
+  const limited = await rateLimitOrResponse(profileWriteLimiter, user.id);
+  if (limited) return limited;
 
   const form = await request.formData().catch(() => null);
   if (!form) {

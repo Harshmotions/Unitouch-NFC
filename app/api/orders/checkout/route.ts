@@ -4,6 +4,7 @@ import { CARD_VARIANTS } from "@/lib/pricing";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
+import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -20,6 +21,9 @@ export async function POST(request: Request) {
   if (!verifyOrigin(request)) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
+
+  const limited = await rateLimitOrResponse(checkoutLimiter, clientIp(request));
+  if (limited) return limited;
 
   // 1. Must be signed in. Identity of the buyer comes from the session, never
   //    from the client payload.

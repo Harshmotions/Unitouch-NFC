@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { checkUsernameLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 
 /* Service-role check, not the public anon client — RLS on `profiles` only
    allows anon SELECT where is_published = true, which would silently
    report "available" for any unpublished or nonexistent username and
    defeat the point of this check. */
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(checkUsernameLimiter, clientIp(request));
+  if (limited) return limited;
+
   const json = await request.json().catch(() => null);
   const username = typeof json?.username === "string" ? json.username.trim().toLowerCase() : "";
 

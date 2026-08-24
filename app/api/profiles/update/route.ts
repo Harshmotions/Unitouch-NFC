@@ -3,6 +3,7 @@ import { studioUpdateSchema } from "@/lib/validations";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
+import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -23,6 +24,9 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Please sign in to edit your profile." }, { status: 401 });
   }
+
+  const limited = await rateLimitOrResponse(profileWriteLimiter, user.id);
+  if (limited) return limited;
 
   const form = await request.formData().catch(() => null);
   if (!form) {

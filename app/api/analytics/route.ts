@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { logEvent } from "@/lib/analytics";
 import { getPublishedProfile } from "@/lib/profile";
+import { analyticsLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 
 const EVENT_TYPES = [
   "page_view",
@@ -38,6 +39,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(analyticsLimiter, clientIp(request));
+  if (limited) return limited;
+
   const json = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
