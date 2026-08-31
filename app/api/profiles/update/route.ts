@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { studioUpdateSchema } from "@/lib/validations";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { processImageUpload, UploadRejected } from "@/lib/uploads";
+import { verifyOrigin } from "@/lib/csrf";
+import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -10,6 +13,10 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
    live at /u/[username]. Ownership is enforced by matching the row's user_id
    to the session user (the service-role client bypasses RLS). */
 export async function POST(request: Request) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const authClient = await createServerSupabaseClient();
   const {
     data: { user },
@@ -17,6 +24,9 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Please sign in to edit your profile." }, { status: 401 });
   }
+
+  const limited = await rateLimitOrResponse(profileWriteLimiter, user.id);
+  if (limited) return limited;
 
   const form = await request.formData().catch(() => null);
   if (!form) {
@@ -61,14 +71,19 @@ export async function POST(request: Request) {
     if (image.size > MAX_PHOTO_BYTES) {
       return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
     }
-    if (!image.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Image must be an image file" }, { status: 400 });
+
+    let processed;
+    try {
+      processed = await processImageUpload(image);
+    } catch (err) {
+      const message = err instanceof UploadRejected ? err.message : "Could not process that image.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
-    const ext = image.name.split(".").pop() || "jpg";
-    const path = `${username}-${Date.now()}.${ext}`;
+
+    const path = `${username}-${Date.now()}.${processed.ext}`;
     const { error: uploadError } = await supabase.storage
       .from("profile-photos")
-      .upload(path, image, { contentType: image.type, upsert: false });
+      .upload(path, processed.buffer, { contentType: processed.contentType, upsert: false });
     if (uploadError) {
       return NextResponse.json({ error: "Could not upload image. Please try again." }, { status: 500 });
     }

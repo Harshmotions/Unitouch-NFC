@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { identitySchema, shippingPaymentSchema } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { processImageUpload, UploadRejected } from "@/lib/uploads";
+import { verifyOrigin } from "@/lib/csrf";
+import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -15,6 +18,13 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
    RPC (one transaction — a paid order can never exist without its profile).
    The digital profile is filled in later in the studio. */
 export async function POST(request: Request) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
+  const limited = await rateLimitOrResponse(checkoutLimiter, clientIp(request));
+  if (limited) return limited;
+
   // 1. Must be signed in. Identity of the buyer comes from the session, never
   //    from the client payload.
   const authClient = await createServerSupabaseClient();
@@ -61,13 +71,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "A logo is required for business cards." }, { status: 400 });
   }
 
-  if (logo instanceof File) {
-    if (logo.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
-    }
-    if (!logo.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Image must be an image file" }, { status: 400 });
-    }
+  if (logo instanceof File && logo.size > MAX_PHOTO_BYTES) {
+    return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
   }
 
   const supabase = createServiceRoleClient();
@@ -91,11 +96,18 @@ export async function POST(request: Request) {
   let avatarUrl: string | null = null;
   let uploadedPhotoPath: string | null = null;
   if (logo instanceof File) {
-    const ext = logo.name.split(".").pop() || "jpg";
-    const path = `${username}-${Date.now()}.${ext}`;
+    let processed;
+    try {
+      processed = await processImageUpload(logo);
+    } catch (err) {
+      const message = err instanceof UploadRejected ? err.message : "Could not process that image.";
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    const path = `${username}-${Date.now()}.${processed.ext}`;
     const { error: uploadError } = await supabase.storage
       .from("profile-photos")
-      .upload(path, logo, { contentType: logo.type, upsert: false });
+      .upload(path, processed.buffer, { contentType: processed.contentType, upsert: false });
 
     if (uploadError) {
       return NextResponse.json({ error: "Could not upload image. Please try again." }, { status: 500 });

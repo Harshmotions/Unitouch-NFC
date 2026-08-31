@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { studioUpdateSchema } from "@/lib/validations";
 import { isAdminEmail } from "@/lib/admin";
 import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { processImageUpload, UploadRejected } from "@/lib/uploads";
+import { verifyOrigin } from "@/lib/csrf";
+import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -11,6 +14,10 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
    write is logged to admin_audit_log for accountability, since this route
    deliberately skips the ownership check the customer route enforces. */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+
   const { id } = await params;
 
   const authClient = await createServerSupabaseClient();
@@ -20,6 +27,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!user || !isAdminEmail(user.email)) {
     return NextResponse.json({ error: "Not authorized." }, { status: 403 });
   }
+
+  const limited = await rateLimitOrResponse(profileWriteLimiter, user.id);
+  if (limited) return limited;
 
   const form = await request.formData().catch(() => null);
   if (!form) {
@@ -61,14 +71,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (image.size > MAX_PHOTO_BYTES) {
       return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
     }
-    if (!image.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Image must be an image file" }, { status: 400 });
+
+    let processed;
+    try {
+      processed = await processImageUpload(image);
+    } catch (err) {
+      const message = err instanceof UploadRejected ? err.message : "Could not process that image.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
-    const ext = image.name.split(".").pop() || "jpg";
-    const path = `${existing.username}-${Date.now()}.${ext}`;
+
+    const path = `${existing.username}-${Date.now()}.${processed.ext}`;
     const { error: uploadError } = await supabase.storage
       .from("profile-photos")
-      .upload(path, image, { contentType: image.type, upsert: false });
+      .upload(path, processed.buffer, { contentType: processed.contentType, upsert: false });
     if (uploadError) {
       return NextResponse.json({ error: "Could not upload image. Please try again." }, { status: 500 });
     }
