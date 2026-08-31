@@ -53,6 +53,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Deployment marker — comment-only, no runtime effect. Bump when you need
+  // to force a fresh Vercel build with no functional change.
+  // last touched: 2026-08-31
+
   // Don't advertise the framework/version to scanners looking for known CVEs.
   poweredByHeader: false,
   images: {
