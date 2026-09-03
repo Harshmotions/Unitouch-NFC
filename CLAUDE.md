@@ -71,9 +71,17 @@ Check before assuming something works.
   intent but nothing actually charges a card yet. `RAZORPAY_*` env vars are
   empty.
 - Resend (email) — `RESEND_API_KEY` is empty, nothing sends email.
-- File uploads — `orders.profile_photo_url` / `orders.existing_design_url`
-  columns exist in the schema and the 3 Storage buckets exist, but no
-  upload UI or API handling exists. The order form has no file input.
+
+**Image uploads are wired up** (as of the Aug 2026 security remediation).
+The order/studio/admin flows upload a profile image which is validated and
+re-encoded server-side by `lib/uploads.ts` (magic-byte check + Sharp
+re-encode, rejects SVG/HTML) and stored in the `profile-photos` bucket.
+Three routes do this: `app/api/orders/checkout/route.ts`,
+`app/api/profiles/update/route.ts`, `app/api/admin/profiles/[id]/route.ts`.
+**Gotcha:** any route importing Sharp must be listed in
+`next.config.ts` → `outputFileTracingIncludes`, or its Vercel serverless
+function ships without Sharp's native binary and 500s on every request
+(works locally regardless — only fails on a real deploy).
 
 ## Supabase
 
