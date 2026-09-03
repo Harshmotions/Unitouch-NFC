@@ -59,6 +59,22 @@ const nextConfig: NextConfig = {
 
   // Don't advertise the framework/version to scanners looking for known CVEs.
   poweredByHeader: false,
+  /* sharp loads its platform-specific native binary (@img/sharp-<platform>)
+     via a runtime-computed require that Next's static file tracer can't
+     follow — so the @img/*.node binary is left out of the deployed
+     serverless function even though sharp itself is externalized. The
+     result: every route that imports lib/uploads.ts (checkout,
+     profiles/update, admin/profiles/[id]) crashes with a 500 on Vercel
+     while working locally (where `next start` resolves sharp from the real
+     node_modules). Forcing the @img packages into those functions' traces
+     ships the binary alongside the JS. Broad @img glob so it grabs whatever
+     platform/arch binary the build machine actually installed (linux-x64 on
+     Vercel, win32 locally). */
+  outputFileTracingIncludes: {
+    "/api/orders/checkout": ["./node_modules/@img/**"],
+    "/api/profiles/update": ["./node_modules/@img/**"],
+    "/api/admin/profiles/[id]": ["./node_modules/@img/**"],
+  },
   images: {
     remotePatterns: [
       {
