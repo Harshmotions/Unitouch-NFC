@@ -71,7 +71,6 @@ const nextConfig: NextConfig = {
      platform/arch binary the build machine actually installed (linux-x64 on
      Vercel, win32 locally). */
   outputFileTracingIncludes: {
-    "/api/orders/checkout": ["./node_modules/@img/**"],
     "/api/razorpay/create-order": ["./node_modules/@img/**"],
     "/api/profiles/update": ["./node_modules/@img/**"],
     "/api/admin/profiles/[id]": ["./node_modules/@img/**"],
