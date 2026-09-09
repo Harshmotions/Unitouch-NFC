@@ -72,6 +72,7 @@ const nextConfig: NextConfig = {
      Vercel, win32 locally). */
   outputFileTracingIncludes: {
     "/api/orders/checkout": ["./node_modules/@img/**"],
+    "/api/razorpay/create-order": ["./node_modules/@img/**"],
     "/api/profiles/update": ["./node_modules/@img/**"],
     "/api/admin/profiles/[id]": ["./node_modules/@img/**"],
   },

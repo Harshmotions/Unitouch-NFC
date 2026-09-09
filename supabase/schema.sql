@@ -166,9 +166,24 @@ create index if not exists orders_user_id_idx on public.orders(user_id);
 alter table public.orders enable row level security;
 -- Same as analytics_events — service-role only, no anon policies.
 
--- Atomic order + placeholder-profile creation ---------------------------
--- Wraps both inserts in one transaction so a paid order can never exist
--- without its profile. Called only by the service-role checkout route.
+-- Atomic pending-order + placeholder-profile creation -------------------
+-- Wraps both inserts in one transaction so an order can never exist without
+-- its profile. Called only by the service-role Razorpay create-order route.
+--
+-- The order is created payment_status = 'pending' and stores its
+-- razorpay_order_id; it is flipped to 'paid' only after server-side signature
+-- verification (the /razorpay/verify route or the payment.captured webhook).
+-- The profile is created is_published = false either way — it goes public
+-- only once the customer finishes the digital studio.
+--
+-- An earlier version of this function hardcoded 'paid' and took no
+-- razorpay_order_id (13 args); drop that signature so re-running this file
+-- against an existing database cleanly replaces it rather than leaving an
+-- overloaded 13-arg copy behind.
+drop function if exists public.create_order_with_profile(
+  uuid, text, text, text, text, text, integer, jsonb, integer, text, text, text, text
+);
+
 create or replace function public.create_order_with_profile(
   p_user_id uuid,
   p_order_number text,
@@ -182,7 +197,8 @@ create or replace function public.create_order_with_profile(
   p_additional_notes text,
   p_username text,
   p_avatar_url text,
-  p_profile_style text
+  p_profile_style text,
+  p_razorpay_order_id text
 )
 returns table (order_number text, username text)
 language plpgsql
@@ -195,10 +211,12 @@ declare
 begin
   insert into public.orders (
     user_id, order_number, full_name, email, phone, card_type, quantity,
-    shipping_address, additional_notes, payment_status, order_status, amount
+    shipping_address, additional_notes, payment_status, order_status, amount,
+    razorpay_order_id
   ) values (
     p_user_id, p_order_number, p_full_name, p_email, p_phone, p_card_type, p_quantity,
-    p_shipping_address, nullif(p_additional_notes, ''), 'paid', 'received', p_amount
+    p_shipping_address, nullif(p_additional_notes, ''), 'pending', 'received', p_amount,
+    p_razorpay_order_id
   )
   returning id into v_order_id;
 
@@ -218,7 +236,7 @@ end;
 $$;
 
 revoke execute on function public.create_order_with_profile(
-  uuid, text, text, text, text, text, integer, jsonb, integer, text, text, text, text
+  uuid, text, text, text, text, text, integer, jsonb, integer, text, text, text, text, text
 ) from anon, authenticated;
 
 -- admin_audit_log --------------------------------------------------------
