@@ -12,25 +12,35 @@ const isDev = process.env.NODE_ENV === "development";
    here. 'unsafe-eval' is dev-only (Turbopack HMR needs it).
 
    Everything else is tight: no plugins/objects, no framing, forms and base
-   URLs pinned to our own origin. The two external hosts are Supabase (API,
-   auth, storage images) and Google's favicon service, which PlatformIcons.tsx
-   uses to show real favicons for customers' custom links. */
+   URLs pinned to our own origin. The external hosts are Supabase (API, auth,
+   storage images), Google's favicon service (PlatformIcons.tsx shows real
+   favicons for customers' custom links), and Razorpay (audit #01 — hosted
+   checkout). Razorpay's checkout.js is loaded from checkout.razorpay.com and
+   opens the payment UI in an iframe that talks to Razorpay's own hosts, so it
+   needs entries across script-/frame-/connect-/img-/form-action-src. The
+   wildcard https://*.razorpay.com covers api., checkout., lumberjack. (its
+   analytics) and the sub-hosts individual payment methods use. */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://*.razorpay.com`,
   "style-src 'self' 'unsafe-inline'",
   /* blob: covers the local object URLs used for image previews before upload.
      gstatic.com is required alongside google.com because the favicon service
      301s to a rotating t1/t2/t3.gstatic.com pool, and CSP is enforced against
      the redirect target — allowing only www.google.com silently breaks every
      custom-link favicon on profile pages. */
-  "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://*.gstatic.com",
+  "img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://*.gstatic.com https://*.razorpay.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.razorpay.com",
+  /* The Razorpay checkout modal is an iframe; without an explicit frame-src it
+     falls back to default-src 'self' and is blocked. */
+  "frame-src https://*.razorpay.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  /* Razorpay added for redirect-based methods (netbanking/UPI intent) that
+     submit a form to Razorpay's own hosts. */
+  "form-action 'self' https://*.razorpay.com",
 ].join("; ");
 
 const securityHeaders = [
