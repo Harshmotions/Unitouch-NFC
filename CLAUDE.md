@@ -45,38 +45,50 @@ Check before assuming something works.
 - Order flow (`components/order/OrderWizard.tsx`) — a 3-step checkout:
   order details → self-serve profile setup (with a live preview that
   renders the real `StandardProfile`/`PersonalProfile` against draft
-  in-memory data, photo included via a local blob URL) → payment. Nothing
-  is written to `orders` or `profiles` until payment succeeds —
-  `app/api/orders/checkout/route.ts` is the only route that writes to
-  either table, and it's only called after the payment step reports
-  success. Real Razorpay isn't wired up yet, so that step is a "Test
-  Payment" button that simulates success and logs the mock payment to the
-  console — swap it for real Razorpay later. Username availability is
-  checked live via `app/api/profiles/check-username/route.ts`.
+  in-memory data, photo included via a local blob URL) → payment. Payment
+  is real Razorpay (audit #01): the pay button POSTs to
+  `app/api/razorpay/create-order/route.ts`, which reserves the username,
+  uploads the image, and creates the order + placeholder profile as
+  `payment_status = 'pending'` (via the `create_order_with_profile` RPC,
+  storing `razorpay_order_id`); the client then opens Razorpay's hosted
+  checkout.js. The order is flipped to `'paid'` only after server-side
+  HMAC-SHA256 signature verification — the interactive path
+  (`app/api/razorpay/verify/route.ts`) and, independently, the
+  `payment.captured` webhook (`app/api/webhook/razorpay/route.ts`). Both
+  flips are guarded on `payment_status = 'pending'` so whichever wins the
+  race writes `'paid'` exactly once. Username availability is also checked
+  live during the form via `app/api/profiles/check-username/route.ts`.
 
 **Stubbed — exists as a file/route but does nothing yet:**
 - Everything under `app/admin/**` (login, dashboard, orders, profiles,
   analytics) — all `return null`. No admin auth check is wired up despite
   `ADMIN_EMAILS` existing as an env var.
 - `components/admin/*` (AdminNav, AnalyticsChart, OrderCard, ProfileEditor)
-- `components/order/PaymentButton.tsx`, `components/order/ProfileForm.tsx`
+- `components/order/ProfileForm.tsx`
 - `components/profile/ContactActions.tsx`, `SocialLinks.tsx`,
   `VCardDownload.tsx`, `ProfilePage.tsx` — superseded by
   `StandardProfile.tsx` / `PersonalProfile.tsx` / `PlatformIcons.tsx`, which
   is where the real logic actually lives. Treat the former as dead code
   unless told otherwise.
-- All of Razorpay: `lib/razorpay/client.ts`, `lib/razorpay/verify.ts`,
-  `app/api/razorpay/create-order/route.ts`, `app/api/razorpay/verify/route.ts`,
-  `app/api/webhook/razorpay/route.ts`. The order form collects payment
-  intent but nothing actually charges a card yet. `RAZORPAY_*` env vars are
-  empty.
 - Resend (email) — `RESEND_API_KEY` is empty, nothing sends email.
+
+**Razorpay is wired up** (audit #01 — real payment flow). `lib/razorpay/`
+(`client.ts` SDK singleton, `verify.ts` HMAC helpers, `checkout.ts` client
+loader), the three routes (`create-order`, `verify`, `webhook`), and
+`components/order/PaymentButton.tsx` are all implemented — see the order-flow
+description above for the sequence. `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
+`NEXT_PUBLIC_RAZORPAY_KEY_ID`, and `RAZORPAY_WEBHOOK_SECRET` must be set
+(live keys) in `.env.local` and Vercel; the webhook (pointing at
+`/api/webhook/razorpay`) is configured in the Razorpay dashboard for
+`payment.captured` + `payment.failed`. **Do NOT apply `lib/csrf.ts` to the
+webhook** — it's server-to-server, authenticated by the raw-body HMAC
+instead.
 
 **Image uploads are wired up** (as of the Aug 2026 security remediation).
 The order/studio/admin flows upload a profile image which is validated and
 re-encoded server-side by `lib/uploads.ts` (magic-byte check + Sharp
 re-encode, rejects SVG/HTML) and stored in the `profile-photos` bucket.
-Three routes do this: `app/api/orders/checkout/route.ts`,
+Three routes do this: `app/api/razorpay/create-order/route.ts`,
 `app/api/profiles/update/route.ts`, `app/api/admin/profiles/[id]/route.ts`.
 **Gotcha:** any route importing Sharp must be listed in
 `next.config.ts` → `outputFileTracingIncludes`, or its Vercel serverless

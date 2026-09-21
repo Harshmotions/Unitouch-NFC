@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ShieldCheck } from "lucide-react";
 import { shippingPaymentSchema, type ShippingPaymentValues } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
+import { loadRazorpayCheckout, openRazorpayCheckout } from "@/lib/razorpay/checkout";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
+import PaymentButton from "./PaymentButton";
 
 export interface IdentityData {
   accountType: "personal" | "business";
@@ -74,9 +75,6 @@ export default function OrderStepShippingPayment({
     setError(null);
     setPaying(true);
 
-    // Stand-in for the real Razorpay checkout — simulates a successful charge.
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-
     const form = new FormData();
     form.set(
       "identity",
@@ -90,20 +88,72 @@ export default function OrderStepShippingPayment({
     if (logoFile) form.set("logo", logoFile);
 
     try {
-      const res = await fetch("/api/orders/checkout", { method: "POST", body: form });
+      // 1. Create the order server-side. This reserves the username, uploads
+      //    the image, and creates the (pending) Razorpay order. Nothing is
+      //    charged yet and no order is marked paid.
+      const res = await fetch("/api/razorpay/create-order", { method: "POST", body: form });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setPaying(false);
         setError(data?.error ?? "Something went wrong, please try again.");
         return;
       }
-      onComplete?.();
-      router.push(
-        `/order/success?orderNumber=${encodeURIComponent(data.orderNumber)}&username=${encodeURIComponent(data.username)}`,
-      );
-    } catch {
+
+      // 2. Load Razorpay's hosted checkout and open the payment modal.
+      await loadRazorpayCheckout();
+
+      openRazorpayCheckout({
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.razorpayOrderId,
+        name: "Unitouch",
+        description: `${variant.name} NFC card × ${quantity}`,
+        prefill: data.prefill,
+        theme: { color: "#8b5cff" },
+        // 3. On a successful payment, verify the signature server-side before
+        //    trusting it. The order is only marked paid once /verify (or the
+        //    webhook) confirms the HMAC.
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json().catch(() => null);
+            if (!verifyRes.ok) {
+              setPaying(false);
+              setError(
+                verifyData?.error ??
+                  "We couldn't confirm your payment. If you were charged, please contact support.",
+              );
+              return;
+            }
+            onComplete?.();
+            router.push(
+              `/order/success?orderNumber=${encodeURIComponent(data.orderNumber)}&username=${encodeURIComponent(data.username)}`,
+            );
+          } catch {
+            setPaying(false);
+            setError("We couldn't confirm your payment. If you were charged, please contact support.");
+          }
+        },
+        // Customer closed the modal without paying — re-enable the button. The
+        // pending order simply expires; nothing was charged.
+        modal: {
+          ondismiss: () => setPaying(false),
+        },
+      });
+    } catch (err) {
       setPaying(false);
-      setError("We couldn't reach the server. Check your connection and try again.");
+      setError(
+        err instanceof Error ? err.message : "We couldn't reach the server. Check your connection and try again.",
+      );
     }
   }
 
@@ -206,8 +256,8 @@ export default function OrderStepShippingPayment({
 
       <div className="surface-card rounded-2xl p-5">
         <p className="text-text-muted text-sm">
-          Razorpay checkout isn&apos;t wired up yet. This test button simulates a successful payment so
-          the order and profile creation can be verified end to end.
+          Payments are processed securely by Razorpay. Your card and profile are created only after
+          your payment is confirmed.
         </p>
       </div>
 
@@ -217,10 +267,7 @@ export default function OrderStepShippingPayment({
         <Button type="button" variant="ghost" size="lg" onClick={onBack} disabled={paying}>
           Back
         </Button>
-        <Button variant="primary" size="lg" type="submit" loading={paying} disabled={paying} className="sm:ml-auto">
-          <ShieldCheck className="size-4" />
-          {paying ? "Processing…" : `Pay ₹${total.toLocaleString("en-IN")} (Test Payment)`}
-        </Button>
+        <PaymentButton total={total} paying={paying} />
       </div>
     </form>
   );
