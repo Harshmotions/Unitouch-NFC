@@ -25,5 +25,6 @@ export async function GET() {
       UPSTASH_REDIS_REST_URL: len(process.env.UPSTASH_REDIS_REST_URL),
     },
     vercelEnv: process.env.VERCEL_ENV ?? null,
+    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
   });
 }
