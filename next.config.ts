@@ -65,7 +65,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Deployment marker — comment-only, no runtime effect. Bump when you need
   // to force a fresh Vercel build with no functional change.
-  // last touched: 2026-08-31
+  // last touched: 2026-09-25 (redeploy to pick up RAZORPAY_WEBHOOK_SECRET)
 
   // Don't advertise the framework/version to scanners looking for known CVEs.
   poweredByHeader: false,
