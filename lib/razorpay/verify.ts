@@ -34,8 +34,8 @@ export function verifyPaymentSignature(params: {
   paymentId: string;
   signature: string;
 }): boolean {
-  const secret = process.env.RAZORPAY_KEY_SECRET;
-  if (!secret) throw new Error("RAZORPAY_KEY_SECRET is not configured.");
+  const secret = process.env.RZP_KEY_SECRET;
+  if (!secret) throw new Error("RZP_KEY_SECRET is not configured.");
 
   const { orderId, paymentId, signature } = params;
   if (!orderId || !paymentId || !signature) return false;
@@ -54,8 +54,8 @@ export function verifyPaymentSignature(params: {
    parsed JSON reorders/reformats it and breaks the signature — so the webhook
    route reads request.text() and passes it here unmodified. */
 export function verifyWebhookSignature(rawBody: string, signature: string | null): boolean {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  if (!secret) throw new Error("RAZORPAY_WEBHOOK_SECRET is not configured.");
+  const secret = process.env.RZP_WEBHOOK_SECRET;
+  if (!secret) throw new Error("RZP_WEBHOOK_SECRET is not configured.");
   if (!signature) return false;
 
   const expected = crypto

@@ -204,7 +204,7 @@ export async function POST(request: Request) {
   // Everything checkout.js needs to open the modal. keyId is the public key id
   // (safe to expose); amount/currency echo what Razorpay recorded.
   return NextResponse.json({
-    keyId: process.env.RAZORPAY_KEY_ID,
+    keyId: process.env.RZP_KEY_ID,
     razorpayOrderId: razorpayOrder.id,
     amount: razorpayOrder.amount,
     currency: razorpayOrder.currency,
