@@ -41,12 +41,18 @@ export default function Footer() {
 
       <div className="mx-auto mt-10 flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/[0.06] pt-8 sm:flex-row">
         <p className="text-text-muted text-xs">© {new Date().getFullYear()} Unitouch. All rights reserved.</p>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
           <Link href="/privacy" className="text-text-muted hover:text-text-primary text-xs transition-colors">
             Privacy Policy
           </Link>
           <Link href="/terms" className="text-text-muted hover:text-text-primary text-xs transition-colors">
             Terms of Service
+          </Link>
+          <Link href="/refunds" className="text-text-muted hover:text-text-primary text-xs transition-colors">
+            Refunds
+          </Link>
+          <Link href="/contact" className="text-text-muted hover:text-text-primary text-xs transition-colors">
+            Contact Us
           </Link>
         </div>
       </div>
