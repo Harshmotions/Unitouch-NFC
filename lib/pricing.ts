@@ -1,11 +1,13 @@
 import type { CardVariant } from "@/types";
 
+// TEMP (live payment test): both variants dropped to ₹1 so a real end-to-end
+// payment costs ~nothing. REVERT to 999/99900 and 1499/149900 after the test.
 export const CARD_VARIANTS: CardVariant[] = [
   {
     id: "standard",
     name: "Standard",
-    price: 999,
-    priceInPaise: 99900,
+    price: 1,
+    priceInPaise: 100,
     features: [
       "NFC-enabled card",
       "Live digital profile",
@@ -16,8 +18,8 @@ export const CARD_VARIANTS: CardVariant[] = [
   {
     id: "premium",
     name: "Premium",
-    price: 1499,
-    priceInPaise: 149900,
+    price: 1,
+    priceInPaise: 100,
     isPopular: true,
     features: [
       "Everything in Standard",
