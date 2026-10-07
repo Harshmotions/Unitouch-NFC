@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyOrigin } from "@/lib/csrf";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminServerSupabaseClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/admin";
 import {
   ADMIN_2FA_COOKIE,
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createAdminServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

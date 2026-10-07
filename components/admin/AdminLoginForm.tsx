@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createAdminBrowserClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
@@ -58,7 +58,8 @@ export default function AdminLoginForm() {
     }
     setBusy(true);
     try {
-      const supabase = createSupabaseBrowserClient();
+      // Admin-only cookie, so this never signs the browser in as a customer.
+      const supabase = createAdminBrowserClient();
       const { error: otpError } = await supabase.auth.verifyOtp({
         email: email.trim().toLowerCase(),
         token,

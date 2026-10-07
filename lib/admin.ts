@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createAdminServerSupabaseClient } from "@/lib/supabase/server";
 import { BUSINESS } from "@/lib/business";
 import { ADMIN_2FA_COOKIE, readToken } from "@/lib/admin-session";
 
@@ -11,9 +11,12 @@ import { ADMIN_2FA_COOKIE, readToken } from "@/lib/admin-session";
    Both factors are enforced: the Supabase session (created by verifying the
    code) must belong to the admin email, and the signed 2FA cookie (only
    issued after the password step, see lib/admin-session.ts and
-   /api/admin/auth/*) must be present and bound to that same user. A customer
-   session, or the admin email signed in through the normal customer /login
-   (code only, no password), does not pass. */
+   /api/admin/auth/*) must be present and bound to that same user.
+
+   The admin session lives in its own cookie (lib/supabase/admin-cookie.ts),
+   independent of the customer session: being signed in as a customer (any
+   email, including the admin one via /login) neither grants admin access nor
+   disturbs it, and vice versa. */
 
 export function isAdminEmail(email: string | null | undefined): boolean {
   return Boolean(email) && email!.trim().toLowerCase() === BUSINESS.adminEmail;
@@ -22,7 +25,7 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 /* The signed-in admin, or null. For API routes and anywhere a redirect is
    wrong. */
 export async function getAdminUser(): Promise<User | null> {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createAdminServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
