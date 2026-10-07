@@ -45,3 +45,6 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Local scratch files and data backups (may contain customer data)
+/tmp/
