@@ -6,5 +6,5 @@ export const BUSINESS = {
   email: "support@unitouch.in",
   phone: "+919637006661",
   phoneDisplay: "+91 96370 06661",
-  addressLines: ["Rajarampuri, Kolhapur", "Maharashtra 416013, India"],
+  addressLines: ["Rajarampuri, Kolhapur", "Maharashtra 416008, India"],
 } as const;
