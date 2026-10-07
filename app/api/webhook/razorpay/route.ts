@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { sendOrderConfirmation } from "@/lib/email";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyWebhookSignature } from "@/lib/razorpay/verify";
 
@@ -65,16 +66,21 @@ export async function POST(request: Request) {
     // Idempotent activation: flip to paid only while still pending, so a
     // redelivered event — or the /verify route having already run — matches no
     // rows instead of writing 'paid' twice.
-    const { error } = await supabase
+    const { data: flipped, error } = await supabase
       .from("orders")
       .update({ payment_status: "paid", razorpay_payment_id: paymentId })
       .eq("razorpay_order_id", orderId)
-      .eq("payment_status", "pending");
+      .eq("payment_status", "pending")
+      .select("id");
 
     // A DB error returns 500 so Razorpay retries the delivery later.
     if (error) {
       return NextResponse.json({ error: "Could not process webhook." }, { status: 500 });
     }
+    // Send the confirmation only if this delivery did the flip (see /verify);
+    // after() keeps it off the response so Razorpay gets its 200 promptly.
+    const paidOrderId = flipped?.[0]?.id as string | undefined;
+    if (paidOrderId) after(() => sendOrderConfirmation(paidOrderId));
   } else {
     // payment.failed — mark failed only while still pending. Guarding on
     // 'pending' means a late failure event can never clobber an order that was

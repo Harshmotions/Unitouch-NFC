@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { sendOrderConfirmation } from "@/lib/email";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyOrigin } from "@/lib/csrf";
 import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
@@ -67,15 +68,20 @@ export async function POST(request: Request) {
   //    is the idempotency: 'paid' is written at most once, whichever path
   //    (this route or the webhook) gets there first.
   if (order.payment_status === "pending") {
-    const { error: updateError } = await supabase
+    const { data: flipped, error: updateError } = await supabase
       .from("orders")
       .update({ payment_status: "paid", razorpay_payment_id: paymentId })
       .eq("razorpay_order_id", orderId)
-      .eq("payment_status", "pending");
+      .eq("payment_status", "pending")
+      .select("id");
 
     if (updateError) {
       return NextResponse.json({ error: "Could not confirm your payment. Please contact support." }, { status: 500 });
     }
+    // Only the path that actually flipped pending -> paid sends the
+    // confirmation, so it goes out once. after() runs it once the response
+    // is sent, so email can't slow down or fail the payment.
+    if (flipped?.length) after(() => sendOrderConfirmation(order.id));
   }
 
   // 4. Return the values the client needs for the success page. Read the

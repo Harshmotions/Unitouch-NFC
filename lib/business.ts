@@ -3,6 +3,9 @@
    website verification checks the site against it. */
 export const BUSINESS = {
   legalName: "Unitouch NFC",
+  // Canonical public URL (unitouch.in redirects here). Used for absolute
+  // links and images in emails.
+  siteUrl: "https://www.unitouch.in",
   email: "support@unitouch.in",
   phone: "+919637006661",
   phoneDisplay: "+91 96370 06661",

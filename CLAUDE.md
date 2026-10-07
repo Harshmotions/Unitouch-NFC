@@ -85,7 +85,12 @@ Check before assuming something works.
   `StandardProfile.tsx` / `PersonalProfile.tsx` / `PlatformIcons.tsx`, which
   is where the real logic actually lives. Treat the former as dead code
   unless told otherwise.
-- Resend (email) — `RESEND_API_KEY` is empty, nothing sends email.
+- Order confirmation email is built (`lib/email.ts` +
+  `lib/emails/order-confirmation.ts`) and sent via `after()` by whichever of
+  `/api/razorpay/verify` or the webhook flips the order pending -> paid
+  (the `.select("id")` on the guarded update tells it it won). It only
+  actually sends once `RESEND_API_KEY` is set and unitouch.in is verified
+  in Resend; until then it logs a warning and skips. No other emails exist.
 
 **Razorpay is wired up** (audit #01 — real payment flow). `lib/razorpay/`
 (`client.ts` SDK singleton, `verify.ts` HMAC helpers, `checkout.ts` client
