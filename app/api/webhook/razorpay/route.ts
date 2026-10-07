@@ -1,5 +1,6 @@
 import { NextResponse, after } from "next/server";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderPaidEmails } from "@/lib/email";
+import { refundOrphanPayment } from "@/lib/late-payment";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyWebhookSignature } from "@/lib/razorpay/verify";
 
@@ -63,24 +64,37 @@ export async function POST(request: Request) {
   const supabase = createServiceRoleClient();
 
   if (eventType === "payment.captured") {
-    // Idempotent activation: flip to paid only while still pending, so a
+    // Idempotent activation: flip to paid only while not yet paid, so a
     // redelivered event — or the /verify route having already run — matches no
-    // rows instead of writing 'paid' twice.
+    // rows instead of writing 'paid' twice. 'failed' is included because a
+    // customer can retry inside the same checkout after a failed attempt.
     const { data: flipped, error } = await supabase
       .from("orders")
       .update({ payment_status: "paid", razorpay_payment_id: paymentId })
       .eq("razorpay_order_id", orderId)
-      .eq("payment_status", "pending")
+      .in("payment_status", ["pending", "failed"])
       .select("id");
 
     // A DB error returns 500 so Razorpay retries the delivery later.
     if (error) {
       return NextResponse.json({ error: "Could not process webhook." }, { status: 500 });
     }
-    // Send the confirmation only if this delivery did the flip (see /verify);
-    // after() keeps it off the response so Razorpay gets its 200 promptly.
+    // Send the emails only if this delivery did the flip (see /verify);
+    // after() keeps them off the response so Razorpay gets its 200 promptly.
     const paidOrderId = flipped?.[0]?.id as string | undefined;
-    if (paidOrderId) after(() => sendOrderConfirmation(paidOrderId));
+    if (paidOrderId) {
+      after(() => sendOrderPaidEmails(paidOrderId));
+    } else {
+      // Nothing flipped: either already paid (normal), or the order is gone
+      // because its checkout was released before this payment landed. In the
+      // latter case refund it (lib/late-payment.ts).
+      const { data: existing } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("razorpay_order_id", orderId)
+        .maybeSingle();
+      if (!existing && paymentId) after(() => refundOrphanPayment(orderId, paymentId).then(() => undefined));
+    }
   } else {
     // payment.failed — mark failed only while still pending. Guarding on
     // 'pending' means a late failure event can never clobber an order that was

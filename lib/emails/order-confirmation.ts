@@ -109,7 +109,7 @@ ${
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${step(
                 1,
                 "Set up your profile",
-                `Sign in at ${esc(host)}/login with <strong>${esc(d.email)}</strong>. We'll email you a one-time code, no password needed. Then add your details and links and publish your page.`,
+                `Sign in at ${esc(host)}/login with <strong>${esc(d.email)}</strong>. We'll email you a one-time code, no password needed. Then add your details and links and publish your page. Every card ordered with this email shows up under the same sign-in, so you can switch between profiles anytime.`,
               )}${step(2, "We design your card", "Our team prepares your card design, usually within 24 to 48 hours.")}${step(
                 3,
                 "We print and ship it",
@@ -159,7 +159,7 @@ ${
     ...(profileUrl ? [``, `Your profile link: ${host}/u/${d.username} (goes live once you set it up and publish it)`] : []),
     ``,
     `What happens next`,
-    `1. Set up your profile: sign in at ${loginUrl} with ${d.email}. We'll email you a one-time code, no password needed.`,
+    `1. Set up your profile: sign in at ${loginUrl} with ${d.email}. We'll email you a one-time code, no password needed. Every card ordered with this email shows up under the same sign-in.`,
     `2. We design your card, usually within 24 to 48 hours.`,
     `3. We print and ship it. Dispatched within 3 to 5 business days, delivered within 5 to 7 days. Tracking details follow when it ships.`,
     ``,

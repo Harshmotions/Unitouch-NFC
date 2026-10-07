@@ -35,9 +35,13 @@ export default async function OrderSuccessPage({
         )}
         .
       </p>
-      <p className="text-text-secondary mb-8 max-w-md text-sm">
+      <p className="text-text-secondary mb-3 max-w-md text-sm">
         To get started, sign in with the email you used at checkout. We&apos;ll send you a one-time
         code. You can do it now or come back anytime.
+      </p>
+      <p className="text-text-muted mb-8 max-w-md text-xs">
+        Ordering more cards later? Use the same email. All your profiles show up in one place after
+        you sign in, and you can switch between them anytime.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         <Button variant="primary" size="md" href={username ? `/studio?username=${encodeURIComponent(username)}` : "/studio"}>

@@ -6,6 +6,7 @@ import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
 import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 import { getRazorpayClient } from "@/lib/razorpay/client";
+import { releaseOwnReservation, releaseStaleReservations } from "@/lib/reservations";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -87,6 +88,12 @@ export async function POST(request: Request) {
   }
 
   const supabase = createServiceRoleClient();
+
+  // Free up links held by abandoned checkouts: anything unpaid past the TTL,
+  // plus this same email's own earlier unpaid attempt at this link (they
+  // closed Razorpay and came back). See lib/reservations.ts.
+  await releaseStaleReservations();
+  await releaseOwnReservation(username, identity.email);
 
   // Pre-flight username check — UX only; the unique index inside the RPC is
   // the real guard against a race between two simultaneous checkouts.

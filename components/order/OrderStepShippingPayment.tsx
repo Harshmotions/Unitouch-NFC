@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { shippingPaymentSchema, type ShippingPaymentValues } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
+import { CHECKOUT_TIMEOUT_SECONDS } from "@/lib/checkout-config";
 import { loadRazorpayCheckout, openRazorpayCheckout } from "@/lib/razorpay/checkout";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
@@ -143,6 +144,9 @@ export default function OrderStepShippingPayment({
         description: `${variant.name} NFC card × ${quantity}`,
         prefill: data.prefill,
         theme: { color: "#8b5cff" },
+        // Close the window well before the unpaid reservation is released
+        // (lib/reservations.ts), so an abandoned tab can't pay late.
+        timeout: CHECKOUT_TIMEOUT_SECONDS,
         // 3. On a successful payment, verify the signature server-side before
         //    trusting it. The order is only marked paid once /verify (or the
         //    webhook) confirms the HMAC.

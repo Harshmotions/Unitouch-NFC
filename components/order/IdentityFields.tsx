@@ -79,6 +79,9 @@ export default function IdentityFields({
 
   const isBusiness = accountType === "business";
 
+  // Sent with the availability check once it looks like a real address.
+  const checkEmail = EMAIL_PATTERN.test(email.trim().toLowerCase()) ? email.trim().toLowerCase() : "";
+
   /* Live username availability. When the link is still auto-filled and
      taken, swap in the server's suggested free variant (which re-runs this
      check); when it was typed by hand, only offer the suggestion. */
@@ -96,7 +99,9 @@ export default function IdentityFields({
       fetch("/api/profiles/check-username", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: trimmed, suggest: true }),
+        // The email lets the server treat this person's own abandoned
+        // checkout for the same link as available (lib/reservations.ts).
+        body: JSON.stringify({ username: trimmed, suggest: true, ...(checkEmail ? { email: checkEmail } : {}) }),
       })
         .then((res) => res.json())
         .then((data: { available?: boolean; suggestion?: string | null }) => {
@@ -121,7 +126,7 @@ export default function IdentityFields({
       stale = true;
       clearTimeout(timer);
     };
-  }, [username]);
+  }, [username, checkEmail]);
 
   function handleNameChange(value: string) {
     setDisplayName(value);
@@ -256,6 +261,8 @@ export default function IdentityFields({
             ) : (
               <p className="text-text-muted mt-1.5 text-xs">
                 You&apos;ll use this email to manage your profile later, so double-check it.
+                Ordering more than one card? Use the same email for all of them and switch
+                between your profiles after you sign in.
               </p>
             )}
           </div>

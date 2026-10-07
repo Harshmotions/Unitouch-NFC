@@ -25,6 +25,8 @@ export interface RazorpayCheckoutOptions {
   /** Called after a successful payment with the ids + signature to verify. */
   handler: (response: RazorpayCheckoutResponse) => void;
   modal?: { ondismiss?: () => void };
+  /** Seconds before the modal closes itself and the payment can't proceed. */
+  timeout?: number;
 }
 
 export interface RazorpayInstance {

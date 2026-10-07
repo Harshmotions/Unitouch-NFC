@@ -1,5 +1,6 @@
 import { NextResponse, after } from "next/server";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderPaidEmails } from "@/lib/email";
+import { refundOrphanPayment } from "@/lib/late-payment";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyOrigin } from "@/lib/csrf";
 import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
@@ -59,7 +60,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Could not verify your payment. Please contact support." }, { status: 500 });
   }
   if (!order) {
-    return NextResponse.json({ error: "Order not found." }, { status: 404 });
+    // Signature is valid, so this is a real payment, but its checkout was
+    // already released (lib/reservations.ts). Refund rather than keep money
+    // with no order behind it.
+    const refunded = await refundOrphanPayment(orderId, paymentId);
+    return NextResponse.json(
+      {
+        error: refunded
+          ? "This checkout expired before the payment completed, so we've refunded you in full (5 to 7 business days). Please place a new order."
+          : "This checkout expired before the payment completed. We'll refund you; please contact support@unitouch.in if you have questions.",
+      },
+      { status: 409 },
+    );
   }
 
   // 3. Flip to paid, guarded on payment_status = 'pending'. If the webhook
@@ -67,21 +79,25 @@ export async function POST(request: Request) {
   //    still verified and we fall through to success. This conditional update
   //    is the idempotency: 'paid' is written at most once, whichever path
   //    (this route or the webhook) gets there first.
-  if (order.payment_status === "pending") {
+  // 'failed' is included: Razorpay lets the customer retry inside the same
+  // checkout, so a failed first attempt (marked by the payment.failed
+  // webhook) can be followed by a successful one on the same order.
+  if (order.payment_status !== "paid") {
     const { data: flipped, error: updateError } = await supabase
       .from("orders")
       .update({ payment_status: "paid", razorpay_payment_id: paymentId })
       .eq("razorpay_order_id", orderId)
-      .eq("payment_status", "pending")
+      .in("payment_status", ["pending", "failed"])
       .select("id");
 
     if (updateError) {
       return NextResponse.json({ error: "Could not confirm your payment. Please contact support." }, { status: 500 });
     }
-    // Only the path that actually flipped pending -> paid sends the
-    // confirmation, so it goes out once. after() runs it once the response
-    // is sent, so email can't slow down or fail the payment.
-    if (flipped?.length) after(() => sendOrderConfirmation(order.id));
+    // Only the path that actually flipped to paid sends the emails
+    // (customer confirmation + admin alert), so they go out once. after()
+    // runs them once the response is sent, so email can't slow down or fail
+    // the payment.
+    if (flipped?.length) after(() => sendOrderPaidEmails(order.id));
   }
 
   // 4. Return the values the client needs for the success page. Read the

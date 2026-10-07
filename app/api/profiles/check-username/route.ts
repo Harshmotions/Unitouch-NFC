@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { checkUsernameLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
+import { isOwnPendingReservation, releaseStaleReservations } from "@/lib/reservations";
 
 const USERNAME_PATTERN = /^[a-z0-9-]{3,30}$/;
 const SUGGESTION_COUNT = 8;
@@ -22,7 +23,11 @@ function suggestionCandidates(username: string): string[] {
 
    With `suggest: true`, a taken username also returns the first free
    numbered variant (one extra query, so the checkout form doesn't have to
-   probe candidates one request at a time against the rate limit). */
+   probe candidates one request at a time against the rate limit).
+
+   Unpaid checkouts: stale ones are released first, and with `email` a link
+   held only by that email's own unpaid checkout reports available (see
+   lib/reservations.ts). */
 export async function POST(request: Request) {
   const limited = await rateLimitOrResponse(checkUsernameLimiter, clientIp(request));
   if (limited) return limited;
@@ -30,10 +35,16 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => null);
   const username = typeof json?.username === "string" ? json.username.trim().toLowerCase() : "";
   const suggest = json?.suggest === true;
+  // Optional: the email typed at checkout. A link held only by this email's
+  // own unpaid checkout counts as available (create-order replaces it).
+  const email = typeof json?.email === "string" ? json.email.trim().toLowerCase() : "";
 
   if (!username) {
     return NextResponse.json({ error: "Missing username" }, { status: 400 });
   }
+
+  // Abandoned unpaid checkouts past the TTL stop holding their link.
+  await releaseStaleReservations();
 
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
@@ -47,6 +58,9 @@ export async function POST(request: Request) {
   }
 
   if (!data) return NextResponse.json({ available: true });
+  if (email && (await isOwnPendingReservation(username, email))) {
+    return NextResponse.json({ available: true, ownUnpaidCheckout: true });
+  }
 
   let suggestion: string | null = null;
   const candidates = suggest && USERNAME_PATTERN.test(username) ? suggestionCandidates(username) : [];

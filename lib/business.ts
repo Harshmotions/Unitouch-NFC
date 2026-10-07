@@ -7,6 +7,9 @@ export const BUSINESS = {
   // links and images in emails.
   siteUrl: "https://www.unitouch.in",
   email: "support@unitouch.in",
+  // The shared admin account (admin login, new-order and payment alerts).
+  // Not the customer support address.
+  adminEmail: "unitouchnfc@gmail.com",
   phone: "+919637006661",
   phoneDisplay: "+91 96370 06661",
   addressLines: ["Rajarampuri, Kolhapur", "Maharashtra 416008, India"],
