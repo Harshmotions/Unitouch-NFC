@@ -165,32 +165,3 @@ export async function getProfileById(id: string): Promise<Profile | null> {
   return mapProfileRow(data as ProfileRow);
 }
 
-export interface AdminProfileSummary {
-  id: string;
-  username: string;
-  fullName: string | null;
-  email: string | null;
-  isPublished: boolean;
-  studioCompleted: boolean;
-  createdAt: string;
-}
-
-/* Every profile, newest first — for the admin profiles list. */
-export async function listProfilesForAdmin(): Promise<AdminProfileSummary[]> {
-  const supabase = createServiceRoleClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, username, full_name, email, is_published, studio_completed, created_at")
-    .order("created_at", { ascending: false });
-
-  if (error || !data) return [];
-  return data.map((row) => ({
-    id: row.id,
-    username: row.username,
-    fullName: row.full_name,
-    email: row.email,
-    isPublished: row.is_published,
-    studioCompleted: row.studio_completed,
-    createdAt: row.created_at,
-  }));
-}

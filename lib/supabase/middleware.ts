@@ -8,6 +8,14 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  // No Supabase auth cookie means no session to refresh: skip the network
+  // round trip to Supabase Auth. That's nearly every public visitor (home,
+  // profile pages, checkout), which previously paid for this call on every
+  // request.
+  if (!request.cookies.getAll().some((c) => c.name.startsWith("sb-"))) {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

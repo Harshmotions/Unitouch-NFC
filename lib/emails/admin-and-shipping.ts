@@ -1,7 +1,8 @@
 import { detailRows, esc, p, renderLayout, rupees, type EmailBusiness } from "@/lib/emails/layout";
 
 /* The other transactional emails: new-order alert and late-payment alert
-   (to the admin inbox), and "your card has shipped" (to the customer).
+   (to the admin inbox), "your card has shipped" and the "your profile isn't
+   live yet" draft reminder (to the customer).
    Pure render functions; lib/email.ts loads data and sends. */
 
 interface Common {
@@ -153,6 +154,43 @@ export function renderLatePaymentAlert(
     `Razorpay order: ${d.razorpayOrderId}`,
     `Payment: ${d.paymentId}`,
     d.refunded ? `Refund issued automatically.` : `Refund FAILED${d.refundError ? `: ${d.refundError}` : ""}. Refund manually in the Razorpay dashboard.`,
+  ].join("\n");
+  return { subject, html, text };
+}
+
+export function renderDraftReminder(
+  d: { fullName: string; email: string; username: string; reminderNumber: number },
+  c: Common,
+) {
+  const firstName = d.fullName.trim().split(/\s+/)[0] || "there";
+  const host = c.siteUrl.replace(/^https?:\/\//, "");
+  const subject =
+    d.reminderNumber > 1
+      ? `Reminder: your Unitouch profile ${host}/u/${d.username} is still a draft`
+      : `Your Unitouch profile isn't live yet`;
+  const html = renderLayout({
+    title: subject,
+    preheader: `Finish and publish ${host}/u/${d.username} so your card opens your profile.`,
+    heading: "Your profile isn't live yet",
+    bodyHtml:
+      p(
+        `Hi ${esc(firstName)}, your profile <strong>${esc(host)}/u/${esc(d.username)}</strong> is saved as a draft and isn't published yet. Until you publish it, anyone who taps your card sees a "not live yet" page instead of your details.`,
+      ) +
+      p(
+        `It only takes a few minutes: sign in with <strong>${esc(d.email)}</strong> (we'll email you a one-time code, no password needed), add your details and links, then tap <strong>Publish profile</strong>.`,
+      ) +
+      p(`Already ordered more than one card? They're all under the same sign-in, so you can switch between profiles there.`),
+    cta: { label: "Finish my profile", href: `${c.siteUrl}/login` },
+    siteUrl: c.siteUrl,
+    business: c.business,
+  });
+  const text = [
+    `Hi ${firstName}, your profile ${host}/u/${d.username} is saved as a draft and isn't published yet.`,
+    `Until you publish it, anyone who taps your card sees a "not live yet" page.`,
+    ``,
+    `Sign in at ${c.siteUrl}/login with ${d.email} (one-time code, no password), add your details, then tap Publish profile.`,
+    ``,
+    `Questions? Reply to this email, write to ${c.business.email}, or call ${c.business.phoneDisplay}.`,
   ].join("\n");
   return { subject, html, text };
 }

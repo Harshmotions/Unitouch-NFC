@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
 import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
+import { deleteProfileAsAdmin } from "@/lib/admin-profiles";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -126,4 +127,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
 
   return NextResponse.json({ username: existing.username, published: publish });
+}
+
+/* Admin: permanently delete a profile (see deleteProfileAsAdmin for what
+   goes with it). Demo profiles are refused; a paid order is kept. */
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  if (!verifyOrigin(request)) {
+    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  }
+  const user = await getAdminUser();
+  if (!user) {
+    return NextResponse.json({ error: "Your admin session expired. Please sign in again." }, { status: 401 });
+  }
+  const limited = await rateLimitOrResponse(profileWriteLimiter, user.id);
+  if (limited) return limited;
+
+  const { id } = await params;
+  const result = await deleteProfileAsAdmin(id);
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
+  console.info(`Admin ${user.email} deleted profile @${result.username}`);
+  return NextResponse.json(result);
 }

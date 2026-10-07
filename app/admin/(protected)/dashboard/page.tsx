@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listProfilesForAdmin } from "@/lib/profile";
+import { listAdminProfiles } from "@/lib/admin-profiles";
 import { formatRupees, getAdminStats, listOrdersForAdmin } from "@/lib/orders";
 import { PaymentBadge, StatusBadge } from "@/components/admin/OrderBadges";
 
@@ -24,9 +24,10 @@ export default async function AdminDashboardPage() {
   const [stats, queue, profiles] = await Promise.all([
     getAdminStats(),
     listOrdersForAdmin("to-fulfil"),
-    listProfilesForAdmin(),
+    listAdminProfiles(),
   ]);
-  const published = profiles.filter((p) => p.isPublished).length;
+  const published = profiles.filter((p) => p.status === "published").length;
+  const waiting = profiles.filter((p) => p.status === "draft-paid").length;
 
   return (
     <div className="flex flex-col gap-10">
@@ -89,7 +90,12 @@ export default async function AdminDashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Stat label="Total profiles" value={profiles.length} />
           <Stat label="Published" value={published} />
-          <Stat label="Not published yet" value={profiles.length - published} hint="Customer hasn't finished setup" />
+          <Stat
+            label="Paid, not published"
+            value={waiting}
+            hint="Reminded automatically on day 1, 3, 7"
+            href="/admin/profiles"
+          />
         </div>
       </section>
     </div>

@@ -4,6 +4,7 @@ import { BUSINESS } from "@/lib/business";
 import { CARD_VARIANTS } from "@/lib/pricing";
 import { renderOrderConfirmation } from "@/lib/emails/order-confirmation";
 import {
+  renderDraftReminder,
   renderLatePaymentAlert,
   renderNewOrderAlert,
   renderOrderShipped,
@@ -176,5 +177,21 @@ export async function sendLatePaymentAlert(d: {
     await send({ to: BUSINESS.adminEmail, ...msg, idempotencyKey: `late-payment/${d.paymentId}` });
   } catch (err) {
     console.error("sendLatePaymentAlert threw", d.paymentId, err);
+  }
+}
+
+/* "Your profile isn't live yet" (lib/draft-reminders.ts decides when). */
+export async function sendDraftReminder(d: {
+  profileId: string;
+  username: string;
+  fullName: string;
+  email: string;
+  reminderNumber: number;
+}): Promise<void> {
+  try {
+    const msg = renderDraftReminder(d, COMMON);
+    await send({ to: d.email, ...msg, idempotencyKey: `draft-reminder/${d.profileId}/${d.reminderNumber}` });
+  } catch (err) {
+    console.error("sendDraftReminder threw", d.profileId, err);
   }
 }

@@ -1,8 +1,8 @@
-import { listProfilesForAdmin } from "@/lib/profile";
+import { listAdminProfiles } from "@/lib/admin-profiles";
 import ProfilesList from "@/components/admin/ProfilesList";
 
 export default async function AdminProfilesPage() {
-  const profiles = await listProfilesForAdmin();
+  const profiles = await listAdminProfiles();
 
   return (
     <div className="flex flex-col gap-6">
