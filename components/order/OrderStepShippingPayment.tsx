@@ -16,7 +16,7 @@ export interface IdentityData {
   accountType: "personal" | "business";
   displayName: string;
   username: string;
-  userId: string;
+  // Typed at checkout (guest-only); the key for claiming the profile later.
   email: string;
 }
 
@@ -81,6 +81,7 @@ export default function OrderStepShippingPayment({
       JSON.stringify({
         accountType: identity.accountType,
         displayName: identity.displayName,
+        email: identity.email,
         username: identity.username,
       }),
     );

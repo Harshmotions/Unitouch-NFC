@@ -2,11 +2,15 @@ import { z } from "zod";
 
 /* --- "Buy Now, Build Later" checkout (Phase 4) --------------------------- */
 
-// Step 1 — identity captured before payment. Contact email comes from the
-// authenticated session, not this form.
+// Step 1 — identity captured before payment. Checkout is guest-only: the
+// email typed here is stored on the order + profile, and becomes the key for
+// managing the profile later (email-OTP sign-in claims it — see
+// claimProfilesForUser in lib/profile.ts). Normalized to lowercase so the
+// exact-match claim lines up with Supabase Auth, which lowercases emails.
 export const identitySchema = z.object({
   accountType: z.enum(["personal", "business"]),
   displayName: z.string().min(2, "Enter your name"),
+  email: z.string().trim().toLowerCase().email("Enter a valid email address").max(254),
   username: z
     .string()
     .min(3, "Username must be at least 3 characters")

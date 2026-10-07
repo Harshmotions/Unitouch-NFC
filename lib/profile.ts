@@ -90,6 +90,47 @@ export async function getEditableProfile(userId: string, username?: string): Pro
   return mapProfileRow(data as ProfileRow);
 }
 
+/* Checkout is guest-only, so a new order + placeholder profile carry just
+   the email typed at checkout (user_id null). This attaches every unclaimed
+   order placed with `email`, and its profile, to the signed-in account.
+
+   Only pass an email from a verified session (auth.getUser()), never one the
+   browser sent — the OTP is what proves the caller owns that inbox.
+
+   Matches on orders.email (the checkout email, which nobody edits later),
+   not profiles.email (the public contact email, editable in the studio).
+   Only PAID orders are claimed: starting a checkout costs nothing, so
+   claiming pending ones would let anyone drop junk profiles into someone
+   else's account. Profiles with no order at all (the seeded demo pages) are
+   never claimable. Exact match on the lowercased email — never ilike, where
+   "_" and "%" in an address act as wildcards. */
+export async function claimProfilesForUser(userId: string, email: string): Promise<number> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return 0;
+
+  const supabase = createServiceRoleClient();
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select("id")
+    .is("user_id", null)
+    .eq("email", normalized)
+    .eq("payment_status", "paid");
+  if (error || !orders?.length) return 0;
+
+  const orderIds = orders.map((o) => o.id as string);
+
+  // Guarded on user_id IS NULL so two simultaneous sign-ins can't both claim.
+  const { data: claimed } = await supabase
+    .from("profiles")
+    .update({ user_id: userId })
+    .in("order_id", orderIds)
+    .is("user_id", null)
+    .select("id");
+  await supabase.from("orders").update({ user_id: userId }).in("id", orderIds).is("user_id", null);
+
+  return claimed?.length ?? 0;
+}
+
 /* Loads any profile by id, published or not, regardless of owner — for the
    admin dashboard. requireAdmin() already gated the page before this runs;
    there's no additional ownership check here by design. */

@@ -11,6 +11,7 @@ export type AccountType = "personal" | "business";
 export interface IdentityValues {
   accountType: AccountType;
   displayName: string;
+  email: string;
   username: string;
 }
 
@@ -18,12 +19,16 @@ type UsernameStatus = "idle" | "invalid" | "checking" | "available" | "taken" | 
 
 const MAX_LOGO_BYTES = 5 * 1024 * 1024;
 
+// Loose client-side check; the server re-validates with zod (identitySchema).
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /* The identity form for the new order Step 1 — account type, display name,
-   logo/photo, and username, with a simplified live preview. Auth-agnostic on
-   purpose so it can be rendered and verified on its own; OrderStepIdentity
-   wraps it behind the email-OTP gate. Layout constraint: on mobile the
-   preview sits below the inputs but above Continue; on desktop it's
-   side-by-side. */
+   email (typed twice), logo/photo, and username, with a simplified live
+   preview. Checkout is guest-only: the email is stored on the order and is
+   what the customer signs in with later to manage their profile, so the
+   confirm field guards against a typo locking them out. Layout constraint:
+   on mobile the preview sits below the inputs but above Continue; on desktop
+   it's side-by-side. */
 export default function IdentityFields({
   defaultValues,
   logoFile,
@@ -37,6 +42,8 @@ export default function IdentityFields({
 }) {
   const [accountType, setAccountType] = useState<AccountType>(defaultValues?.accountType ?? "personal");
   const [displayName, setDisplayName] = useState(defaultValues?.displayName ?? "");
+  const [email, setEmail] = useState(defaultValues?.email ?? "");
+  const [confirmEmail, setConfirmEmail] = useState(defaultValues?.email ?? "");
   const [username, setUsername] = useState(defaultValues?.username ?? "");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -90,10 +97,15 @@ export default function IdentityFields({
 
   const logoRequiredMissing = isBusiness && !logoFile;
 
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailInvalid = !EMAIL_PATTERN.test(normalizedEmail);
+  const emailMismatch = normalizedEmail !== confirmEmail.trim().toLowerCase();
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitAttempted(true);
     if (displayName.trim().length < 2) return;
+    if (emailInvalid || emailMismatch) return;
     if (usernameStatus !== "available") return;
     if (logoRequiredMissing) {
       setLogoError("A logo is required for business cards.");
@@ -102,6 +114,7 @@ export default function IdentityFields({
     onContinue({
       accountType,
       displayName: displayName.trim(),
+      email: normalizedEmail,
       username: username.trim().toLowerCase(),
     });
   }
@@ -150,6 +163,44 @@ export default function IdentityFields({
             />
             {submitAttempted && displayName.trim().length < 2 && (
               <p className="text-error mt-1.5 text-xs">Enter your {nameLabel.toLowerCase()}.</p>
+            )}
+          </div>
+
+          {/* Email — the key for managing the profile after checkout */}
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
+            {submitAttempted && emailInvalid ? (
+              <p className="text-error mt-1.5 text-xs">Enter a valid email address.</p>
+            ) : (
+              <p className="text-text-muted mt-1.5 text-xs">
+                You&apos;ll use this email to manage your profile later, so double-check it.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="confirmEmail">Confirm email</Label>
+            <Input
+              id="confirmEmail"
+              type="email"
+              autoComplete="email"
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+              placeholder="Type your email again"
+            />
+            {(submitAttempted || confirmEmail.trim().length >= email.trim().length) &&
+              confirmEmail.trim().length > 0 &&
+              !emailInvalid &&
+              emailMismatch && (
+              <p className="text-error mt-1.5 text-xs">Emails don&apos;t match.</p>
             )}
           </div>
 

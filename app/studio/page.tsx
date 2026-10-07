@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getEditableProfile } from "@/lib/profile";
+import { claimProfilesForUser, getEditableProfile } from "@/lib/profile";
 import ProfileStudio from "@/components/studio/ProfileStudio";
 import Button from "@/components/ui/Button";
+import SignOutButton from "@/components/auth/SignOutButton";
 
 /* The digital studio. Requires sign-in; loads the user's profile (the one
    just ordered, if a username is passed, else their most recent) and lets
@@ -23,6 +24,10 @@ export default async function StudioPage({
     redirect("/login");
   }
 
+  // Guest checkout leaves new orders unowned; attach any paid ones placed
+  // with this (OTP-verified) email before loading. No-op once claimed.
+  if (user.email) await claimProfilesForUser(user.id, user.email);
+
   const profile = await getEditableProfile(user.id, username);
 
   return (
@@ -39,11 +44,16 @@ export default async function StudioPage({
           <div className="surface-card rounded-2xl p-8 text-center">
             <p className="text-text-primary font-[600]">No profile to build yet</p>
             <p className="text-text-secondary mt-1 mb-6 text-sm">
-              Order a card first and your profile will appear here to set up.
+              You&apos;re signed in as <span className="text-text-primary">{user.email}</span>. If you
+              ordered with a different email, sign out and sign in with that one. Otherwise, order a
+              card and your profile will appear here to set up.
             </p>
-            <Button variant="primary" size="md" href="/order">
-              Order a card
-            </Button>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button variant="primary" size="md" href="/order">
+                Order a card
+              </Button>
+              <SignOutButton />
+            </div>
           </div>
         )}
       </div>

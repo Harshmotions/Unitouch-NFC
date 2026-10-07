@@ -17,7 +17,7 @@ export default async function OrderSuccessPage({
           Order number <span className="text-text-primary font-[600]">{orderNumber}</span>
         </p>
       )}
-      <p className="text-text-secondary mb-8 max-w-md">
+      <p className="text-text-secondary mb-3 max-w-md">
         Your card is on its way. Next, finish building your digital profile
         {username && (
           <>
@@ -25,7 +25,11 @@ export default async function OrderSuccessPage({
             at <span className="text-text-primary font-[600]">unitouch.in/u/{username}</span>
           </>
         )}
-        {" "}— you&apos;re signed in, so you can do it now or come back anytime.
+        .
+      </p>
+      <p className="text-text-secondary mb-8 max-w-md text-sm">
+        To get started, sign in with the email you used at checkout. We&apos;ll send you a one-time
+        code. You can do it now or come back anytime.
       </p>
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         <Button variant="primary" size="md" href={username ? `/studio?username=${encodeURIComponent(username)}` : "/studio"}>

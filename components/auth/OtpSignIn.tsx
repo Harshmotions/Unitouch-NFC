@@ -30,8 +30,8 @@ function messageFrom(err: unknown, fallback: string): string {
 /* Email one-time-code sign in. Two phases: enter email -> Supabase emails a
    numeric code (6-8 digits, per the project's Supabase OTP-length setting) ->
    enter code to establish a session. Reusable: pass
-   onAuthenticated to react to a successful sign in (the order wizard will use
-   this to unlock the rest of Step 1). Renders a signed-in summary when a
+   onAuthenticated to react to a successful sign in (/login uses it to go to
+   the studio). Renders a signed-in summary when a
    session already exists. */
 export default function OtpSignIn({
   onAuthenticated,

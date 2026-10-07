@@ -32,10 +32,13 @@ export default function OrderWizard({ defaultCardType }: { defaultCardType?: str
       const saved = sessionStorage.getItem(DRAFT_KEY);
       if (saved) {
         const draft = JSON.parse(saved) as OrderDraft;
+        // Drafts saved before guest checkout have no email; restore the rest
+        // but send the customer back to step 1 to enter it.
+        const identityComplete = Boolean(draft.identity?.email);
         if (draft.identity) setIdentity(draft.identity);
         if (draft.shipping) setShipping(draft.shipping);
-        // Step 2 needs identity; without it, fall back to step 1.
-        if (draft.step === 2 && draft.identity) setStep(2);
+        // Step 2 needs a complete identity; without it, fall back to step 1.
+        if (draft.step === 2 && identityComplete) setStep(2);
       }
     } catch {
       // Corrupt or unavailable storage — start fresh.

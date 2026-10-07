@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { verifyOrigin } from "@/lib/csrf";
 import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 import { verifyPaymentSignature } from "@/lib/razorpay/verify";
@@ -15,7 +15,12 @@ import { verifyPaymentSignature } from "@/lib/razorpay/verify";
 
    This is the interactive confirmation path. The payment.captured webhook is
    the independent, authoritative path that does the same flip — either can run
-   first, so the update is written to be idempotent (see below). */
+   first, so the update is written to be idempotent (see below).
+
+   Checkout is guest-only, so there's no session to check here. The HMAC is
+   the authorization: only Razorpay's checkout can produce a valid signature
+   for this razorpay_order_id + payment_id pair, and the flip it allows is the
+   true one (that order really was paid). */
 export async function POST(request: Request) {
   if (!verifyOrigin(request)) {
     return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
@@ -23,16 +28,6 @@ export async function POST(request: Request) {
 
   const limited = await rateLimitOrResponse(checkoutLimiter, clientIp(request));
   if (limited) return limited;
-
-  // The order belongs to a signed-in buyer; confirm the session before
-  // touching anything.
-  const authClient = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Please sign in to complete your order." }, { status: 401 });
-  }
 
   const body = await request.json().catch(() => null);
   const orderId = body?.razorpay_order_id;
@@ -52,18 +47,17 @@ export async function POST(request: Request) {
   const supabase = createServiceRoleClient();
 
   // 2. The signature proves the payment matches the order; confirm that order
-  //    exists and belongs to THIS user (defense-in-depth — a valid signature
-  //    for someone else's order still shouldn't be actionable here).
+  //    exists on our side.
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .select("id, order_number, user_id, payment_status")
+    .select("id, order_number, payment_status")
     .eq("razorpay_order_id", orderId)
     .maybeSingle();
 
   if (orderError) {
     return NextResponse.json({ error: "Could not verify your payment. Please contact support." }, { status: 500 });
   }
-  if (!order || order.user_id !== user.id) {
+  if (!order) {
     return NextResponse.json({ error: "Order not found." }, { status: 404 });
   }
 

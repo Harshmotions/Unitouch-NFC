@@ -13,7 +13,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Welcome back</h1>
         <p className="text-text-secondary mb-8 text-sm">
-          Enter your email and we&apos;ll send you a one-time code.
+          Enter the email you used when ordering your card and we&apos;ll send you a one-time code.
         </p>
         <OtpSignIn onAuthenticated={() => router.replace("/studio")} />
       </div>

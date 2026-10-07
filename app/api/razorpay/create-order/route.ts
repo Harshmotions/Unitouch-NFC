@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { identitySchema, shippingPaymentSchema } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
-import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
 import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
@@ -17,8 +17,15 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 /* Razorpay create-order (audit #01 — real payment flow). Replaces the old
    fake "instant paid order" checkout.
 
+   Checkout is guest-only: no session is required or read. The buyer's email
+   comes from the validated form and is stored on the order + profile with
+   user_id null; signing in with that email later (email OTP) claims them
+   (claimProfilesForUser in lib/profile.ts). Payment integrity doesn't rest
+   on who the caller is: the amount is computed here and the paid flip
+   requires a valid Razorpay signature.
+
    Does everything that must happen BEFORE the customer pays:
-     - authenticate, validate, reserve the username, upload the print image
+     - validate, reserve the username, upload the print image
      - create a Razorpay order server-side (amount computed here, never trusted
        from the client)
      - write a PENDING order + placeholder profile atomically, storing the
@@ -38,16 +45,6 @@ export async function POST(request: Request) {
 
   const limited = await rateLimitOrResponse(checkoutLimiter, clientIp(request));
   if (limited) return limited;
-
-  // 1. Must be signed in. Identity of the buyer comes from the session, never
-  //    from the client payload.
-  const authClient = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Please sign in to complete your order." }, { status: 401 });
-  }
 
   const form = await request.formData().catch(() => null);
   if (!form) {
@@ -148,7 +145,6 @@ export async function POST(request: Request) {
       notes: {
         order_number: orderNumber,
         username,
-        user_id: user.id,
       },
     });
   } catch {
@@ -164,10 +160,10 @@ export async function POST(request: Request) {
   }
 
   const { error: rpcError } = await supabase.rpc("create_order_with_profile", {
-    p_user_id: user.id,
+    p_user_id: null,
     p_order_number: orderNumber,
     p_full_name: identity.displayName,
-    p_email: user.email ?? "",
+    p_email: identity.email,
     p_phone: sp.phone,
     p_card_type: sp.cardType,
     p_quantity: sp.quantity,
@@ -212,7 +208,7 @@ export async function POST(request: Request) {
     username,
     prefill: {
       name: identity.displayName,
-      email: user.email ?? "",
+      email: identity.email,
       contact: sp.phone,
     },
   });

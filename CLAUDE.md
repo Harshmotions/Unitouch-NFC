@@ -42,10 +42,16 @@ Check before assuming something works.
   click events (`lib/track.ts` → `app/api/analytics/route.ts` →
   `lib/analytics.ts`). vCard download (`lib/vcard.ts`) and native share
   (`lib/share.ts`) both work.
-- Order flow (`components/order/OrderWizard.tsx`) — a 3-step checkout:
-  order details → self-serve profile setup (with a live preview that
-  renders the real `StandardProfile`/`PersonalProfile` against draft
-  in-memory data, photo included via a local blob URL) → payment. Payment
+- Order flow (`components/order/OrderWizard.tsx`) — a 2-step **guest**
+  checkout (no sign-in): identity (account type, name, email typed twice,
+  logo/photo, username) → shipping & payment. The checkout email is stored
+  on the order + placeholder profile with `user_id = null`. When the
+  customer later signs in with that email (email OTP, `/login`) and opens
+  `/studio`, `claimProfilesForUser` (`lib/profile.ts`) attaches every
+  **paid**, unowned order placed with that email (exact match on
+  `orders.email`) and its profile to their account. Don't reintroduce a
+  sign-in requirement at checkout: Razorpay's website verification was
+  answered "no login required to pay". Payment
   is real Razorpay (audit #01): the pay button POSTs to
   `app/api/razorpay/create-order/route.ts`, which reserves the username,
   uploads the image, and creates the order + placeholder profile as
