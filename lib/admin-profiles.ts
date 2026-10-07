@@ -112,7 +112,7 @@ export async function deleteProfileAsAdmin(
   if (photoPath) await supabase.storage.from("profile-photos").remove([decodeURIComponent(photoPath)]);
 
   try {
-    await Redis.fromEnv().del(`draft-reminders:${id}`);
+    await Redis.fromEnv().del(`draft-reminders:${id}`, `draft-reminders-at:${id}`);
   } catch {
     // Counter is advisory; a stale key for a deleted id is harmless.
   }

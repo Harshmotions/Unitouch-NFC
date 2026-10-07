@@ -6,7 +6,8 @@ import { sendDraftReminder } from "@/lib/email";
    published their profile.
 
    Automatic: a daily Vercel cron (/api/cron/draft-reminders) sends reminder
-   #1 once the order is 1 day old, #2 at 3 days, #3 at 7 days, then stops.
+   #1 once the order is 1 day old, #2 at 3 days, #3 at 7 days, then stops,
+   and never two within MIN_DAYS_BETWEEN_REMINDERS of each other.
    Manual: admins can send one any time from /admin/profiles.
 
    The sent count lives in Upstash Redis (no DB schema change needed), keyed
@@ -17,9 +18,14 @@ import { sendDraftReminder } from "@/lib/email";
    phone number is already on every order (orders.phone). */
 
 export const REMINDER_SCHEDULE_DAYS = [1, 3, 7];
+// Never closer together than this, so long-overdue drafts don't get the
+// whole series on consecutive days.
+export const MIN_DAYS_BETWEEN_REMINDERS = 2;
 
 const redis = Redis.fromEnv();
 const key = (profileId: string) => `draft-reminders:${profileId}`;
+const lastKey = (profileId: string) => `draft-reminders-at:${profileId}`;
+const KEY_TTL_SECONDS = 60 * 60 * 24 * 120;
 
 export async function getReminderCounts(profileIds: string[]): Promise<Record<string, number>> {
   if (!profileIds.length) return {};
@@ -68,7 +74,8 @@ async function paidDrafts(profileId?: string): Promise<Draft[]> {
 
 async function sendAndCount(d: Draft, reminderNumber: number): Promise<void> {
   await sendDraftReminder({ ...d, reminderNumber });
-  await redis.set(key(d.profileId), reminderNumber, { ex: 60 * 60 * 24 * 120 });
+  await redis.set(key(d.profileId), reminderNumber, { ex: KEY_TTL_SECONDS });
+  await redis.set(lastKey(d.profileId), Date.now(), { ex: KEY_TTL_SECONDS });
 }
 
 /* Cron: send whichever scheduled reminder is due for each paid draft. */
@@ -81,6 +88,10 @@ export async function sendDueDraftReminders(): Promise<{ checked: number; sent: 
     if (already >= REMINDER_SCHEDULE_DAYS.length) continue;
     const ageDays = (Date.now() - new Date(d.paidAt).getTime()) / 86_400_000;
     if (ageDays < REMINDER_SCHEDULE_DAYS[already]) continue;
+    if (already > 0) {
+      const last = Number((await redis.get<number>(lastKey(d.profileId))) ?? 0);
+      if (Date.now() - last < MIN_DAYS_BETWEEN_REMINDERS * 86_400_000) continue;
+    }
     await sendAndCount(d, already + 1);
     sent++;
   }
