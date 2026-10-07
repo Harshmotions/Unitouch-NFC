@@ -23,7 +23,7 @@ export const CARD_VARIANTS: CardVariant[] = [
       "Everything in Standard",
       "Premium matte finish",
       "Priority design turnaround",
-      "Profile analytics dashboard",
+      "Profile analytics dashboard (coming soon)",
     ],
   },
 ];

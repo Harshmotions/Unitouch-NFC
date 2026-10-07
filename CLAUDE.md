@@ -34,8 +34,17 @@ Check before assuming something works.
 
 **Fully working:**
 - Marketing homepage (`app/(marketing)/page.tsx`) — Hero, SocialProof,
-  ProductShowcase, HowItWorks, Features, ProfileDemo, Pricing, Testimonials,
-  FAQ, Footer. All real, all styled.
+  ProductShowcase, HowItWorks, Features, ProfileDemo, Pricing, FAQ, Footer.
+  All real, all styled. `Testimonials.tsx` is intentionally NOT rendered: it
+  held made-up placeholder reviews, which got flagged for Razorpay website
+  verification. Only re-add it with real customer quotes. Likewise, don't
+  advertise features that aren't built (the Premium analytics dashboard is
+  marked "coming soon"; public view/save counts are real).
+- Inner pages (policies, contact, `/order`) live in the `app/(site)` route
+  group, whose layout adds `SiteHeader` + `Footer`. Razorpay verification
+  expects every page to link home and to every policy; keep new
+  customer-facing pages in this group. Business contact details live in
+  `lib/business.ts` (legal name must match the Razorpay KYC).
 - Public profile pages (`app/u/[username]/page.tsx`) — reads live from
   Supabase (`lib/profile.ts`), renders `StandardProfile` or
   `PersonalProfile` depending on `profile_style`. Tracks page views and

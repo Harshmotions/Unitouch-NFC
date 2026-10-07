@@ -23,8 +23,8 @@ const FEATURES = [
   },
   {
     icon: BarChart3,
-    title: "Full Analytics",
-    description: "See who viewed your profile.",
+    title: "View & Save Counts",
+    description: "See how many people viewed and saved you.",
   },
   {
     icon: CreditCard,

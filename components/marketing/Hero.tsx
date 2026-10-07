@@ -9,7 +9,7 @@ import Button from "@/components/ui/Button";
 const BADGES = [
   { icon: Zap, label: "Instant NFC Tap" },
   { icon: RefreshCw, label: "Always Editable" },
-  { icon: BarChart3, label: "Profile Analytics" },
+  { icon: BarChart3, label: "View & Save Counts" },
 ];
 
 const STARFIELD = [

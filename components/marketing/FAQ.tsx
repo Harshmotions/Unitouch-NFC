@@ -40,7 +40,7 @@ const FAQS = [
   {
     question: "What's the difference between plans?",
     answer:
-      "Standard covers the essentials. Premium adds a priority design turnaround and profile analytics. Ordering for a whole team? We'll set up a custom package for you.",
+      "Standard covers the essentials. Premium adds a premium matte finish and priority design turnaround, with a profile analytics dashboard coming soon. Ordering for a whole team? We'll set up a custom package for you.",
   },
 ];
 

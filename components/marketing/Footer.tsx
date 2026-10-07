@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { handleHashLinkClick } from "@/lib/scroll";
 import { BUSINESS } from "@/lib/business";
 
@@ -13,6 +14,11 @@ const LINKS = [
 ];
 
 export default function Footer() {
+  /* The footer also sits under the policy/contact/order pages (see
+     app/(site)/layout.tsx), where "#features" etc. don't exist. Off the
+     homepage, point them at "/#…" and let the browser navigate normally. */
+  const onHome = usePathname() === "/";
+
   return (
     <footer id="site-footer" className="border-t border-white/[0.06] px-6 py-16">
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-8 sm:flex-row sm:items-start">
@@ -28,8 +34,8 @@ export default function Footer() {
           {LINKS.map((link) => (
             <a
               key={link.label}
-              href={link.href}
-              onClick={link.href.startsWith("#") ? handleHashLinkClick(link.href) : undefined}
+              href={onHome || !link.href.startsWith("#") ? link.href : `/${link.href}`}
+              onClick={onHome && link.href.startsWith("#") ? handleHashLinkClick(link.href) : undefined}
               className="text-text-secondary hover:text-text-primary text-sm transition-colors"
             >
               {link.label}
