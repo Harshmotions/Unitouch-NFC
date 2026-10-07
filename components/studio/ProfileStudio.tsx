@@ -5,7 +5,7 @@ import { X, Eye, ImagePlus, Plus, Sparkles, ChevronLeft, ChevronRight, CheckCirc
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { studioUpdateSchema, type StudioUpdateValues } from "@/lib/validations";
-import { suggestTagsFromText, labelFromUrl } from "@/lib/interests";
+import { suggestTagsFromText, labelFromUrl, tagForCustomInput, POPULAR_INTEREST_TAGS } from "@/lib/interests";
 import type { Profile } from "@/types";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
@@ -112,12 +112,16 @@ export default function ProfileStudio({
       return next;
     });
   }
+  // Typed custom tags get an emoji too: "guitar" -> "🎸 Guitar" (lib/interests.ts).
+  const customTagPreview = tagForCustomInput(customTagInput);
   function addCustomTag() {
-    const trimmed = customTagInput.trim();
-    if (!trimmed || interests.length >= MAX_INTERESTS || interests.includes(trimmed)) return;
-    setInterests((prev) => [...prev, trimmed]);
+    const tag = tagForCustomInput(customTagInput);
+    if (!tag || interests.length >= MAX_INTERESTS || interests.includes(tag)) return;
+    setInterests((prev) => [...prev, tag]);
     setCustomTagInput("");
   }
+  // Quick picks while nothing has been typed yet.
+  const popularPicks = POPULAR_INTEREST_TAGS.filter((tag) => !interests.includes(tag));
 
   // Override image blob URL (if picked) else the saved avatar.
   const overrideUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : null), [imageFile]);
@@ -326,6 +330,24 @@ export default function ProfileStudio({
             placeholder="I run a branding agency, love UI design, startups, coffee, public speaking and photography."
             className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted mt-1 w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent-purple/50"
           />
+          {!interestsText.trim() && interests.length < MAX_INTERESTS && popularPicks.length > 0 && (
+            <div className="mt-3">
+              <p className="text-text-muted mb-2 text-xs">Popular picks, tap to add (or describe yourself above for more)</p>
+              <div className="flex flex-wrap gap-2">
+                {popularPicks.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => addInterestTag(tag)}
+                    className="border-bg-border text-text-secondary hover:border-accent-purple/50 hover:text-text-primary flex items-center gap-1.5 rounded-full border border-dashed px-3.5 py-1.5 text-sm transition-colors"
+                  >
+                    <Plus className="size-3" />
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {suggestedTags.length > 0 && interests.length < MAX_INTERESTS && (
             <div className="mt-3">
               <p className="text-text-muted mb-2 text-xs">Suggested tags, tap to add</p>
@@ -376,7 +398,7 @@ export default function ProfileStudio({
                     addCustomTag();
                   }
                 }}
-                placeholder="Add a custom tag"
+                placeholder="Add your own, e.g. guitar"
                 maxLength={30}
               />
               <Button type="button" variant="secondary" size="md" onClick={addCustomTag}>
@@ -384,6 +406,11 @@ export default function ProfileStudio({
                 Add
               </Button>
             </div>
+          )}
+          {customTagPreview && interests.length < MAX_INTERESTS && (
+            <p className="text-text-muted mt-1.5 text-xs">
+              Will be added as <span className="text-text-primary">{customTagPreview}</span>
+            </p>
           )}
           <p className="text-text-muted mt-1.5 text-xs">
             {interests.length}/{MAX_INTERESTS}

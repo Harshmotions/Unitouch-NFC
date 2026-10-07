@@ -1,57 +1,94 @@
 /* Shared helpers for the profile interest-tag suggestions and link labels,
-   used by the digital studio. Client-side keyword matcher that stands in for
-   a real AI call (no AI provider is configured) — scans free-text and
-   proposes tags the user can accept, reorder, or discard. */
+   used by the digital studio. Client-side keyword matcher (no AI call) over
+   the emoji dictionary in lib/interest-emojis.ts: scans free text and
+   proposes "emoji Label" tags the user can accept, reorder, or discard. */
 
-const INTEREST_KEYWORDS: { keywords: string[]; tag: string }[] = [
-  { keywords: ["ui design", "ux design", "ui/ux"], tag: "💻 UI Design" },
-  { keywords: ["public speaking"], tag: "🎤 Public Speaking" },
-  { keywords: ["real estate"], tag: "🏠 Real Estate" },
-  { keywords: ["branding", "brand"], tag: "🎨 Branding" },
-  { keywords: ["photography", "photographer", "photo"], tag: "📷 Photography" },
-  { keywords: ["coffee"], tag: "☕ Coffee" },
-  { keywords: ["travel", "travelling", "traveling"], tag: "✈️ Travel" },
-  { keywords: ["startup", "startups"], tag: "🚀 Startups" },
-  { keywords: ["marketing"], tag: "📈 Marketing" },
-  { keywords: ["fitness", "gym", "workout"], tag: "💪 Fitness" },
-  { keywords: ["music"], tag: "🎵 Music" },
-  { keywords: ["writing", "copywriting"], tag: "✍️ Writing" },
-  { keywords: ["coding", "developer", "engineering", "software"], tag: "💻 Engineering" },
-  { keywords: ["finance", "investing"], tag: "💰 Finance" },
-  { keywords: ["fashion"], tag: "👗 Fashion" },
-  { keywords: ["food", "cooking", "chef"], tag: "🍳 Food" },
-  { keywords: ["yoga"], tag: "🧘 Yoga" },
-  { keywords: ["film", "filmmaking", "video"], tag: "🎬 Film" },
-  { keywords: ["consulting"], tag: "📊 Consulting" },
-  { keywords: ["sales"], tag: "🤝 Sales" },
-  { keywords: ["law", "legal"], tag: "⚖️ Law" },
-  { keywords: ["education", "teaching"], tag: "📚 Education" },
-  { keywords: ["health", "wellness"], tag: "🩺 Health" },
-  { keywords: ["architecture"], tag: "🏛️ Architecture" },
-  { keywords: ["art", "illustration"], tag: "🎨 Art" },
-  { keywords: ["gaming"], tag: "🎮 Gaming" },
-  { keywords: ["agency"], tag: "🏢 Agency" },
-  { keywords: ["design"], tag: "🎨 Design" },
-];
+import { INTEREST_DICTIONARY, POPULAR_INTEREST_LABELS, type InterestEntry } from "@/lib/interest-emojis";
+
+const MAX_SUGGESTIONS = 12;
+const MAX_TAG_LENGTH = 30; // profile schema limit
+const FALLBACK_EMOJI = "✨";
 
 function escapeRegExp(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function suggestTagsFromText(text: string): string[] {
-  const lower = text.toLowerCase();
-  if (!lower.trim()) return [];
-  const matched: string[] = [];
-  for (const { keywords, tag } of INTEREST_KEYWORDS) {
-    if (matched.includes(tag)) continue;
-    // Leading word-boundary only (not trailing) — a plain substring check
-    // would let "art" match inside "startups"; requiring just the start of a
-    // word still allows suffixes like "brand" -> "brands"/"branding".
-    const hasMatch = keywords.some((kw) => new RegExp(`\\b${escapeRegExp(kw)}`).test(lower));
-    if (hasMatch) matched.push(tag);
+/* Whole-word match that also accepts common English endings, so "cook"
+   matches "cooking"/"cooks" and "photograph" matches "photography" and
+   "photographer", while "ai" doesn't fire inside "air" and "art" doesn't fire
+   inside "startups". */
+const ENDINGS = "(?:s|es|ing|ed|er|ers|ist|ists|y|ies)?";
+const COMPILED = INTEREST_DICTIONARY.map((entry) => ({
+  entry,
+  patterns: entry.keywords.map((kw) => new RegExp(`\\b${escapeRegExp(kw)}${ENDINGS}\\b`, "gi")),
+}));
+
+type Hit = { entry: InterestEntry; start: number; end: number };
+
+function findHits(text: string): Hit[] {
+  const hits: Hit[] = [];
+  for (const { entry, patterns } of COMPILED) {
+    for (const re of patterns) {
+      re.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text))) {
+        hits.push({ entry, start: m.index, end: m.index + m[0].length });
+        if (m[0].length === 0) re.lastIndex++;
+      }
+    }
   }
-  return matched;
+  return hits;
 }
+
+export function suggestTagsFromText(text: string): string[] {
+  if (!text.trim()) return [];
+  // Longest matches win: "ui design" claims its span, so the plain "design"
+  // inside it doesn't also produce a separate Design tag.
+  const hits = findHits(text).sort((a, b) => b.end - b.start - (a.end - a.start) || a.start - b.start);
+  const taken: [number, number][] = [];
+  const firstSeen = new Map<string, number>();
+  for (const hit of hits) {
+    if (taken.some(([s, e]) => hit.start >= s && hit.end <= e)) continue;
+    taken.push([hit.start, hit.end]);
+    const prev = firstSeen.get(hit.entry.tag);
+    if (prev === undefined || hit.start < prev) firstSeen.set(hit.entry.tag, hit.start);
+  }
+  // In the order the person wrote them.
+  return [...firstSeen.entries()]
+    .sort((a, b) => a[1] - b[1])
+    .map(([tag]) => tag)
+    .slice(0, MAX_SUGGESTIONS);
+}
+
+const STARTS_WITH_EMOJI = /^\p{Extended_Pictographic}/u;
+
+/* What a typed custom tag becomes: "guitar" -> "🎸 Guitar". Uses the
+   dictionary entry whose keyword matches the whole input best; anything
+   unknown gets ✨. Input that already starts with an emoji is kept as is. */
+export function tagForCustomInput(input: string): string {
+  const text = input.trim().replace(/\s+/g, " ");
+  if (!text) return "";
+  if (STARTS_WITH_EMOJI.test(text)) return text.slice(0, MAX_TAG_LENGTH);
+
+  const lower = text.toLowerCase();
+  const exact = INTEREST_DICTIONARY.find((e) => e.keywords.includes(lower));
+  if (exact) return exact.tag;
+
+  const hits = findHits(text);
+  const whole = hits.find((h) => h.start === 0 && h.end === text.length);
+  if (whole) return whole.entry.tag;
+
+  // Not in the dictionary: keep their words, with the first word's emoji if
+  // any word matched (e.g. "Indie Guitar" -> "🎸 Indie Guitar"), else ✨.
+  const emoji = hits.length ? hits.sort((a, b) => a.start - b.start)[0].entry.emoji : FALLBACK_EMOJI;
+  const label = text.charAt(0).toUpperCase() + text.slice(1);
+  return `${emoji} ${label}`.slice(0, MAX_TAG_LENGTH);
+}
+
+/* Quick picks shown before the customer types anything. */
+export const POPULAR_INTEREST_TAGS: string[] = POPULAR_INTEREST_LABELS.map(
+  (label) => INTEREST_DICTIONARY.find((e) => e.label === label)?.tag,
+).filter((t): t is string => Boolean(t));
 
 export function labelFromUrl(url: string): string {
   try {
