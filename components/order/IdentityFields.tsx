@@ -22,6 +22,20 @@ const MAX_LOGO_BYTES = 5 * 1024 * 1024;
 // Loose client-side check; the server re-validates with zod (identitySchema).
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/* Name -> profile link: "Harsh Powar" -> "harsh-powar", "Café Ünïcode & Co."
+   -> "cafe-unicode-co". Accents are stripped, anything else outside a-z0-9
+   becomes a hyphen; capped at the 30-char username limit. */
+function slugify(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 30)
+    .replace(/-+$/, "");
+}
+
 /* The identity form for the new order Step 1 — account type, display name,
    email (typed twice), logo/photo, and username, with a simplified live
    preview. Checkout is guest-only: the email is stored on the order and is
@@ -45,6 +59,19 @@ export default function IdentityFields({
   const [email, setEmail] = useState(defaultValues?.email ?? "");
   const [confirmEmail, setConfirmEmail] = useState(defaultValues?.email ?? "");
   const [username, setUsername] = useState(defaultValues?.username ?? "");
+  /* The link auto-fills from the name until the customer edits it by hand.
+     A restored draft whose link differs from its name's slug was hand-edited
+     (or auto-suggested); either way, don't overwrite it. */
+  const [usernameTouched, setUsernameTouched] = useState(
+    Boolean(defaultValues?.username) && defaultValues?.username !== slugify(defaultValues?.displayName ?? ""),
+  );
+  // Read inside the availability effect without re-running it.
+  const usernameTouchedRef = useRef(usernameTouched);
+  usernameTouchedRef.current = usernameTouched;
+  // Set when an auto-filled link was taken and we swapped in a free variant.
+  const [swappedFrom, setSwappedFrom] = useState<string | null>(null);
+  // A free variant offered (not applied) when a hand-typed link is taken.
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [logoError, setLogoError] = useState<string | null>(null);
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -52,26 +79,73 @@ export default function IdentityFields({
 
   const isBusiness = accountType === "business";
 
-  // Live username availability — same contract as the old profile step.
+  /* Live username availability. When the link is still auto-filled and
+     taken, swap in the server's suggested free variant (which re-runs this
+     check); when it was typed by hand, only offer the suggestion. */
   useEffect(() => {
     const trimmed = username.trim().toLowerCase();
+    setSuggestion(null);
     if (!trimmed || trimmed.length < 3 || !/^[a-z0-9-]+$/.test(trimmed)) {
       setUsernameStatus(trimmed ? "invalid" : "idle");
       return;
     }
     setUsernameStatus("checking");
+    // Ignore a response that lands after the link has changed again.
+    let stale = false;
     const timer = setTimeout(() => {
       fetch("/api/profiles/check-username", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: trimmed }),
+        body: JSON.stringify({ username: trimmed, suggest: true }),
       })
         .then((res) => res.json())
-        .then((data) => setUsernameStatus(data.available ? "available" : "taken"))
-        .catch(() => setUsernameStatus("error"));
+        .then((data: { available?: boolean; suggestion?: string | null }) => {
+          if (stale) return;
+          if (data.available === undefined) {
+            setUsernameStatus("error");
+          } else if (data.available) {
+            setUsernameStatus("available");
+          } else if (data.suggestion && !usernameTouchedRef.current) {
+            setSwappedFrom(trimmed);
+            setUsername(data.suggestion);
+          } else {
+            setUsernameStatus("taken");
+            setSuggestion(data.suggestion ?? null);
+          }
+        })
+        .catch(() => {
+          if (!stale) setUsernameStatus("error");
+        });
     }, 450);
-    return () => clearTimeout(timer);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
   }, [username]);
+
+  function handleNameChange(value: string) {
+    setDisplayName(value);
+    if (!usernameTouched) {
+      setSwappedFrom(null);
+      setUsername(slugify(value));
+    }
+  }
+
+  function handleUsernameChange(value: string) {
+    const next = value.toLowerCase();
+    setSwappedFrom(null);
+    setUsername(next);
+    // Clearing the field hands it back to auto-fill.
+    setUsernameTouched(next.trim() !== "");
+  }
+
+  function resetUsernameToName() {
+    setSwappedFrom(null);
+    setUsernameTouched(false);
+    setUsername(slugify(displayName));
+  }
+
+  const nameSlug = slugify(displayName);
 
   // Local blob URL for the logo preview; revoked on change/unmount.
   const logoUrl = useMemo(() => (logoFile ? URL.createObjectURL(logoFile) : null), [logoFile]);
@@ -158,7 +232,7 @@ export default function IdentityFields({
             <Input
               id="displayName"
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               placeholder={namePlaceholder}
             />
             {submitAttempted && displayName.trim().length < 2 && (
@@ -256,9 +330,9 @@ export default function IdentityFields({
               <input
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                onChange={(e) => handleUsernameChange(e.target.value)}
                 placeholder="yourname"
-                className="text-text-primary placeholder:text-text-muted h-full flex-1 bg-transparent text-sm outline-none"
+                className="text-text-primary placeholder:text-text-muted h-full min-w-0 flex-1 bg-transparent text-sm outline-none"
               />
               {usernameStatus === "checking" && <Loader2 className="text-text-muted size-4 animate-spin" />}
               {usernameStatus === "available" && <Check className="text-success size-4" />}
@@ -269,13 +343,47 @@ export default function IdentityFields({
               </p>
             )}
             {usernameStatus === "available" && (
-              <p className="text-success mt-1.5 text-xs">@{previewHandle} is available</p>
+              <p className="text-success mt-1.5 text-xs">
+                @{previewHandle} is available
+                {swappedFrom && (
+                  <span className="text-text-muted"> (@{swappedFrom} was taken, so we picked this one)</span>
+                )}
+              </p>
             )}
             {usernameStatus === "taken" && (
-              <p className="text-error mt-1.5 text-xs">That username is already taken.</p>
+              <p className="text-error mt-1.5 text-xs">
+                That username is already taken.
+                {suggestion && (
+                  <>
+                    {" "}
+                    <button
+                      type="button"
+                      onClick={() => handleUsernameChange(suggestion)}
+                      className="text-accent-purple font-[600] underline-offset-2 hover:underline"
+                    >
+                      Use @{suggestion}
+                    </button>
+                  </>
+                )}
+              </p>
             )}
             {usernameStatus === "error" && (
               <p className="text-error mt-1.5 text-xs">Couldn&apos;t check availability. Try again.</p>
+            )}
+            {!usernameTouched && username ? (
+              <p className="text-text-muted mt-1 text-xs">Filled in from your name. You can edit it.</p>
+            ) : (
+              usernameTouched &&
+              nameSlug.length >= 3 &&
+              nameSlug !== username.trim() && (
+                <button
+                  type="button"
+                  onClick={resetUsernameToName}
+                  className="text-text-muted hover:text-text-primary mt-1 text-xs underline underline-offset-2"
+                >
+                  Use my name instead
+                </button>
+              )
             )}
           </div>
         </div>
