@@ -4,8 +4,8 @@ import type { Profile } from "@/types";
 import ProfileStudio from "@/components/studio/ProfileStudio";
 
 /* Admin wrapper around the same form the customer digital studio uses —
-   points it at the admin-only update route (no OTP, no ownership check,
-   just the requireAdmin gate already enforced by the layout above this). */
+   points it at the admin-only update route (no ownership check; the
+   two-factor admin gate is enforced by the layout and the route). */
 export default function ProfileEditor({ profile }: { profile: Profile }) {
   return (
     <div className="flex flex-col gap-6">

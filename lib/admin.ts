@@ -1,35 +1,42 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { BUSINESS } from "@/lib/business";
+import { ADMIN_2FA_COOKIE, readToken } from "@/lib/admin-session";
 
-function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
+/* Admin access: ONE shared account (BUSINESS.adminEmail) that the team signs
+   into with the shared password AND a one-time code emailed to that inbox.
+
+   Both factors are enforced: the Supabase session (created by verifying the
+   code) must belong to the admin email, and the signed 2FA cookie (only
+   issued after the password step, see lib/admin-session.ts and
+   /api/admin/auth/*) must be present and bound to that same user. A customer
+   session, or the admin email signed in through the normal customer /login
+   (code only, no password), does not pass. */
 
 export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
-  return adminEmails().includes(email.trim().toLowerCase());
+  return Boolean(email) && email!.trim().toLowerCase() === BUSINESS.adminEmail;
 }
 
-/* Gate for every /admin page. Signs out and redirects to /admin/login when
-   there's no session, or when there is one but it isn't an allow-listed
-   admin — the latter case would otherwise leave a non-admin's real customer
-   session sitting active while stuck bouncing off the admin area. */
-export async function requireAdmin() {
+/* The signed-in admin, or null. For API routes and anywhere a redirect is
+   wrong. */
+export async function getAdminUser(): Promise<User | null> {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user || !isAdminEmail(user.email)) return null;
 
-  if (!user) {
-    redirect("/admin/login");
-  }
-  if (!isAdminEmail(user.email)) {
-    await supabase.auth.signOut();
-    redirect("/admin/login?error=unauthorized");
-  }
+  const proof = readToken((await cookies()).get(ADMIN_2FA_COOKIE)?.value);
+  if (!proof || proof.uid !== user.id) return null;
+  return user;
+}
 
+/* Gate for every protected /admin page: anything short of a full two-factor
+   admin login goes to /admin/login. Customer sessions are left alone. */
+export async function requireAdmin(): Promise<User> {
+  const user = await getAdminUser();
+  if (!user) redirect("/admin/login");
   return user;
 }

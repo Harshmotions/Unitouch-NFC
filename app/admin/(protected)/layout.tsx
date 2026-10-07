@@ -1,9 +1,10 @@
 import { requireAdmin } from "@/lib/admin";
 import AdminNav from "@/components/admin/AdminNav";
 
-/* Every page under this route group requires an allow-listed admin session —
-   requireAdmin() redirects to /admin/login otherwise. Nothing below this
-   layout needs to repeat the check. */
+/* Every page under this route group requires the full two-factor admin
+   login (shared password + emailed code, see lib/admin.ts); requireAdmin()
+   redirects to /admin/login otherwise. Nothing below this layout needs to
+   repeat the check. */
 export default async function AdminProtectedLayout({
   children,
 }: {

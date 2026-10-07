@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { studioUpdateSchema } from "@/lib/validations";
-import { isAdminEmail } from "@/lib/admin";
-import { createServiceRoleClient, createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAdminUser } from "@/lib/admin";
+import { createServiceRoleClient } from "@/lib/supabase/server";
 import { processImageUpload, UploadRejected } from "@/lib/uploads";
 import { verifyOrigin } from "@/lib/csrf";
 import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
@@ -9,7 +9,7 @@ import { profileWriteLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 /* Admin equivalent of /api/profiles/update — same field set and validation,
-   but gated on the caller being an allow-listed admin (lib/admin.ts) instead
+   but gated on a full two-factor admin login (lib/admin.ts) instead
    of owning the row, and with no OTP re-entry required. Every successful
    write is logged to admin_audit_log for accountability, since this route
    deliberately skips the ownership check the customer route enforces. */
@@ -20,12 +20,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const { id } = await params;
 
-  const authClient = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json({ error: "Not authorized." }, { status: 403 });
+  // Full two-factor admin login required (lib/admin.ts).
+  const user = await getAdminUser();
+  if (!user) {
+    return NextResponse.json({ error: "Your admin session expired. Please sign in again." }, { status: 401 });
   }
 
   const limited = await rateLimitOrResponse(profileWriteLimiter, user.id);

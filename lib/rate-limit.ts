@@ -48,6 +48,14 @@ export const profileWriteLimiter = new Ratelimit({
   prefix: "rl:profile-write",
 });
 
+/* Admin password step (/api/admin/auth/password): strict, per IP, to stop
+   guessing the shared admin password. */
+export const adminLoginLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "15 m"),
+  prefix: "rl:admin-login",
+});
+
 /* First entry in X-Forwarded-For (Vercel sets this; the entry closest to
    the client). Falls back to a fixed key so local dev without the header
    still exercises the same code path against one shared bucket. */
