@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { handleHashLinkClick } from "@/lib/scroll";
+import { BUSINESS } from "@/lib/business";
 
 const LINKS = [
   { label: "Home", href: "/" },
@@ -36,11 +37,21 @@ export default function Footer() {
           ))}
         </div>
 
-        <p className="text-text-muted text-sm">Made in India 🇮🇳</p>
+        <div className="text-text-muted flex flex-col items-center gap-1 text-sm sm:items-end">
+          <a href={`tel:${BUSINESS.phone}`} className="hover:text-text-primary transition-colors">
+            {BUSINESS.phoneDisplay}
+          </a>
+          <a href={`mailto:${BUSINESS.email}`} className="hover:text-text-primary transition-colors">
+            {BUSINESS.email}
+          </a>
+          <p className="text-center sm:text-right">{BUSINESS.addressLines.join(", ")}</p>
+        </div>
       </div>
 
       <div className="mx-auto mt-10 flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/[0.06] pt-8 sm:flex-row">
-        <p className="text-text-muted text-xs">© {new Date().getFullYear()} Unitouch. All rights reserved.</p>
+        <p className="text-text-muted text-xs">
+          © {new Date().getFullYear()} {BUSINESS.legalName}. All rights reserved. Made in India 🇮🇳
+        </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link href="/privacy" className="text-text-muted hover:text-text-primary text-xs transition-colors">
             Privacy Policy

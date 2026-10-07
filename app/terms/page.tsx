@@ -1,3 +1,5 @@
+import { BUSINESS } from "@/lib/business";
+
 export default function TermsPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-24">
@@ -7,9 +9,10 @@ export default function TermsPage() {
       </div>
 
       <p className="text-text-secondary">
-        These terms govern your use of Unitouch, the ordering of NFC business cards, and the
-        digital profile page linked to each card. By placing an order or using a Unitouch profile,
-        you agree to these terms.
+        Unitouch is operated by {BUSINESS.legalName}, {BUSINESS.addressLines.join(", ")}. These
+        terms govern your use of Unitouch, the ordering of NFC business cards, and the digital
+        profile page linked to each card. By placing an order or using a Unitouch profile, you
+        agree to these terms.
       </p>
 
       <section className="flex flex-col gap-2">
@@ -111,6 +114,10 @@ export default function TermsPage() {
           Questions about these terms can be sent to{" "}
           <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
             support@unitouch.in
+          </a>{" "}
+          or by phone at{" "}
+          <a href={`tel:${BUSINESS.phone}`} className="text-accent-purple hover:underline">
+            {BUSINESS.phoneDisplay}
           </a>
           .
         </p>
