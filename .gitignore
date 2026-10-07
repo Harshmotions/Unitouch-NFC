@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Local scratch files and data backups (may contain customer data)
 /tmp/
+
+# Local reports (e.g. security assessments). The repo is public: never commit these.
+/output/
