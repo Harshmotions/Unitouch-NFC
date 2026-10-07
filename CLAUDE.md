@@ -7,165 +7,206 @@ info, socials, and a vCard download with one tap.
 ## Stack
 
 - Next.js 15 (App Router), TypeScript, Tailwind v4
-- Supabase (Postgres + Auth + Storage) — see `supabase/schema.sql`
+- Supabase (Postgres + Auth + Storage), region **South Asia (Mumbai)** —
+  see `supabase/schema.sql`
+- Upstash Redis (rate limiting, Asia), Resend (email), Razorpay (payments)
 - GSAP for entrance animations, Lenis for smooth scroll
-- Deployed on Vercel: https://unitouch-nfc-five.vercel.app
+- Production: **https://www.unitouch.in** (`unitouch.in` redirects there)
 - Repo: https://github.com/Harshmotions/Unitouch-NFC
+
+## Deploys (Vercel)
+
+- Every push to `main` auto-deploys to production. There's no staging, so
+  test locally first.
+- The live site is served by the Vercel project whose default domain is
+  `unitouch-nfc-sigma.vercel.app`; that's where the production env vars
+  (Supabase, `RZP_*`, `RESEND_API_KEY`, Upstash) live. An older duplicate
+  project (`unitouch-nfc-five.vercel.app`, the one this repo's `.vercel/`
+  folder is linked to) has been disconnected from Git; it doesn't serve the
+  site and has none of the secrets. So the Vercel CLI here can't see the
+  production env vars.
+- `vercel.json` pins serverless functions to **`bom1` (Mumbai)**, next to
+  Supabase. They previously ran in `iad1` (USA), and every DB round trip
+  crossing the Pacific made checkout, sign-in and the studio slow. Don't
+  remove it.
+- New env vars only take effect after a redeploy.
 
 ## Get set up locally
 
 1. `npm install`
 2. Copy `.env.example` → `.env.local`. **Ask Harsh for the actual values**
-   (Supabase URL/anon key/service-role key, `ADMIN_EMAILS`) — these are
-   intentionally not committed since `SUPABASE_SERVICE_ROLE_KEY` bypasses
-   all database security. Don't put real keys in this file or any other
-   committed file.
+   — never commit them (`SUPABASE_SERVICE_ROLE_KEY` bypasses all database
+   security).
 3. `npm run dev`
 
-The Supabase project (schema + the 3 storage buckets below) is already live
-and shared — you don't need to set any of that up yourself, just need the
-connection keys from Harsh.
+The Supabase project (schema + storage buckets) is already live and shared;
+you only need the connection keys. Locally, payments need `RZP_KEY_ID` /
+`RZP_KEY_SECRET`, and emails need `RESEND_API_KEY`; without them those steps
+fail or are skipped, and everything else works.
 
-## What's actually built vs. just stubbed
+## What's built
 
-It's easy to assume more is wired up than actually is — several files exist
-as empty placeholders (`return null` or similar, no real implementation).
-Check before assuming something works.
+**Marketing homepage** (`app/(marketing)/page.tsx`): Hero, SocialProof,
+ProductShowcase, HowItWorks, Features, Pricing, FAQ, Footer.
+`Testimonials.tsx` is intentionally NOT rendered: it held made-up
+placeholder reviews, which got flagged for Razorpay website verification.
+Only re-add it with real customer quotes. Don't advertise features that
+aren't built (the Premium analytics dashboard is marked "coming soon";
+public view/save counts are real).
 
-**Fully working:**
-- Marketing homepage (`app/(marketing)/page.tsx`) — Hero, SocialProof,
-  ProductShowcase, HowItWorks, Features, ProfileDemo, Pricing, FAQ, Footer.
-  All real, all styled. `Testimonials.tsx` is intentionally NOT rendered: it
-  held made-up placeholder reviews, which got flagged for Razorpay website
-  verification. Only re-add it with real customer quotes. Likewise, don't
-  advertise features that aren't built (the Premium analytics dashboard is
-  marked "coming soon"; public view/save counts are real).
-- Inner pages (policies, contact, `/order`) live in the `app/(site)` route
-  group, whose layout adds `SiteHeader` + `Footer`. Razorpay verification
-  expects every page to link home and to every policy; keep new
-  customer-facing pages in this group. Business contact details live in
-  `lib/business.ts` (legal name must match the Razorpay KYC).
-- Public profile pages (`app/u/[username]/page.tsx`) — reads live from
-  Supabase (`lib/profile.ts`), renders `StandardProfile` or
-  `PersonalProfile` depending on `profile_style`. Tracks page views and
-  click events (`lib/track.ts` → `app/api/analytics/route.ts` →
-  `lib/analytics.ts`). vCard download (`lib/vcard.ts`) and native share
-  (`lib/share.ts`) both work.
-- Order flow (`components/order/OrderWizard.tsx`) — a 2-step **guest**
-  checkout (no sign-in): identity (account type, name, email typed twice,
-  logo/photo, username) → shipping & payment. The checkout email is stored
-  on the order + placeholder profile with `user_id = null`. When the
-  customer later signs in with that email (email OTP, `/login`) and opens
-  `/studio`, `claimProfilesForUser` (`lib/profile.ts`) attaches every
-  **paid**, unowned order placed with that email (exact match on
-  `orders.email`) and its profile to their account. Don't reintroduce a
-  sign-in requirement at checkout: Razorpay's website verification was
-  answered "no login required to pay". Payment
-  is real Razorpay (audit #01): the pay button POSTs to
-  `app/api/razorpay/create-order/route.ts`, which reserves the username,
-  uploads the image, and creates the order + placeholder profile as
-  `payment_status = 'pending'` (via the `create_order_with_profile` RPC,
-  storing `razorpay_order_id`); the client then opens Razorpay's hosted
-  checkout.js. The order is flipped to `'paid'` only after server-side
-  HMAC-SHA256 signature verification — the interactive path
-  (`app/api/razorpay/verify/route.ts`) and, independently, the
-  `payment.captured` webhook (`app/api/webhook/razorpay/route.ts`). Both
-  flips are guarded on `payment_status = 'pending'` so whichever wins the
-  race writes `'paid'` exactly once. Username availability is also checked
-  live during the form via `app/api/profiles/check-username/route.ts`.
+**Inner pages** (policies, contact, `/order`) live in the `app/(site)` route
+group, whose layout adds `SiteHeader` + `Footer`. Razorpay verification
+expects every page to link home and to every policy (Terms, Privacy,
+Cancellation and Refund, Shipping and Delivery, Contact); keep new
+customer-facing pages in this group. Business details (legal name, which
+must match the Razorpay KYC, address, phone, support email, admin email,
+canonical site URL) live in `lib/business.ts`.
 
-**Stubbed — exists as a file/route but does nothing yet:**
-- Everything under `app/admin/**` (login, dashboard, orders, profiles,
-  analytics) — all `return null`. No admin auth check is wired up despite
-  `ADMIN_EMAILS` existing as an env var.
-- `components/admin/*` (AdminNav, AnalyticsChart, OrderCard, ProfileEditor)
-- `components/order/ProfileForm.tsx`
-- `components/profile/ContactActions.tsx`, `SocialLinks.tsx`,
-  `VCardDownload.tsx`, `ProfilePage.tsx` — superseded by
-  `StandardProfile.tsx` / `PersonalProfile.tsx` / `PlatformIcons.tsx`, which
-  is where the real logic actually lives. Treat the former as dead code
-  unless told otherwise.
-- Order confirmation email is built (`lib/email.ts` +
-  `lib/emails/order-confirmation.ts`) and sent via `after()` by whichever of
-  `/api/razorpay/verify` or the webhook flips the order pending -> paid
-  (the `.select("id")` on the guarded update tells it it won). It only
-  actually sends once `RESEND_API_KEY` is set and unitouch.in is verified
-  in Resend; until then it logs a warning and skips. No other emails exist.
+**Public profiles** (`app/u/[username]/page.tsx`): always rendered by
+`PersonalProfile` (reads `lib/profile.ts`). Tracks views and clicks
+(`lib/track.ts` → `app/api/analytics/route.ts` → `lib/analytics.ts`); vCard
+(`lib/vcard.ts`) and share (`lib/share.ts`) work. A bought-but-unpublished
+link shows `ProfileNotLive` instead of a 404; unknown links get
+`app/not-found.tsx`.
 
-**Razorpay is wired up** (audit #01 — real payment flow). `lib/razorpay/`
-(`client.ts` SDK singleton, `verify.ts` HMAC helpers, `checkout.ts` client
-loader), the three routes (`create-order`, `verify`, `webhook`), and
-`components/order/PaymentButton.tsx` are all implemented — see the order-flow
-description above for the sequence. `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
-`NEXT_PUBLIC_RAZORPAY_KEY_ID`, and `RAZORPAY_WEBHOOK_SECRET` must be set
-(live keys) in `.env.local` and Vercel; the webhook (pointing at
-`/api/webhook/razorpay`) is configured in the Razorpay dashboard for
-`payment.captured` + `payment.failed`. **Do NOT apply `lib/csrf.ts` to the
-webhook** — it's server-to-server, authenticated by the raw-body HMAC
-instead.
+**Order flow** (`components/order/OrderWizard.tsx`): a 2-step **guest**
+checkout, no sign-in. Don't reintroduce a sign-in requirement: Razorpay's
+website verification was answered "no login required to pay".
+1. Identity: account type, name, email (typed twice), logo/photo, profile
+   link (auto-filled from the name, editable, live availability check via
+   `app/api/profiles/check-username/route.ts`).
+2. Shipping & payment. Pay → `app/api/razorpay/create-order/route.ts`
+   reserves the link, uploads the image, and writes a **pending** order +
+   placeholder profile (`create_order_with_profile` RPC, storing
+   `razorpay_order_id`, `user_id = null`); then Razorpay's checkout.js opens
+   (preloaded when step 2 mounts; modal times out after 15 min).
+3. Paid only after server-side HMAC verification: the interactive path
+   (`app/api/razorpay/verify/route.ts`) and, independently, the
+   `payment.captured` webhook (`app/api/webhook/razorpay/route.ts`). Both
+   flip `pending`/`failed` → `paid` with a guarded update (`failed` because
+   a customer can retry inside the same checkout); whichever actually
+   flipped it (`.select("id")` returns the row) sends the emails via
+   `after()`.
 
-**Image uploads are wired up** (as of the Aug 2026 security remediation).
-The order/studio/admin flows upload a profile image which is validated and
-re-encoded server-side by `lib/uploads.ts` (magic-byte check + Sharp
-re-encode, rejects SVG/HTML) and stored in the `profile-photos` bucket.
-Three routes do this: `app/api/razorpay/create-order/route.ts`,
-`app/api/profiles/update/route.ts`, `app/api/admin/profiles/[id]/route.ts`.
-**Gotcha:** any route importing Sharp must be listed in
-`next.config.ts` → `outputFileTracingIncludes`, or its Vercel serverless
-function ships without Sharp's native binary and 500s on every request
-(works locally regardless — only fails on a real deploy).
+**Unpaid reservations** (`lib/reservations.ts`, timings in
+`lib/checkout-config.ts`): an unpaid (pending/failed) checkout holds its
+profile link for **30 minutes**, then is deleted (order, placeholder
+profile, photo). No cron: the release runs lazily in check-username and
+create-order. The same email coming back for the same link takes over its
+own unpaid reservation immediately. If a payment ever lands for a released
+order, `lib/late-payment.ts` refunds it automatically and alerts the admin
+inbox. Email is not unique: one email can own many orders/profiles.
+
+**Customer accounts**: email OTP only (`/login`, `components/auth/OtpSignIn.tsx`).
+Opening `/studio` runs `claimProfilesForUser` (`lib/profile.ts`), which
+attaches every **paid**, unowned order placed with that email (exact match
+on `orders.email`) and its profile to the account. The studio's "Your
+profiles" switcher lists them all.
+
+**Emails** (`lib/email.ts`, templates in `lib/emails/`), via Resend from
+`orders@unitouch.in`, replies to `support@unitouch.in`:
+- order confirmation → customer, and new-order alert → admin inbox (on paid)
+- "your card has shipped" → customer (admin moves an order to Shipped)
+- late-payment refund alert → admin inbox
+Every sender is fire-and-forget (never throws) and uses Resend idempotency
+keys. Without `RESEND_API_KEY` they log a warning and skip.
+
+**Admin** (`/admin`, `app/admin/**`): one shared account
+(`BUSINESS.adminEmail`, `unitouchnfc@gmail.com`) that needs **both** a
+password and a one-time code emailed to that inbox. Flow:
+`components/admin/AdminLoginForm.tsx` → `/api/admin/auth/password` (checks
+the password with a throwaway client, emails the code, sets a 10-min signed
+proof cookie) → browser `verifyOtp` (creates the Supabase session) →
+`/api/admin/auth/complete` (issues a 12-hour signed 2FA cookie bound to the
+user). `lib/admin.ts` `requireAdmin()` / `getAdminUser()` require the admin
+session AND that cookie (`lib/admin-session.ts`; key derived from
+`SUPABASE_SERVICE_ROLE_KEY`). Every protected page sits in
+`app/admin/(protected)/`; admin API routes call `getAdminUser()`. Set or
+reset the password with `node --env-file=.env.local scripts/set-admin-password.mjs`.
+Pages: dashboard (order + revenue stats, fulfilment queue, profile stats),
+orders (views: to fulfil / shipped / unpaid / all, search) with a detail
+page to set status (`lib/order-status.ts`: received → designing → awaiting
+approval → printing → shipped → delivered), tracking details and internal
+notes, and profiles (list + edit via the shared `ProfileStudio`).
+
+**Image uploads** (`lib/uploads.ts`): magic-byte check + Sharp re-encode
+(rejects SVG/HTML), stored in the `profile-photos` bucket. Routes:
+`create-order`, `app/api/profiles/update/route.ts`,
+`app/api/admin/profiles/[id]/route.ts`. **Gotcha:** any route importing
+Sharp must be listed in `next.config.ts` → `outputFileTracingIncludes`, or
+its Vercel function ships without Sharp's native binary and 500s (works
+locally regardless).
+
+**Loading states**: slow steps show `components/ui/ProgressNotice.tsx`
+(checkout stages incl. a full-screen "Confirming your payment" overlay,
+sign-in redirect, publish/save); `/studio` and `/u/[username]` have
+`loading.tsx` skeletons. Keep new async flows from looking frozen.
+
+## Razorpay
+
+Live keys, named `RZP_KEY_ID`, `RZP_KEY_SECRET`, `RZP_WEBHOOK_SECRET` (on
+this Vercel project `RAZORPAY_*`-named vars never reached the production
+runtime; see `lib/razorpay/client.ts`). The browser gets the public key id
+from the create-order response. Webhook `/api/webhook/razorpay` is
+configured in the Razorpay dashboard for `payment.captured` +
+`payment.failed`. **Do NOT apply `lib/csrf.ts` to the webhook**: it's
+server-to-server, authenticated by the raw-body HMAC. Website verification
+is approved for `www.unitouch.in`.
+
+Prices are in `lib/pricing.ts` (Standard ₹999, Premium ₹1,499). For a live
+payment test they've been temporarily dropped to ₹1; if you do that, always
+restore them right after.
 
 ## Supabase
 
-Schema lives in `supabase/schema.sql` — this is the source of truth, run it
-fresh in any new project's SQL editor. Three tables, two of them RLS-locked
-to service-role only:
+Schema lives in `supabase/schema.sql` (source of truth; run it fresh in a new
+project's SQL editor).
 
 | Table | Anon access | Notes |
 |---|---|---|
-| `profiles` | Read-only, `is_published = true` rows only | public profile pages |
+| `profiles` | Read-only, `is_published = true` rows only | `username` is unique |
 | `analytics_events` | None | service-role only (writes from `lib/track.ts` via API route) |
-| `orders` | None | service-role only, write-only currently (nothing reads it back yet — admin order pages are stubs) |
+| `orders` | None | service-role only; read by admin (`lib/orders.ts`) and emails |
+| `admin_audit_log` | None | written by the admin profile-edit route |
 
-Storage buckets (already created, not yet used by any code):
-- `profile-photos` — public
-- `card-designs` — private
-- `assets` — public
+Storage: `profile-photos` (public, used by uploads); `card-designs`
+(private) and `assets` (public) exist but are unused.
 
 Demo profiles (`rohan`, `priya`) are seeded via `scripts/seed-profiles.js`
-(safe to re-run — upserts by username). **Both are intentionally fully
-fictional** — no real personal contact info. Don't put real contact details
-back into that script.
+(safe to re-run, upserts by username). **Both are intentionally fully
+fictional**; don't put real contact details back into that script. They
+have no order, so they can never be claimed.
+
+## Dependencies
+
+`package.json` `overrides` forces `postcss` ≥ 8.5.26 (Next 15 pins a
+vulnerable 8.4.31; the fix otherwise needs Next 16). Remaining `npm audit`
+warnings are the `braces` chain under `eslint-config-next`, which is dev-only
+and has no patched release yet.
 
 ## Conventions / things that bit us before
 
 - **Tailwind v4**: arbitrary-value classes must be literal strings in
-  source, not built via runtime template-literal interpolation — the JIT
+  source, not built via runtime template-literal interpolation; the JIT
   scanner won't pick up dynamically-constructed class names.
-- **`window.lenis` is already taken** — the `lenis` package itself
-  ambiently declares that property for its own devtools detection. The
-  live Lenis instance is stored at `window.lenisInstance` instead
-  (`lib/scroll.ts`, `components/SmoothScroll.tsx`). Don't redeclare
-  `window.lenis`.
-- **Hash links must not use native anchor behavior** — Lenis's `anchors`
-  option doesn't call `preventDefault`, so native instant-jump wins the
-  race against the smooth-scroll animation. Every in-page `#anchor` link
-  uses `handleHashLinkClick` from `lib/scroll.ts` instead.
-- **GSAP entrance timelines need bfcache handling** — navigating back to a
-  page via the browser's back/forward cache restores it frozen mid-animation
-  (no fresh mount). Hero and Navbar both guard against this with a
-  `pageshow` listener that replays the intro when `event.persisted` is true,
-  plus `gsap.set(targets, { clearProps: "all" })` before replaying so no
-  stale inline styles linger.
+- **`window.lenis` is already taken**: the `lenis` package ambiently declares
+  it. The live instance is `window.lenisInstance` (`lib/scroll.ts`,
+  `components/SmoothScroll.tsx`). Don't redeclare `window.lenis`.
+- **Hash links must not use native anchor behavior**: Lenis's `anchors`
+  option doesn't call `preventDefault`. Every in-page `#anchor` link uses
+  `handleHashLinkClick` from `lib/scroll.ts` (the footer switches to plain
+  `/#…` links off the homepage).
+- **GSAP entrance timelines need bfcache handling**: Hero and Navbar replay
+  the intro on `pageshow` when `event.persisted`, after
+  `gsap.set(targets, { clearProps: "all" })`.
 - **Glass UI**: `.glass`, `.glass-icon-btn`, `.glass-pill` give the base
-  frosted look; layer one of `.glass-stroke-1` through `.glass-stroke-4` on
-  top for a corner-highlight accent. Vary which numbered variant
-  neighboring elements use so they don't all show an identical stroke
-  position.
-- **`img { max-width: 100% }` global reset** can silently override an
-  explicit fixed Tailwind width (e.g. `w-[600px]`) on an `<img>` sitting
-  inside an auto-sized container — add `max-w-none` if you need a real
-  fixed pixel width to actually take effect, and verify with
-  `getBoundingClientRect()`, not just a glance at a screenshot.
-- Run `npm run lint` before considering any change done — it's fast and
-  catches real issues.
+  frosted look; layer one of `.glass-stroke-1` … `.glass-stroke-4` on top and
+  vary the number between neighbors.
+- **`img { max-width: 100% }` global reset** can override a fixed Tailwind
+  width on an `<img>` in an auto-sized container; add `max-w-none` and
+  verify with `getBoundingClientRect()`.
+- **Client components must not import server modules** (anything pulling
+  in `lib/supabase/server.ts`). Shared constants go in import-free files
+  (`lib/checkout-config.ts`, `lib/order-status.ts`).
+- **Customer-facing copy**: no em dashes.
+- Run `npm run lint` before considering any change done.
