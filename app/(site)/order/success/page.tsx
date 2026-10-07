@@ -22,7 +22,15 @@ export default async function OrderSuccessPage({
         {username && (
           <>
             {" "}
-            at <span className="text-text-primary font-[600]">unitouch.in/u/{username}</span>
+            at{" "}
+            <a
+              href={`/u/${encodeURIComponent(username)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-primary font-[600] underline decoration-white/30 underline-offset-4 hover:decoration-white"
+            >
+              unitouch.in/u/{username}
+            </a>
           </>
         )}
         .
