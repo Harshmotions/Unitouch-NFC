@@ -131,6 +131,29 @@ export async function claimProfilesForUser(userId: string, email: string): Promi
   return claimed?.length ?? 0;
 }
 
+export interface OwnedProfileSummary {
+  username: string;
+  fullName: string | null;
+  isPublished: boolean;
+}
+
+/** Every profile owned by an account, newest first, for the customer studio selector. */
+export async function getOwnedProfiles(userId: string): Promise<OwnedProfileSummary[]> {
+  const supabase = createServiceRoleClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username, full_name, is_published")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data.map((row) => ({
+    username: row.username,
+    fullName: row.full_name,
+    isPublished: row.is_published,
+  }));
+}
+
 /* Loads any profile by id, published or not, regardless of owner — for the
    admin dashboard. requireAdmin() already gated the page before this runs;
    there's no additional ownership check here by design. */

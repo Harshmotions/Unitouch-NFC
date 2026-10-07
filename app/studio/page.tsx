@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { claimProfilesForUser, getEditableProfile } from "@/lib/profile";
+import { claimProfilesForUser, getEditableProfile, getOwnedProfiles } from "@/lib/profile";
 import ProfileStudio from "@/components/studio/ProfileStudio";
 import Button from "@/components/ui/Button";
 import SignOutButton from "@/components/auth/SignOutButton";
@@ -28,7 +29,10 @@ export default async function StudioPage({
   // with this (OTP-verified) email before loading. No-op once claimed.
   if (user.email) await claimProfilesForUser(user.id, user.email);
 
-  const profile = await getEditableProfile(user.id, username);
+  const [profile, ownedProfiles] = await Promise.all([
+    getEditableProfile(user.id, username),
+    getOwnedProfiles(user.id),
+  ]);
 
   return (
     <main className="bg-bg-base min-h-screen px-6 py-16">
@@ -37,6 +41,42 @@ export default async function StudioPage({
         <p className="text-text-secondary mb-10">
           Add your details and links, preview it, then publish when you&apos;re ready.
         </p>
+
+        {ownedProfiles.length > 0 && (
+          <section className="surface-card mb-8 rounded-2xl p-4" aria-label="Your profiles">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-text-primary font-[600]">Your profiles</h2>
+                <p className="text-text-muted text-xs">
+                  Every card ordered with {user.email} shows up here. Pick one to set it up.
+                </p>
+              </div>
+              <span className="text-text-muted text-xs">{ownedProfiles.length} total</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ownedProfiles.map((ownedProfile) => {
+                const selected = profile?.username === ownedProfile.username;
+                return (
+                  <Link
+                    key={ownedProfile.username}
+                    href={`/studio?username=${encodeURIComponent(ownedProfile.username)}`}
+                    aria-current={selected ? "page" : undefined}
+                    className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
+                      selected
+                        ? "border-accent-purple bg-accent-purple/10 text-text-primary"
+                        : "border-bg-border bg-bg-elevated text-text-secondary hover:border-accent-purple/40 hover:text-text-primary"
+                    }`}
+                  >
+                    <span className="block font-[500]">@{ownedProfile.username}</span>
+                    <span className="text-text-muted block text-xs">
+                      {ownedProfile.fullName || "Untitled profile"} · {ownedProfile.isPublished ? "Live" : "Draft"}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {profile ? (
           <ProfileStudio initialProfile={profile} />
