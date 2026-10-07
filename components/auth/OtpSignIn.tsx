@@ -6,6 +6,8 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
+import ProgressNotice from "@/components/ui/ProgressNotice";
+import { Loader2 } from "lucide-react";
 
 /* Pull a human-readable string out of whatever an auth call rejects with —
    a Supabase AuthError, a plain fetch failure, or something with no usable
@@ -32,11 +34,17 @@ function messageFrom(err: unknown, fallback: string): string {
    enter code to establish a session. Reusable: pass
    onAuthenticated to react to a successful sign in (/login uses it to go to
    the studio). Renders a signed-in summary when a
-   session already exists. */
+   session already exists.
+
+   Pass redirectMessage when onAuthenticated navigates away (e.g. /login ->
+   /studio): instead of the static "Signed in / Sign out" card, which looked
+   frozen while the next page loaded, it shows a spinner with that message. */
 export default function OtpSignIn({
   onAuthenticated,
+  redirectMessage,
 }: {
   onAuthenticated?: (user: User) => void;
+  redirectMessage?: string;
 }) {
   const supabase = createSupabaseBrowserClient();
 
@@ -145,7 +153,21 @@ export default function OtpSignIn({
   }
 
   if (checkingSession) {
-    return <p className="text-text-muted text-sm">Checking sign-in status…</p>;
+    return (
+      <p className="text-text-muted flex items-center gap-2 text-sm">
+        <Loader2 className="size-4 animate-spin" />
+        Checking sign-in status…
+      </p>
+    );
+  }
+
+  if (user && redirectMessage) {
+    return (
+      <ProgressNotice
+        title={redirectMessage}
+        hint={`Signed in as ${user.email}. This can take a few seconds.`}
+      />
+    );
   }
 
   if (user) {

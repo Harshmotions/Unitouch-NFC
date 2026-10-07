@@ -75,14 +75,19 @@ export default function PersonalProfile({
         <div className="relative mx-auto w-full max-w-xl lg:mx-0 lg:w-1/2 lg:max-w-none lg:shrink-0">
           <div className="relative h-[52vh] max-h-[560px] w-full overflow-hidden md:rounded-b-[2.5rem] lg:sticky lg:top-0 lg:h-screen lg:max-h-none lg:rounded-none">
             {profile.avatarUrl ? (
-              <Image
-                src={profile.avatarUrl}
-                alt={profile.fullName}
-                fill
-                priority
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover object-top"
-              />
+              <>
+                {/* Shimmer underneath: visible until the photo paints over it,
+                    so a slow image never leaves an empty black hero. */}
+                <div className="absolute inset-0 animate-pulse bg-white/[0.06]" aria-hidden />
+                <Image
+                  src={profile.avatarUrl}
+                  alt={profile.fullName}
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  className="object-cover object-top"
+                />
+              </>
             ) : (
               <div
                 className="absolute inset-0"

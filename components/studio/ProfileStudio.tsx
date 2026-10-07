@@ -10,6 +10,7 @@ import type { Profile } from "@/types";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
+import ProgressNotice from "@/components/ui/ProgressNotice";
 import PersonalProfile from "@/components/profile/PersonalProfile";
 
 const MAX_EXTRA_LINKS = 8;
@@ -497,6 +498,17 @@ export default function ProfileStudio({
         </div>
 
         {error && <p className="text-error text-sm">{error}</p>}
+
+        {busy && (
+          <ProgressNotice
+            title={busy === "publish" ? "Publishing your profile…" : "Saving your draft…"}
+            hint={
+              imageFile
+                ? "Uploading and optimizing your photo. This can take a few seconds, please keep this page open."
+                : "This only takes a moment."
+            }
+          />
+        )}
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button type="button" variant="secondary" size="lg" onClick={() => setPreviewOpen(true)} className="sm:order-1">

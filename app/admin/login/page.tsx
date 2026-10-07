@@ -25,7 +25,10 @@ function AdminLoginForm() {
           That email isn&apos;t authorized for admin access.
         </p>
       )}
-      <OtpSignIn onAuthenticated={() => router.push("/admin/dashboard")} />
+      <OtpSignIn
+        onAuthenticated={() => router.push("/admin/dashboard")}
+        redirectMessage="Signed in. Opening the dashboard…"
+      />
     </div>
   );
 }

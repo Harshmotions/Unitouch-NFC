@@ -15,7 +15,10 @@ export default function LoginPage() {
         <p className="text-text-secondary mb-8 text-sm">
           Enter the email you used when ordering your card and we&apos;ll send you a one-time code.
         </p>
-        <OtpSignIn onAuthenticated={() => router.replace("/studio")} />
+        <OtpSignIn
+          onAuthenticated={() => router.replace("/studio")}
+          redirectMessage="Signed in. Opening your profile…"
+        />
       </div>
     </main>
   );

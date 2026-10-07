@@ -10,6 +10,7 @@ import { loadRazorpayCheckout, openRazorpayCheckout } from "@/lib/razorpay/check
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
+import ProgressNotice from "@/components/ui/ProgressNotice";
 import PaymentButton from "./PaymentButton";
 
 const POLICY_LINKS = [
@@ -27,9 +28,19 @@ export interface IdentityData {
   email: string;
 }
 
+/* Where the pay flow is, so every slow step tells the customer what's
+   happening instead of sitting on a bare spinner:
+     creating  — create-order: reserve username, upload image, Razorpay order
+     opening   — loading/opening Razorpay's modal
+     checkout  — the Razorpay modal is open (its own UI takes over)
+     verifying — payment done; confirming the signature, then navigating to
+                 the success page. Full-screen and never reset on success, so
+                 nothing looks frozen until the next page replaces it. */
+type PayStage = "idle" | "creating" | "opening" | "checkout" | "verifying";
+
 /* Step 2 — the transaction commitment phase. Card + quantity, contact phone,
-   shipping address, then a (mock) payment that POSTs to the checkout route,
-   which writes the order + placeholder profile atomically. */
+   shipping address, then a Razorpay payment (create-order -> modal ->
+   verify). */
 export default function OrderStepShippingPayment({
   identity,
   logoFile,
@@ -48,8 +59,18 @@ export default function OrderStepShippingPayment({
   onComplete?: () => void;
 }) {
   const router = useRouter();
-  const [paying, setPaying] = useState(false);
+  const [stage, setStage] = useState<PayStage>("idle");
+  const paying = stage !== "idle";
   const [error, setError] = useState<string | null>(null);
+
+  /* Warm up the slow parts before the customer clicks Pay: Razorpay's
+     checkout.js (~100KB from their CDN, previously only fetched after the
+     order was created) and the success page. Failures here are harmless;
+     handlePay loads checkout.js again and reports a real error. */
+  useEffect(() => {
+    loadRazorpayCheckout().catch(() => {});
+    router.prefetch("/order/success");
+  }, [router]);
 
   const initialCardType = CARD_VARIANTS.some((v) => v.id === (defaultValues?.cardType ?? defaultCardType))
     ? ((defaultValues?.cardType ?? defaultCardType) as ShippingPaymentValues["cardType"])
@@ -80,7 +101,7 @@ export default function OrderStepShippingPayment({
 
   async function handlePay(values: ShippingPaymentValues) {
     setError(null);
-    setPaying(true);
+    setStage("creating");
 
     const form = new FormData();
     form.set(
@@ -102,13 +123,16 @@ export default function OrderStepShippingPayment({
       const res = await fetch("/api/razorpay/create-order", { method: "POST", body: form });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setPaying(false);
+        setStage("idle");
         setError(data?.error ?? "Something went wrong, please try again.");
         return;
       }
 
-      // 2. Load Razorpay's hosted checkout and open the payment modal.
+      // 2. Load Razorpay's hosted checkout (usually already preloaded) and
+      //    open the payment modal.
+      setStage("opening");
       await loadRazorpayCheckout();
+      setStage("checkout");
 
       openRazorpayCheckout({
         key: data.keyId,
@@ -123,6 +147,7 @@ export default function OrderStepShippingPayment({
         //    trusting it. The order is only marked paid once /verify (or the
         //    webhook) confirms the HMAC.
         handler: async (response) => {
+          setStage("verifying");
           try {
             const verifyRes = await fetch("/api/razorpay/verify", {
               method: "POST",
@@ -135,7 +160,7 @@ export default function OrderStepShippingPayment({
             });
             const verifyData = await verifyRes.json().catch(() => null);
             if (!verifyRes.ok) {
-              setPaying(false);
+              setStage("idle");
               setError(
                 verifyData?.error ??
                   "We couldn't confirm your payment. If you were charged, please contact support.",
@@ -147,18 +172,19 @@ export default function OrderStepShippingPayment({
               `/order/success?orderNumber=${encodeURIComponent(data.orderNumber)}&username=${encodeURIComponent(data.username)}`,
             );
           } catch {
-            setPaying(false);
+            setStage("idle");
             setError("We couldn't confirm your payment. If you were charged, please contact support.");
           }
         },
         // Customer closed the modal without paying — re-enable the button. The
         // pending order simply expires; nothing was charged.
         modal: {
-          ondismiss: () => setPaying(false),
+          // Never undo the verifying overlay if a close event arrives late.
+          ondismiss: () => setStage((current) => (current === "verifying" ? current : "idle")),
         },
       });
     } catch (err) {
-      setPaying(false);
+      setStage("idle");
       setError(
         err instanceof Error ? err.message : "We couldn't reach the server. Check your connection and try again.",
       );
@@ -295,6 +321,26 @@ export default function OrderStepShippingPayment({
         </Button>
         <PaymentButton total={total} paying={paying} />
       </div>
+
+      {stage === "creating" && (
+        <ProgressNotice
+          title="Reserving your profile link and preparing secure payment…"
+          hint="This usually takes a few seconds, a little longer if you added a photo. Please keep this tab open."
+        />
+      )}
+      {(stage === "opening" || stage === "checkout") && (
+        <ProgressNotice
+          title="Opening Razorpay secure checkout…"
+          hint="Complete the payment in the Razorpay window. Closing it cancels the payment and nothing is charged."
+        />
+      )}
+      {stage === "verifying" && (
+        <ProgressNotice
+          overlay
+          title="Confirming your payment…"
+          hint="Your payment went through. We're verifying it with Razorpay and preparing your order. Please don't close or refresh this tab."
+        />
+      )}
     </form>
   );
 }
