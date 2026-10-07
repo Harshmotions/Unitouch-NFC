@@ -30,6 +30,9 @@ info, socials, and a vCard download with one tap.
   crossing the Pacific made checkout, sign-in and the studio slow. Don't
   remove it.
 - New env vars only take effect after a redeploy.
+- `lib/supabase/middleware.ts` skips the Supabase session refresh when a
+  request has no `sb-` auth cookie (nearly every public visitor), which
+  saves a network round trip per page. Keep it that way.
 
 ## Get set up locally
 
@@ -108,6 +111,13 @@ profiles" switcher lists them all.
 - order confirmation → customer, and new-order alert → admin inbox (on paid)
 - "your card has shipped" → customer (admin moves an order to Shipped)
 - late-payment refund alert → admin inbox
+- "your profile isn't live yet" → customer, for paid but unpublished
+  profiles (`lib/draft-reminders.ts`): automatic on day 1, 3 and 7 after
+  payment (never closer than 2 days apart, max 3) via the daily Vercel cron
+  `/api/cron/draft-reminders` (10:00 IST, `vercel.json`), plus a manual
+  button in admin. Counts live in Upstash. The cron route requires
+  `Authorization: Bearer $CRON_SECRET` (set in Vercel). WhatsApp reminders
+  are planned once a business number exists (`orders.phone` is stored).
 Every sender is fire-and-forget (never throws) and uses Resend idempotency
 keys. Without `RESEND_API_KEY` they log a warning and skip.
 
@@ -127,7 +137,12 @@ Pages: dashboard (order + revenue stats, fulfilment queue, profile stats),
 orders (views: to fulfil / shipped / unpaid / all, search) with a detail
 page to set status (`lib/order-status.ts`: received → designing → awaiting
 approval → printing → shipped → delivered), tracking details and internal
-notes, and profiles (list + edit via the shared `ProfileStudio`).
+notes, and profiles (`lib/admin-profiles.ts`: one status per profile,
+Published / Not published (paid) / Unpaid checkout / No order / Demo, with
+filters; edit via the shared `ProfileStudio`; delete with typed-username
+confirmation, which removes the photo and the username-keyed view stats and
+the unpaid order if any, keeps a paid order, and refuses the demo profiles
+`priya`/`rohan`; manual draft reminder).
 
 **Image uploads** (`lib/uploads.ts`): magic-byte check + Sharp re-encode
 (rejects SVG/HTML), stored in the `profile-photos` bucket. Routes:
