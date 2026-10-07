@@ -34,8 +34,13 @@ export default function TermsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="font-display text-h3 text-text-primary font-[600]">3. Shipping</h2>
         <p className="text-text-secondary">
-          We aim to dispatch orders promptly after your details are confirmed. Delivery timelines
-          may vary depending on your location and are estimates, not guarantees.
+          We ship across India, and shipping is included in the price. Most orders are dispatched
+          within 3 to 5 business days of payment and delivered within 5 to 7 days. Delivery
+          timelines are estimates, not guarantees. Full details are in our{" "}
+          <a href="/shipping" className="text-accent-purple hover:underline">
+            Shipping and Delivery Policy
+          </a>
+          .
         </p>
       </section>
 
@@ -62,7 +67,7 @@ export default function TermsPage() {
         <p className="text-text-secondary">
           Details on cancelling an order, returns, and refunds are covered in our{" "}
           <a href="/refunds" className="text-accent-purple hover:underline">
-            Refund and Replacement Policy
+            Cancellation and Refund Policy
           </a>
           .
         </p>

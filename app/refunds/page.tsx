@@ -2,7 +2,7 @@ export default function RefundsPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-24">
       <div>
-        <h1 className="font-display text-h2 text-text-primary font-[600]">Refund and Replacement Policy</h1>
+        <h1 className="font-display text-h2 text-text-primary font-[600]">Cancellation and Refund Policy</h1>
         <p className="text-text-muted mt-2 text-sm">Last updated: September 27, 2026</p>
       </div>
 

@@ -49,7 +49,10 @@ export default function Footer() {
             Terms of Service
           </Link>
           <Link href="/refunds" className="text-text-muted hover:text-text-primary text-xs transition-colors">
-            Refunds
+            Cancellation &amp; Refunds
+          </Link>
+          <Link href="/shipping" className="text-text-muted hover:text-text-primary text-xs transition-colors">
+            Shipping Policy
           </Link>
           <Link href="/contact" className="text-text-muted hover:text-text-primary text-xs transition-colors">
             Contact Us

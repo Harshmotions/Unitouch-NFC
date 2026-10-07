@@ -12,6 +12,13 @@ import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
 import PaymentButton from "./PaymentButton";
 
+const POLICY_LINKS = [
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/refunds", label: "Cancellation and Refund Policy" },
+  { href: "/shipping", label: "Shipping and Delivery Policy" },
+  { href: "/privacy", label: "Privacy Policy" },
+];
+
 export interface IdentityData {
   accountType: "personal" | "business";
   displayName: string;
@@ -249,6 +256,10 @@ export default function OrderStepShippingPayment({
           </span>
           <span>₹{total.toLocaleString("en-IN")}</span>
         </div>
+        <div className="text-text-secondary mt-2 flex justify-between text-sm">
+          <span>Shipping (India)</span>
+          <span>Free</span>
+        </div>
         <div className="mt-4 flex justify-between border-t border-white/10 pt-4">
           <span className="text-text-primary font-[600]">Total</span>
           <span className="text-text-primary font-[600]">₹{total.toLocaleString("en-IN")}</span>
@@ -261,6 +272,20 @@ export default function OrderStepShippingPayment({
           your payment is confirmed.
         </p>
       </div>
+
+      {/* Policies open in a new tab so the half-filled form (and the picked
+          logo, which isn't persisted) survives. */}
+      <p className="text-text-muted text-xs leading-relaxed">
+        By placing this order, you agree to our{" "}
+        {POLICY_LINKS.map(({ href, label }, i) => (
+          <span key={href}>
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:underline">
+              {label}
+            </a>
+            {i < POLICY_LINKS.length - 2 ? ", " : i === POLICY_LINKS.length - 2 ? ", and " : "."}
+          </span>
+        ))}
+      </p>
 
       {error && <p className="text-error text-sm">{error}</p>}
 
