@@ -6,7 +6,7 @@ export default function ProfileLoading() {
     <main className="bg-bg-base min-h-screen" aria-busy="true" aria-label="Loading profile">
       <div className="lg:mx-auto lg:flex lg:min-h-screen lg:max-w-6xl">
         <div className="mx-auto w-full max-w-xl lg:mx-0 lg:w-1/2 lg:max-w-none">
-          <div className="bg-white/[0.06] h-[62vh] max-h-[640px] min-h-[420px] lg:min-h-0 w-full animate-pulse md:rounded-b-[2.5rem] lg:h-screen lg:max-h-none lg:rounded-none" />
+          <div className="bg-white/[0.06] aspect-square lg:aspect-auto w-full animate-pulse md:rounded-b-[2.5rem] lg:h-screen lg:max-h-none lg:rounded-none" />
         </div>
         <div className="mx-auto flex w-full max-w-xl animate-pulse flex-col gap-4 px-6 py-8 lg:w-1/2 lg:max-w-none lg:px-12 lg:py-20">
           <div className="bg-white/[0.06] h-8 w-2/3 rounded-lg" />
