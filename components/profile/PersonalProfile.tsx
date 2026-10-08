@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Share2, Check, BadgeCheck, Eye, Bookmark, Download, MapPin } from "lucide-react";
+import { Share2, Check, BadgeCheck, Eye, Bookmark, Download, MapPin, ChevronDown } from "lucide-react";
 import type { Profile, EventType } from "@/types";
 import { formatMemberSince } from "@/lib/profile-demo";
 import { downloadVCard } from "@/lib/vcard";
@@ -36,6 +36,28 @@ export default function PersonalProfile({
   preview?: boolean;
 }) {
   const [shared, setShared] = useState(false);
+  /* Phones: a small hint that the contact options are further down. Appears
+     shortly after load (only if the page actually scrolls) and fades out for
+     good on the first scroll. Not shown in the studio preview. */
+  const [hint, setHint] = useState<"hidden" | "shown" | "gone">("hidden");
+  useEffect(() => {
+    if (preview) return;
+    const timer = window.setTimeout(() => {
+      const scrollable = document.documentElement.scrollHeight > window.innerHeight + 80;
+      if (scrollable && window.scrollY < 24) setHint("shown");
+    }, 700);
+    const onScroll = () => {
+      if (window.scrollY > 24) {
+        setHint("gone");
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [preview]);
 
   const safeTrack: typeof track = (eventType, username, metadata) => {
     if (!preview) track(eventType, username, metadata);
@@ -67,13 +89,25 @@ export default function PersonalProfile({
     safeTrack("contact_save", profile.username);
   }
 
+  const interestPills = (profile.interests ?? []).map((tag, i) => (
+    <span
+      key={tag}
+      className={`glass-pill glass-stroke-${((i + 2) % 4) + 1} text-text-primary rounded-full px-4 py-2 text-sm font-[500]`}
+    >
+      {tag}
+    </span>
+  ));
+
   return (
     <main className="bg-bg-base min-h-screen pb-32 lg:pb-0">
       {/* Stacked column on mobile; two-column split (hero | details) on desktop. */}
       <div className="lg:mx-auto lg:flex lg:min-h-screen lg:max-w-6xl">
         {/* Hero — top on mobile, left half (sticky, full height) on desktop. */}
         <div className="relative mx-auto w-full max-w-xl lg:mx-0 lg:w-1/2 lg:max-w-none lg:shrink-0">
-          <div className="relative h-[52vh] max-h-[560px] w-full overflow-hidden md:rounded-b-[2.5rem] lg:sticky lg:top-0 lg:h-screen lg:max-h-none lg:rounded-none">
+          {/* Mobile/tablet: taller photo, and only location + name + title sit on
+              it (bottom ~25%); the interest tags render below the photo so the
+              face/photo stays visible. Desktop keeps the full overlay. */}
+          <div className="relative h-[62vh] max-h-[640px] min-h-[420px] w-full overflow-hidden md:rounded-b-[2.5rem] lg:sticky lg:top-0 lg:h-screen lg:max-h-none lg:min-h-0 lg:rounded-none">
             {profile.avatarUrl ? (
               <>
                 {/* Shimmer underneath: visible until the photo paints over it,
@@ -97,9 +131,18 @@ export default function PersonalProfile({
                 }}
               />
             )}
-            {/* long, multi-stop wipe so the photo melts into the page — no hard edge */}
+            {/* long, multi-stop wipe so the photo melts into the page — no hard edge.
+                Mobile: short wipe over the bottom ~30% only (just the name block
+                sits there). Desktop: the original long wipe under the full overlay. */}
             <div
-              className="pointer-events-none absolute inset-0"
+              className="pointer-events-none absolute inset-0 lg:hidden"
+              style={{
+                background:
+                  "linear-gradient(to top, var(--color-bg-base) 2%, rgba(8,8,8,0.8) 14%, rgba(8,8,8,0.3) 26%, transparent 38%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-0 hidden lg:block"
               style={{
                 background:
                   "linear-gradient(to top, var(--color-bg-base) 4%, rgba(8,8,8,0.85) 22%, rgba(8,8,8,0.35) 42%, transparent 72%)",
@@ -126,7 +169,7 @@ export default function PersonalProfile({
               </button>
             </div>
 
-            <div className="absolute inset-x-6 bottom-6">
+            <div className="absolute inset-x-6 bottom-5 lg:bottom-6">
               {profile.location && (
                 <div className="text-text-primary/90 mb-1.5 flex items-center gap-1.5 text-sm">
                   <MapPin className="size-3.5" />
@@ -134,7 +177,7 @@ export default function PersonalProfile({
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-h3 text-text-primary font-[600]">{profile.fullName}</h1>
+                <h1 className="font-display text-text-primary text-2xl leading-tight font-[600] lg:text-h3">{profile.fullName}</h1>
                 {profile.isPublished && <BadgeCheck className="text-verified size-5" />}
               </div>
               <p className="text-text-secondary text-sm">
@@ -143,19 +186,15 @@ export default function PersonalProfile({
               </p>
 
               {profile.interests && profile.interests.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {profile.interests.map((tag, i) => (
-                    <span
-                      key={tag}
-                      className={`glass-pill glass-stroke-${((i + 2) % 4) + 1} text-text-primary rounded-full px-4 py-2 text-sm font-[500]`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                <div className="mt-3 hidden flex-wrap gap-2 lg:flex">{interestPills}</div>
               )}
             </div>
           </div>
+
+          {/* Mobile/tablet: tags below the photo instead of on top of it. */}
+          {profile.interests && profile.interests.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-6 pt-3 pb-1 lg:hidden">{interestPills}</div>
+          )}
         </div>
 
         {/* Details — below hero on mobile, right half (vertically centred) on desktop. */}
@@ -221,6 +260,21 @@ export default function PersonalProfile({
           </div>
         </div>
       </div>
+
+      {/* Scroll hint — phones only, floats just above the Save Contact bar. */}
+      {hint !== "hidden" && (
+        <div
+          aria-hidden
+          className={`pointer-events-none fixed inset-x-0 bottom-[6.5rem] z-10 flex justify-center transition-all duration-500 ease-out lg:hidden ${
+            hint === "shown" ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+          }`}
+        >
+          <div className="bg-bg-elevated/95 text-text-primary flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-2 text-xs font-[500] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.8)] backdrop-blur-md">
+            <ChevronDown className="size-3.5 motion-safe:animate-bounce" />
+            Swipe up to connect
+          </div>
+        </div>
+      )}
 
       {/* Save Contact — fixed bottom bar on mobile only. */}
       <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4 lg:hidden">
