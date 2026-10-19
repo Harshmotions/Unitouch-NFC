@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
 import ProgressNotice from "@/components/ui/ProgressNotice";
+import { fetchEmailDomainError } from "@/lib/email-check-client";
 import { Loader2 } from "lucide-react";
 
 /* Pull a human-readable string out of whatever an auth call rejects with —
@@ -89,6 +90,15 @@ export default function OtpSignIn({
     }
     setBusy(true);
     try {
+      /* Catch typo'd or made-up domains before Supabase creates an account
+         for an inbox that can't receive the code. Client-side only (the
+         code request goes straight to Supabase), and any check failure lets
+         the sign-in continue. */
+      const domainError = await fetchEmailDomainError(trimmed);
+      if (domainError) {
+        setError(domainError);
+        return;
+      }
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: trimmed,
         options: { shouldCreateUser: true },

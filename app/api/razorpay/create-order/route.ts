@@ -7,6 +7,7 @@ import { verifyOrigin } from "@/lib/csrf";
 import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit";
 import { getRazorpayClient } from "@/lib/razorpay/client";
 import { releaseOwnReservation, releaseStaleReservations } from "@/lib/reservations";
+import { checkEmailDomain } from "@/lib/email-domain";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -85,6 +86,15 @@ export async function POST(request: Request) {
 
   if (logo instanceof File && logo.size > MAX_PHOTO_BYTES) {
     return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
+  }
+
+  // A domain that definitely can't receive mail means the confirmation would
+  // bounce and the customer couldn't sign in later. DNS trouble allows it.
+  if ((await checkEmailDomain(identity.email)) === "no_mail") {
+    return NextResponse.json(
+      { error: "We couldn't find that email's domain. Please go back and check your email address." },
+      { status: 400 },
+    );
   }
 
   const supabase = createServiceRoleClient();

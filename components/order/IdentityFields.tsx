@@ -5,6 +5,7 @@ import { ImagePlus, X, Check, Loader2 } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
+import { fetchEmailDomainError } from "@/lib/email-check-client";
 
 export type AccountType = "personal" | "business";
 
@@ -75,6 +76,14 @@ export default function IdentityFields({
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [logoError, setLogoError] = useState<string | null>(null);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  /* Email domain check (lib/email-domain.ts via /api/email/check): runs on
+     blur and, if the current email hasn't been checked yet, on Continue.
+     Only a definite "this domain can't receive mail" blocks. */
+  const [domainError, setDomainError] = useState<string | null>(null);
+  const [domainCheckedFor, setDomainCheckedFor] = useState<string | null>(null);
+  const [checkingDomain, setCheckingDomain] = useState(false);
+  // The latest check; older answers are ignored, and Continue awaits it.
+  const domainCheckRef = useRef<{ email: string; result: Promise<string | null> } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isBusiness = accountType === "business";
@@ -180,7 +189,34 @@ export default function IdentityFields({
   const emailInvalid = !EMAIL_PATTERN.test(normalizedEmail);
   const emailMismatch = normalizedEmail !== confirmEmail.trim().toLowerCase();
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleEmailChange(value: string) {
+    setEmail(value);
+    setDomainError(null);
+    setDomainCheckedFor(null);
+  }
+
+  function checkDomain(target: string): Promise<string | null> {
+    // Reuse the request for this email if there is one (blur, then Continue).
+    const current = domainCheckRef.current;
+    const result = current?.email === target ? current.result : fetchEmailDomainError(target);
+    domainCheckRef.current = { email: target, result };
+    setCheckingDomain(true);
+    return result.then((message) => {
+      if (domainCheckRef.current?.email === target) {
+        setCheckingDomain(false);
+        setDomainCheckedFor(target);
+        setDomainError(message);
+      }
+      return message;
+    });
+  }
+
+  function handleEmailBlur() {
+    if (emailInvalid || domainCheckedFor === normalizedEmail) return;
+    void checkDomain(normalizedEmail);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitAttempted(true);
     if (displayName.trim().length < 2) return;
@@ -190,6 +226,8 @@ export default function IdentityFields({
       setLogoError("A logo is required for business cards.");
       return;
     }
+    const domainProblem = domainCheckedFor === normalizedEmail ? domainError : await checkDomain(normalizedEmail);
+    if (domainProblem) return;
     onContinue({
       accountType,
       displayName: displayName.trim(),
@@ -253,11 +291,14 @@ export default function IdentityFields({
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onBlur={handleEmailBlur}
               placeholder="you@example.com"
             />
             {submitAttempted && emailInvalid ? (
               <p className="text-error mt-1.5 text-xs">Enter a valid email address.</p>
+            ) : domainError ? (
+              <p className="text-error mt-1.5 text-xs">{domainError}</p>
             ) : (
               <p className="text-text-muted mt-1.5 text-xs">
                 You&apos;ll use this email to manage your profile later, so double-check it.
@@ -416,7 +457,7 @@ export default function IdentityFields({
       </div>
 
       <Button variant="primary" size="lg" className="w-full">
-        Continue to shipping &amp; payment
+        {checkingDomain && submitAttempted ? "Checking your email…" : <>Continue to shipping &amp; payment</>}
       </Button>
     </form>
   );

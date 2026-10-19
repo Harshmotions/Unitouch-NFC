@@ -28,6 +28,13 @@ export const checkUsernameLimiter = new Ratelimit({
   prefix: "rl:check-username",
 });
 
+// Email domain check, called on blur at checkout and before sending a login code.
+export const emailCheckLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, "1 m"),
+  prefix: "rl:email-check",
+});
+
 export const checkoutLimiter = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(10, "5 m"),
