@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ORDER_VIEWS, formatRupees, listOrdersForAdmin, type OrderView } from "@/lib/orders";
 import { RESERVATION_TTL_MINUTES } from "@/lib/checkout-config";
 import { PaymentBadge, StatusBadge } from "@/components/admin/OrderBadges";
+import ExportOrders from "@/components/admin/ExportOrders";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
@@ -15,6 +16,9 @@ export default async function AdminOrdersPage({
   const { view: rawView, q } = await searchParams;
   const view: OrderView = ORDER_VIEWS.some((v) => v.value === rawView) ? (rawView as OrderView) : "to-fulfil";
   const orders = await listOrdersForAdmin(view, q);
+
+  // "YYYY-MM-DD" in India time, for the export's default range (this month).
+  const todayIst = new Date(Date.now() + 330 * 60 * 1000).toISOString().slice(0, 10);
 
   const href = (v: OrderView) => `/admin/orders?view=${v}${q ? `&q=${encodeURIComponent(q)}` : ""}`;
 
@@ -49,6 +53,8 @@ export default async function AdminOrdersPage({
           </Link>
         ))}
       </div>
+
+      <ExportOrders defaultFrom={`${todayIst.slice(0, 8)}01`} defaultTo={todayIst} />
 
       {view === "unpaid" && (
         <p className="text-text-muted text-xs">
