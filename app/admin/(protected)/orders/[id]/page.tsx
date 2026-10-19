@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { formatRupees, getOrderForAdmin } from "@/lib/orders";
 import { PaymentBadge, StatusBadge } from "@/components/admin/OrderBadges";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
+import ResendConfirmationButton from "@/components/admin/ResendConfirmationButton";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -117,12 +118,17 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         <section className="surface-card h-fit rounded-2xl p-5">
           <h2 className="text-text-primary mb-4 font-[600]">Fulfilment</h2>
           {order.paymentStatus === "paid" ? (
-            <OrderStatusForm
-              orderId={order.id}
-              initialStatus={order.orderStatus}
-              initialTracking={order.trackingNumber ?? ""}
-              initialNotes={order.adminNotes ?? ""}
-            />
+            <>
+              <OrderStatusForm
+                orderId={order.id}
+                initialStatus={order.orderStatus}
+                initialTracking={order.trackingNumber ?? ""}
+                initialNotes={order.adminNotes ?? ""}
+              />
+              <div className="border-bg-border mt-6 border-t pt-5">
+                <ResendConfirmationButton orderId={order.id} email={order.email} bounced={Boolean(order.emailBouncedAt)} />
+              </div>
+            </>
           ) : (
             <p className="text-text-muted text-sm">
               This checkout hasn&apos;t been paid, so there&apos;s nothing to fulfil. It will be released

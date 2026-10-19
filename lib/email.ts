@@ -41,17 +41,34 @@ async function send(msg: {
   text: string;
   idempotencyKey: string;
   replyTo?: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const resend = getResend();
   if (!resend) {
     console.warn(`RESEND_API_KEY is not set; skipping email "${msg.subject}".`);
-    return;
+    return false;
   }
   const { error } = await resend.emails.send(
     { from: FROM, to: msg.to, replyTo: msg.replyTo ?? BUSINESS.email, subject: msg.subject, html: msg.html, text: msg.text },
     { idempotencyKey: msg.idempotencyKey },
   );
   if (error) console.error(`Email failed: "${msg.subject}"`, error);
+  return !error;
+}
+
+function renderConfirmationFor(summary: OrderSummary) {
+  return renderOrderConfirmation({
+    orderNumber: summary.orderNumber,
+    fullName: summary.fullName,
+    email: summary.email,
+    phone: summary.phone,
+    cardName: summary.cardName,
+    quantity: summary.quantity,
+    amountPaise: summary.amountPaise,
+    shippingAddress: summary.shippingAddress,
+    username: summary.username,
+    siteUrl: BUSINESS.siteUrl,
+    business: BUSINESS,
+  });
 }
 
 type OrderRow = {
@@ -117,19 +134,7 @@ export async function sendOrderPaidEmails(orderId: string): Promise<void> {
     if (!loaded || loaded.order.payment_status !== "paid") return;
     const { order, summary } = loaded;
 
-    const confirmation = renderOrderConfirmation({
-      orderNumber: summary.orderNumber,
-      fullName: summary.fullName,
-      email: summary.email,
-      phone: summary.phone,
-      cardName: summary.cardName,
-      quantity: summary.quantity,
-      amountPaise: summary.amountPaise,
-      shippingAddress: summary.shippingAddress,
-      username: summary.username,
-      siteUrl: BUSINESS.siteUrl,
-      business: BUSINESS,
-    });
+    const confirmation = renderConfirmationFor(summary);
     const alert = renderNewOrderAlert(summary, COMMON);
 
     await Promise.all([
@@ -143,6 +148,31 @@ export async function sendOrderPaidEmails(orderId: string): Promise<void> {
     ]);
   } catch (err) {
     console.error("sendOrderPaidEmails threw", orderId, err);
+  }
+}
+
+/* Admin "Resend confirmation email": the same order confirmation, to the
+   customer only (no new-order alert). Its own idempotency key, bucketed per
+   minute, so it really sends again but a double click can't send twice.
+   Awaited by the admin route so the button can show whether it went out. */
+export async function resendOrderConfirmation(
+  orderId: string,
+): Promise<{ ok: true; sentTo: string } | { ok: false; error: string }> {
+  try {
+    const loaded = await loadOrder(orderId);
+    if (!loaded) return { ok: false, error: "Order not found." };
+    if (loaded.order.payment_status !== "paid") return { ok: false, error: "This order hasn't been paid." };
+    const { order, summary } = loaded;
+    const minute = Math.floor(Date.now() / 60_000);
+    const sent = await send({
+      to: order.email,
+      ...renderConfirmationFor(summary),
+      idempotencyKey: `order-confirmation-resend/${order.order_number}/${minute}`,
+    });
+    return sent ? { ok: true, sentTo: order.email } : { ok: false, error: "The email service didn't accept it. Please try again in a minute." };
+  } catch (err) {
+    console.error("resendOrderConfirmation threw", orderId, err);
+    return { ok: false, error: "Something went wrong. Please try again." };
   }
 }
 
