@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { CARD_IMAGES } from "@/lib/card-images";
 import { CARD_VARIANTS } from "@/lib/pricing";
 
 export default function ProductShowcase() {
@@ -20,12 +22,20 @@ export default function ProductShowcase() {
               }`}
             >
               <div
-                className="mb-6 aspect-[3.5/2] rounded-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                className="relative mb-6 aspect-[3.5/2] overflow-hidden rounded-xl border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                 style={{
                   background:
                     "linear-gradient(135deg, var(--color-bg-subtle), var(--color-bg-base))",
                 }}
-              />
+              >
+                <Image
+                  src={CARD_IMAGES[variant.id].src}
+                  alt={CARD_IMAGES[variant.id].alt}
+                  fill
+                  sizes="(min-width: 640px) 320px, calc(100vw - 112px)"
+                  className="object-cover"
+                />
+              </div>
               <h3 className="font-display text-text-primary mb-1.5 font-[600]">{variant.name}</h3>
               <p className="text-text-primary mb-5 text-sm font-[500]">
                 ₹{variant.price.toLocaleString("en-IN")}
