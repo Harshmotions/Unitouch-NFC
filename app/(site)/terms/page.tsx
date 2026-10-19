@@ -1,4 +1,11 @@
 import { BUSINESS } from "@/lib/business";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Terms of Service",
+  description: "The terms for ordering Unitouch NFC business cards and using a Unitouch profile.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

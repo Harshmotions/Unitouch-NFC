@@ -1,4 +1,11 @@
 import { BUSINESS } from "@/lib/business";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Contact us",
+  description: "Questions about your Unitouch card, order or profile? Reach us by email or phone.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

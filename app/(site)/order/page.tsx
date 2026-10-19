@@ -1,4 +1,11 @@
 import OrderWizard from "@/components/order/OrderWizard";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Order your card",
+  description: "Order your Unitouch NFC business card: pick Standard or Premium, claim your profile link and pay securely. No account needed.",
+  path: "/order",
+});
 
 export default async function OrderPage({
   searchParams,

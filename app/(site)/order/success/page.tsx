@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { CheckCircle2 } from "lucide-react";
 import Button from "@/components/ui/Button";
+
+// Only reached after paying; nothing here for search engines.
+export const metadata: Metadata = { title: "Order confirmed", robots: { index: false, follow: false } };
 
 export default async function OrderSuccessPage({
   searchParams,

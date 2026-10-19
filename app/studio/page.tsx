@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -5,6 +6,8 @@ import { claimProfilesForUser, getEditableProfile, getOwnedProfiles } from "@/li
 import ProfileStudio from "@/components/studio/ProfileStudio";
 import Button from "@/components/ui/Button";
 import SignOutButton from "@/components/auth/SignOutButton";
+
+export const metadata: Metadata = { title: "Your profile studio", robots: { index: false, follow: false } };
 
 /* The digital studio. Requires sign-in; loads the user's profile (the one
    just ordered, if a username is passed, else their most recent) and lets

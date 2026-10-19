@@ -1,3 +1,11 @@
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Shipping and Delivery Policy",
+  description: "Where Unitouch ships, how long delivery takes and what it costs.",
+  path: "/shipping",
+});
+
 export default function ShippingPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-24">

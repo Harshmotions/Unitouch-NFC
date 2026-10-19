@@ -1,3 +1,11 @@
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Privacy Policy",
+  description: "What information Unitouch collects when you order a card or use a profile page, and how it is used.",
+  path: "/privacy",
+});
+
 export default function PrivacyPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-24">

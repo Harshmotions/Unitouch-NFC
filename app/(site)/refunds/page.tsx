@@ -1,3 +1,11 @@
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Cancellation and Refund Policy",
+  description: "How cancellations and refunds work for personalized Unitouch NFC cards.",
+  path: "/refunds",
+});
+
 export default function RefundsPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-24">
