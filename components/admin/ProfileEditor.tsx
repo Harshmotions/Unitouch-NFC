@@ -6,7 +6,7 @@ import ProfileStudio from "@/components/studio/ProfileStudio";
 /* Admin wrapper around the same form the customer digital studio uses —
    points it at the admin-only update route (no ownership check; the
    two-factor admin gate is enforced by the layout and the route). */
-export default function ProfileEditor({ profile }: { profile: Profile }) {
+export default function ProfileEditor({ profile, children }: { profile: Profile; children?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-6">
       <Link
@@ -20,6 +20,8 @@ export default function ProfileEditor({ profile }: { profile: Profile }) {
         <h1 className="font-display text-h2 text-text-primary font-[600]">{profile.fullName || profile.username}</h1>
         <p className="text-text-secondary text-sm">@{profile.username}</p>
       </div>
+      {/* Extra admin panels (e.g. stats) between the header and the editor. */}
+      {children}
       <ProfileStudio
         initialProfile={profile}
         updateEndpoint={`/api/admin/profiles/${profile.id}`}

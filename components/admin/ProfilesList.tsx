@@ -22,7 +22,14 @@ const FILTERS: { value: "all" | AdminProfileStatus; label: string }[] = [
   { value: "draft", label: "No order" },
 ];
 
-export default function ProfilesList({ profiles }: { profiles: AdminProfileRow[] }) {
+export default function ProfilesList({
+  profiles,
+  stats = {},
+}: {
+  profiles: AdminProfileRow[];
+  // All-time views/saves by username (lib/admin-stats.ts).
+  stats?: Record<string, { views: number; saves: number }>;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["value"]>("all");
@@ -157,6 +164,9 @@ export default function ProfilesList({ profiles }: { profiles: AdminProfileRow[]
                 </p>
               </Link>
               <div className="flex shrink-0 items-center gap-3">
+                <span className="text-text-muted text-xs tabular-nums" title="All-time profile views and contact saves">
+                  {stats[p.username]?.views ?? 0} views · {stats[p.username]?.saves ?? 0} saves
+                </span>
                 <span className={`text-xs ${STATUS[p.status].className}`}>{STATUS[p.status].label}</span>
                 {p.status === "draft-paid" && (
                   <span className="text-text-muted text-xs">
