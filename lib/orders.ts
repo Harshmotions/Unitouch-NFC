@@ -28,6 +28,9 @@ export interface AdminOrder {
   razorpayPaymentId: string | null;
   createdAt: string;
   profile: { id: string; username: string; isPublished: boolean } | null;
+  // Set when an email to this order's address bounced (Resend webhook).
+  emailBouncedAt: string | null;
+  emailBounceReason: string | null;
 }
 
 const ORDER_COLUMNS =
@@ -38,13 +41,21 @@ type Row = Record<string, unknown>;
 async function attachProfiles(rows: Row[]): Promise<AdminOrder[]> {
   const ids = rows.map((r) => r.id as string);
   const profiles = new Map<string, AdminOrder["profile"]>();
+  const bounces = new Map<string, { at: string; reason: string | null }>();
   if (ids.length) {
-    const { data } = await createServiceRoleClient()
-      .from("profiles")
-      .select("id, username, is_published, order_id")
-      .in("order_id", ids);
+    const supabase = createServiceRoleClient();
+    const [{ data }, bounceRes] = await Promise.all([
+      supabase.from("profiles").select("id, username, is_published, order_id").in("order_id", ids),
+      /* Separate from ORDER_COLUMNS on purpose: until the schema.sql upgrade
+         adds these columns this query errors, and the admin must keep working
+         (just without bounce flags). */
+      supabase.from("orders").select("id, email_bounced_at, email_bounce_reason").in("id", ids).not("email_bounced_at", "is", null),
+    ]);
     for (const p of data ?? []) {
       profiles.set(p.order_id as string, { id: p.id, username: p.username, isPublished: p.is_published });
+    }
+    for (const b of bounceRes.error ? [] : (bounceRes.data ?? [])) {
+      bounces.set(b.id as string, { at: b.email_bounced_at as string, reason: (b.email_bounce_reason as string | null) ?? null });
     }
   }
   return rows.map((r) => ({
@@ -67,6 +78,8 @@ async function attachProfiles(rows: Row[]): Promise<AdminOrder[]> {
     razorpayPaymentId: (r.razorpay_payment_id as string | null) ?? null,
     createdAt: r.created_at as string,
     profile: profiles.get(r.id as string) ?? null,
+    emailBouncedAt: bounces.get(r.id as string)?.at ?? null,
+    emailBounceReason: bounces.get(r.id as string)?.reason ?? null,
   }));
 }
 

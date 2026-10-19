@@ -1,7 +1,7 @@
 import { detailRows, esc, p, renderLayout, rupees, type EmailBusiness } from "@/lib/emails/layout";
 
-/* The other transactional emails: new-order alert and late-payment alert
-   (to the admin inbox), "your card has shipped" and the "your profile isn't
+/* The other transactional emails: new-order, late-payment and email-problem
+   (bounce/spam) alerts (to the admin inbox), "your card has shipped" and the "your profile isn't
    live yet" draft reminder (to the customer).
    Pure render functions; lib/email.ts loads data and sends. */
 
@@ -155,6 +155,56 @@ export function renderLatePaymentAlert(
     `Payment: ${d.paymentId}`,
     d.refunded ? `Refund issued automatically.` : `Refund FAILED${d.refundError ? `: ${d.refundError}` : ""}. Refund manually in the Razorpay dashboard.`,
   ].join("\n");
+  return { subject, html, text };
+}
+
+/* A customer email bounced or was marked as spam (Resend webhook). */
+export function renderEmailProblemAlert(
+  d: {
+    kind: "bounced" | "complained";
+    recipient: string;
+    emailSubject: string;
+    reason?: string;
+    orders: { id: string; orderNumber: string; fullName: string; phone: string }[];
+  },
+  c: Common,
+) {
+  const what = d.kind === "bounced" ? "could not be delivered" : "was marked as spam by the customer";
+  const subject = `Customer email ${d.kind === "bounced" ? "bounced" : "marked as spam"}: ${d.recipient}`;
+  const orderLines = d.orders.map((o) => `${o.orderNumber}, ${o.fullName}, phone ${o.phone}`);
+  const body =
+    p(`An email to a customer ${what}, so they may not have our order details or login codes.`) +
+    detailRows([
+      ["To", esc(d.recipient)],
+      ["Email", esc(d.emailSubject)],
+      ...(d.reason ? ([["Reason", esc(d.reason)]] as [string, string][]) : []),
+      ["Orders", d.orders.length ? orderLines.map(esc).join("<br>") : "None found for this address"],
+    ]) +
+    p(
+      d.orders.length
+        ? `Please contact the customer by phone to confirm their email address.${d.kind === "bounced" ? " The order is flagged in the admin." : ""}`
+        : `No order uses this address, so no action may be needed.`,
+    );
+  const href = d.orders.length === 1 ? `${c.siteUrl}/admin/orders/${d.orders[0].id}` : `${c.siteUrl}/admin/orders`;
+  const html = renderLayout({
+    title: subject,
+    preheader: subject,
+    heading: d.kind === "bounced" ? "Customer email bounced" : "Customer marked our email as spam",
+    bodyHtml: body,
+    cta: { label: "Open in admin", href },
+    siteUrl: c.siteUrl,
+    business: c.business,
+    internal: true,
+  });
+  const text = [
+    subject,
+    `Email: ${d.emailSubject}`,
+    ...(d.reason ? [`Reason: ${d.reason}`] : []),
+    d.orders.length ? `Orders:\n${orderLines.join("\n")}` : "No order uses this address.",
+    d.orders.length ? "Please contact the customer by phone to confirm their email address." : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
   return { subject, html, text };
 }
 

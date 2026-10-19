@@ -158,8 +158,17 @@ create table public.orders (
   tracking_number text,
   admin_notes text,
   profile_id uuid references public.profiles(id) on delete set null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Set by the Resend webhook (app/api/webhook/resend) when an email to this
+  -- order's address bounces permanently: admin shows "contact by phone".
+  email_bounced_at timestamptz,
+  email_bounce_reason text
 );
+
+-- Upgrade for the existing live database (added Oct 2026). Additive and safe
+-- to re-run; a fresh install gets these from the create table above.
+alter table public.orders add column if not exists email_bounced_at timestamptz;
+alter table public.orders add column if not exists email_bounce_reason text;
 
 create index if not exists orders_user_id_idx on public.orders(user_id);
 

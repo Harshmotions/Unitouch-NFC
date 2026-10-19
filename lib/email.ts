@@ -5,6 +5,7 @@ import { CARD_VARIANTS } from "@/lib/pricing";
 import { renderOrderConfirmation } from "@/lib/emails/order-confirmation";
 import {
   renderDraftReminder,
+  renderEmailProblemAlert,
   renderLatePaymentAlert,
   renderNewOrderAlert,
   renderOrderShipped,
@@ -177,6 +178,25 @@ export async function sendLatePaymentAlert(d: {
     await send({ to: BUSINESS.adminEmail, ...msg, idempotencyKey: `late-payment/${d.paymentId}` });
   } catch (err) {
     console.error("sendLatePaymentAlert threw", d.paymentId, err);
+  }
+}
+
+/* A customer email bounced or was marked as spam; tell the admin inbox which
+   orders are affected (lib/email-bounces.ts, from the Resend webhook). Keyed
+   on Resend's email id so a retried webhook doesn't alert twice. */
+export async function sendEmailProblemAlert(d: {
+  emailId: string;
+  kind: "bounced" | "complained";
+  recipient: string;
+  emailSubject: string;
+  reason?: string;
+  orders: { id: string; orderNumber: string; fullName: string; phone: string }[];
+}): Promise<void> {
+  try {
+    const msg = renderEmailProblemAlert(d, COMMON);
+    await send({ to: BUSINESS.adminEmail, ...msg, idempotencyKey: `email-${d.kind}/${d.emailId}/${d.recipient}` });
+  } catch (err) {
+    console.error("sendEmailProblemAlert threw", d.emailId, err);
   }
 }
 

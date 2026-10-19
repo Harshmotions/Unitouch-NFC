@@ -39,6 +39,26 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         {order.paymentStatus === "paid" && <StatusBadge status={order.orderStatus} />}
       </div>
 
+      {order.emailBouncedAt && (
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm">
+          <p className="text-error font-[600]">Email bounced, contact by phone</p>
+          <p className="text-text-secondary mt-1">
+            An email to {order.email} couldn&apos;t be delivered on{" "}
+            {new Date(order.emailBouncedAt).toLocaleString("en-IN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+              timeZone: "Asia/Kolkata",
+            })}
+            , so the customer may not have their confirmation or login codes. Call{" "}
+            <a href={`tel:${order.phone}`} className="text-text-primary hover:underline">
+              {order.phone}
+            </a>{" "}
+            to confirm their email address.
+          </p>
+          {order.emailBounceReason && <p className="text-text-muted mt-1 text-xs">Reason: {order.emailBounceReason}</p>}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-6">
           <section className="surface-card divide-bg-border divide-y rounded-2xl px-5 py-2">

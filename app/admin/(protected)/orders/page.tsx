@@ -80,6 +80,11 @@ export default async function AdminOrdersPage({
               </p>
             </div>
             <div className="flex flex-wrap gap-2 sm:justify-end">
+              {o.emailBouncedAt && (
+                <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-xs text-error">
+                  Email bounced
+                </span>
+              )}
               <PaymentBadge status={o.paymentStatus} />
               {o.paymentStatus === "paid" && <StatusBadge status={o.orderStatus} />}
             </div>
