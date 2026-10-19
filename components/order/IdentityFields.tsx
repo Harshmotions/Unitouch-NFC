@@ -5,6 +5,7 @@ import { ImagePlus, X, Check, Loader2 } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
+import EmailTypoHint from "@/components/ui/EmailTypoHint";
 import { fetchEmailDomainError } from "@/lib/email-check-client";
 
 export type AccountType = "personal" | "business";
@@ -91,6 +92,7 @@ export default function IdentityFields({
   const [domainError, setDomainError] = useState<string | null>(null);
   const [domainCheckedFor, setDomainCheckedFor] = useState<string | null>(null);
   const [checkingDomain, setCheckingDomain] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
   // The latest check; older answers are ignored, and Continue awaits it.
   const domainCheckRef = useRef<{ email: string; result: Promise<string | null> } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -220,7 +222,15 @@ export default function IdentityFields({
     });
   }
 
+  // "Did you mean …?" accepted. The confirm field follows only if it held the
+  // same typo, so the two don't end up mismatched.
+  function acceptEmailFix(fixed: string) {
+    if (confirmEmail.trim().toLowerCase() === normalizedEmail) setConfirmEmail(fixed);
+    handleEmailChange(fixed);
+  }
+
   function handleEmailBlur() {
+    setEmailFocused(false);
     if (emailInvalid || domainCheckedFor === normalizedEmail) return;
     void checkDomain(normalizedEmail);
   }
@@ -332,9 +342,11 @@ export default function IdentityFields({
               autoComplete="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
+              onFocus={() => setEmailFocused(true)}
               onBlur={handleEmailBlur}
               placeholder="you@example.com"
             />
+            <EmailTypoHint email={email} focused={emailFocused} onAccept={acceptEmailFix} />
             {submitAttempted && emailInvalid ? (
               <p className="text-error mt-1.5 text-xs">Enter a valid email address.</p>
             ) : domainError ? (

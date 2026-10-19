@@ -7,6 +7,7 @@ import Input from "@/components/ui/Input";
 import Label from "@/components/ui/Label";
 import Button from "@/components/ui/Button";
 import ProgressNotice from "@/components/ui/ProgressNotice";
+import EmailTypoHint from "@/components/ui/EmailTypoHint";
 import { fetchEmailDomainError } from "@/lib/email-check-client";
 import { Loader2 } from "lucide-react";
 
@@ -53,6 +54,7 @@ export default function OtpSignIn({
   const [checkingSession, setCheckingSession] = useState(true);
   const [phase, setPhase] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
+  const [emailFocused, setEmailFocused] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +208,17 @@ export default function OtpSignIn({
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
               placeholder="you@example.com"
+            />
+            <EmailTypoHint
+              email={email}
+              focused={emailFocused}
+              onAccept={(fixed) => {
+                setEmail(fixed);
+                setError(null);
+              }}
             />
           </div>
           <Button variant="primary" size="lg" type="submit" loading={busy} disabled={busy}>
