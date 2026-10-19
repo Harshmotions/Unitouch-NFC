@@ -4,6 +4,8 @@ import Link from "next/link";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { claimProfilesForUser, getEditableProfile, getOwnedProfiles } from "@/lib/profile";
 import ProfileStudio from "@/components/studio/ProfileStudio";
+import YourOrders from "@/components/studio/YourOrders";
+import { getOrdersForCustomer } from "@/lib/customer-orders";
 import Button from "@/components/ui/Button";
 import SignOutButton from "@/components/auth/SignOutButton";
 
@@ -32,9 +34,10 @@ export default async function StudioPage({
   // with this (OTP-verified) email before loading. No-op once claimed.
   if (user.email) await claimProfilesForUser(user.id, user.email);
 
-  const [profile, ownedProfiles] = await Promise.all([
+  const [profile, ownedProfiles, orders] = await Promise.all([
     getEditableProfile(user.id, username),
     getOwnedProfiles(user.id),
+    getOrdersForCustomer(user.id),
   ]);
 
   return (
@@ -80,6 +83,8 @@ export default async function StudioPage({
             </div>
           </section>
         )}
+
+        <YourOrders orders={orders} />
 
         {profile ? (
           <ProfileStudio initialProfile={profile} />
