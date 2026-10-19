@@ -73,7 +73,16 @@ export default function IdentityFields({
   const [swappedFrom, setSwappedFrom] = useState<string | null>(null);
   // A free variant offered (not applied) when a hand-typed link is taken.
   const [suggestion, setSuggestion] = useState<string | null>(null);
-  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
+  const [usernameStatus, setUsernameStatusState] = useState<UsernameStatus>("idle");
+  /* The latest status together with the link it describes, updated in the
+     same call. A Continue click can land before a just-edited link is
+     re-checked; reading this (not state) keeps it from acting on the
+     previous link's answer. */
+  const linkStatusRef = useRef<{ link: string; status: UsernameStatus }>({ link: "", status: "idle" });
+  function setUsernameStatus(status: UsernameStatus, link: string) {
+    linkStatusRef.current = { link, status };
+    setUsernameStatusState(status);
+  }
   const [logoError, setLogoError] = useState<string | null>(null);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   /* Email domain check (lib/email-domain.ts via /api/email/check): runs on
@@ -98,10 +107,10 @@ export default function IdentityFields({
     const trimmed = username.trim().toLowerCase();
     setSuggestion(null);
     if (!trimmed || trimmed.length < 3 || !/^[a-z0-9-]+$/.test(trimmed)) {
-      setUsernameStatus(trimmed ? "invalid" : "idle");
+      setUsernameStatus(trimmed ? "invalid" : "idle", trimmed);
       return;
     }
-    setUsernameStatus("checking");
+    setUsernameStatus("checking", trimmed);
     // Ignore a response that lands after the link has changed again.
     let stale = false;
     const timer = setTimeout(() => {
@@ -116,19 +125,19 @@ export default function IdentityFields({
         .then((data: { available?: boolean; suggestion?: string | null }) => {
           if (stale) return;
           if (data.available === undefined) {
-            setUsernameStatus("error");
+            setUsernameStatus("error", trimmed);
           } else if (data.available) {
-            setUsernameStatus("available");
+            setUsernameStatus("available", trimmed);
           } else if (data.suggestion && !usernameTouchedRef.current) {
             setSwappedFrom(trimmed);
             setUsername(data.suggestion);
           } else {
-            setUsernameStatus("taken");
+            setUsernameStatus("taken", trimmed);
             setSuggestion(data.suggestion ?? null);
           }
         })
         .catch(() => {
-          if (!stale) setUsernameStatus("error");
+          if (!stale) setUsernameStatus("error", trimmed);
         });
     }, 450);
     return () => {
@@ -216,12 +225,43 @@ export default function IdentityFields({
     void checkDomain(normalizedEmail);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  /* Continue clicked while the link availability check is still running
+     (it re-runs whenever the email changes): remember the click and carry
+     on once the check lands, instead of silently ignoring it. Holds the
+     link the click was for; if the check swaps in a different link, the
+     customer should see that before moving on, so the click is dropped. */
+  const [continuePendingFor, setContinuePendingFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (continuePendingFor === null) return;
+    if (continuePendingFor !== username.trim().toLowerCase()) {
+      setContinuePendingFor(null);
+      return;
+    }
+    const latest = linkStatusRef.current;
+    if (latest.link !== continuePendingFor || latest.status === "checking") return;
+    setContinuePendingFor(null);
+    if (latest.status === "available") void attemptContinue();
+    // attemptContinue is recreated every render; this only reacts to the check finishing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [continuePendingFor, usernameStatus, username]);
+
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    void attemptContinue();
+  }
+
+  async function attemptContinue() {
     setSubmitAttempted(true);
     if (displayName.trim().length < 2) return;
     if (emailInvalid || emailMismatch) return;
-    if (usernameStatus !== "available") return;
+    const link = username.trim().toLowerCase();
+    const latest = linkStatusRef.current;
+    if (latest.link !== link || latest.status === "checking") {
+      setContinuePendingFor(link);
+      return;
+    }
+    if (latest.status !== "available") return;
     if (logoRequiredMissing) {
       setLogoError("A logo is required for business cards.");
       return;
@@ -457,7 +497,13 @@ export default function IdentityFields({
       </div>
 
       <Button variant="primary" size="lg" className="w-full">
-        {checkingDomain && submitAttempted ? "Checking your email…" : <>Continue to shipping &amp; payment</>}
+        {continuePendingFor !== null ? (
+          "Checking your profile link…"
+        ) : checkingDomain && submitAttempted ? (
+          "Checking your email…"
+        ) : (
+          <>Continue to shipping &amp; payment</>
+        )}
       </Button>
     </form>
   );
