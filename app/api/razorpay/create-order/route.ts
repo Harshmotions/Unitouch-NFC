@@ -8,6 +8,7 @@ import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit
 import { getRazorpayClient } from "@/lib/razorpay/client";
 import { releaseOwnReservation, releaseStaleReservations } from "@/lib/reservations";
 import { checkEmailDomain } from "@/lib/email-domain";
+import { DISPOSABLE_EMAIL_ERROR, isDisposableEmail } from "@/lib/disposable-email";
 
 function generateOrderNumber(): string {
   const random = Math.floor(100000 + Math.random() * 900000);
@@ -88,8 +89,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Image must be under 5MB" }, { status: 400 });
   }
 
-  // A domain that definitely can't receive mail means the confirmation would
-  // bounce and the customer couldn't sign in later. DNS trouble allows it.
+  // The email is how the customer signs in later: a throwaway inbox
+  // disappears within minutes, and a domain that definitely can't receive
+  // mail bounces the confirmation. DNS trouble allows it.
+  if (isDisposableEmail(identity.email)) {
+    return NextResponse.json({ error: DISPOSABLE_EMAIL_ERROR }, { status: 400 });
+  }
   if ((await checkEmailDomain(identity.email)) === "no_mail") {
     return NextResponse.json(
       { error: "We couldn't find that email's domain. Please go back and check your email address." },

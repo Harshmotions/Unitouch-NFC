@@ -1,6 +1,7 @@
 /* Browser-side call to /api/email/check. Import-free so client components
-   can use it. Resolves to the error message when the server is sure the
-   email's domain can't receive mail, otherwise null; any network or server
+   can use it. Resolves to the error message when the server rejects the
+   email (throwaway inbox, or a domain that can't receive mail), otherwise
+   null; any network or server
    failure also gives null, so this never blocks a customer on its own. */
 export async function fetchEmailDomainError(email: string): Promise<string | null> {
   try {

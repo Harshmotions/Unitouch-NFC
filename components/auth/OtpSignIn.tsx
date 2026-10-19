@@ -92,8 +92,9 @@ export default function OtpSignIn({
     }
     setBusy(true);
     try {
-      /* Catch typo'd or made-up domains before Supabase creates an account
-         for an inbox that can't receive the code. Client-side only (the
+      /* Catch throwaway inboxes and typo'd or made-up domains before
+         Supabase creates an account for an inbox that can't (or soon won't)
+         receive the code. Client-side only (the
          code request goes straight to Supabase), and any check failure lets
          the sign-in continue. */
       const domainError = await fetchEmailDomainError(trimmed);
