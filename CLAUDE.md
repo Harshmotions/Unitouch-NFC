@@ -33,6 +33,24 @@ info, socials, and a vCard download with one tap.
 - `lib/supabase/middleware.ts` skips the Supabase session refresh when a
   request has no `sb-` auth cookie (nearly every public visitor), which
   saves a network round trip per page. Keep it that way.
+- Pushes from anyone but Harsh don't auto-deploy (Vercel Hobby). Deploy by
+  hand: Deployments → "⋯" → Create Deployment → `main` → Deploy to
+  Production (never "Redeploy" an old row; it rebuilds the old commit).
+
+## Monitoring
+
+- Uptime: an external free monitor (UptimeRobot, owned by the
+  `unitouchnfc@gmail.com` account) checks `https://www.unitouch.in/` and
+  `https://www.unitouch.in/order` every 5 minutes and emails that inbox
+  when either stops answering 200. `/order` is server-rendered per request
+  (Mumbai functions), so it also catches function outages that a cached
+  homepage wouldn't.
+- Don't point a monitor at `/api/webhook/razorpay`: it only accepts signed
+  POSTs, so GET/HEAD answer 405 and would look "down". Webhook delivery
+  failures are reported by Razorpay itself via the webhook's Alert Email
+  (Razorpay dashboard → Webhooks → set to `unitouchnfc@gmail.com`).
+- Set up by the team, not in code; if the monitor account changes, update
+  this section.
 
 ## Get set up locally
 
