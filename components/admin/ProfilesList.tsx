@@ -27,7 +27,7 @@ export default function ProfilesList({
   stats = {},
 }: {
   profiles: AdminProfileRow[];
-  // All-time views/saves by username (lib/admin-stats.ts).
+  // All-time views/saves by username (lib/profile-stats.ts).
   stats?: Record<string, { views: number; saves: number }>;
 }) {
   const router = useRouter();

@@ -1,4 +1,4 @@
-import type { ProfileStatsDetail } from "@/lib/admin-stats";
+import type { ProfileStatsDetail } from "@/lib/profile-stats";
 import type { EventType } from "@/types";
 
 /* Admin profile page: views, contact saves and button taps. Read-only. */

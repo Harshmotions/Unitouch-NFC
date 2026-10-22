@@ -1,5 +1,5 @@
 import { listAdminProfiles } from "@/lib/admin-profiles";
-import { getViewSaveTotals } from "@/lib/admin-stats";
+import { getViewSaveTotals } from "@/lib/profile-stats";
 import ProfilesList from "@/components/admin/ProfilesList";
 
 export default async function AdminProfilesPage() {

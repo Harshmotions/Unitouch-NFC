@@ -5,7 +5,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { claimProfilesForUser, getEditableProfile, getOwnedProfiles } from "@/lib/profile";
 import ProfileStudio from "@/components/studio/ProfileStudio";
 import YourOrders from "@/components/studio/YourOrders";
+import ProfileAnalytics from "@/components/studio/ProfileAnalytics";
 import { getOrdersForCustomer } from "@/lib/customer-orders";
+import { getProfileStatsDetail } from "@/lib/profile-stats";
 import Button from "@/components/ui/Button";
 import SignOutButton from "@/components/auth/SignOutButton";
 
@@ -39,6 +41,11 @@ export default async function StudioPage({
     getOwnedProfiles(user.id),
     getOrdersForCustomer(user.id),
   ]);
+
+  // Analytics is a Premium feature: only for a profile whose (paid, owned)
+  // order is a Premium card. Standard profiles see nothing for now.
+  const isPremium = Boolean(profile && orders.some((o) => o.username === profile.username && o.cardType === "premium"));
+  const analytics = isPremium && profile ? await getProfileStatsDetail(profile.username) : null;
 
   return (
     <main className="bg-bg-base min-h-screen px-6 py-16">
@@ -85,6 +92,8 @@ export default async function StudioPage({
         )}
 
         <YourOrders orders={orders} />
+
+        {profile && analytics && <ProfileAnalytics username={profile.username} stats={analytics} />}
 
         {profile ? (
           <ProfileStudio initialProfile={profile} />

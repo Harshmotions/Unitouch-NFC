@@ -13,6 +13,7 @@ import type { OrderStatus } from "@/lib/order-status";
 export interface CustomerOrder {
   orderNumber: string;
   createdAt: string;
+  cardType: string;
   cardName: string;
   quantity: number;
   status: OrderStatus;
@@ -41,6 +42,7 @@ export async function getOrdersForCustomer(userId: string): Promise<CustomerOrde
   return data.map((o) => ({
     orderNumber: o.order_number as string,
     createdAt: o.created_at as string,
+    cardType: o.card_type as string,
     cardName: CARD_VARIANTS.find((v) => v.id === o.card_type)?.name ?? (o.card_type as string),
     quantity: o.quantity as number,
     status: o.order_status as OrderStatus,

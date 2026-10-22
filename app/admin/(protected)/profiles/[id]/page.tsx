@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getProfileById } from "@/lib/profile";
 import ProfileEditor from "@/components/admin/ProfileEditor";
 import ProfileStatsPanel from "@/components/admin/ProfileStatsPanel";
-import { getProfileStatsDetail } from "@/lib/admin-stats";
+import { getProfileStatsDetail } from "@/lib/profile-stats";
 
 export default async function AdminProfileEditPage({
   params,

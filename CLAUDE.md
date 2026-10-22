@@ -54,8 +54,11 @@ ProductShowcase, HowItWorks, Features, Pricing, FAQ, Footer.
 `Testimonials.tsx` is intentionally NOT rendered: it held made-up
 placeholder reviews, which got flagged for Razorpay website verification.
 Only re-add it with real customer quotes. Don't advertise features that
-aren't built (the Premium analytics dashboard is marked "coming soon";
-public view/save counts are real).
+aren't built. The Premium analytics dashboard is real since Oct 2026
+(`components/studio/ProfileAnalytics.tsx`, shown in /studio only for a
+Premium order's profile; data from `lib/profile-stats.ts`). Views, saves
+and taps from the profile's own owner and from admin sessions are not
+counted (`app/api/analytics/route.ts`).
 
 **Inner pages** (policies, contact, `/order`) live in the `app/(site)` route
 group, whose layout adds `SiteHeader` + `Footer`. Razorpay verification

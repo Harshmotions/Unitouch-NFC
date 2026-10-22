@@ -1,8 +1,8 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { EventType } from "@/types";
 
-/* Read-only profile analytics for the admin (views, contact saves, link
-   taps), from daily_analytics: one row per (username, day, event_type) with
+/* Read-only profile analytics (views, contact saves, link taps) for the
+   admin and for Premium customers in the studio, from daily_analytics: one row per (username, day, event_type) with
    a count. Server-only (service role). Days are the database's
    current_date, i.e. UTC days.
 
@@ -47,6 +47,8 @@ export interface ProfileStatsDetail {
   saves: { last7: number; last30: number; all: number };
   // All-time taps per button, biggest first; only buttons with taps.
   taps: { type: EventType; count: number }[];
+  // Views per day for the last 30 days, oldest first, zero-filled.
+  dailyViews: { date: string; views: number }[];
 }
 
 // "YYYY-MM-DD" (UTC) n days before today, so last7 = today and the 6 days before.
@@ -63,10 +65,16 @@ export async function getProfileStatsDetail(username: string): Promise<ProfileSt
     views: { last7: 0, last30: 0, all: 0 },
     saves: { last7: 0, last30: 0, all: 0 },
     taps: [],
+    dailyViews: Array.from({ length: 30 }, (_, i) => ({ date: utcDaysAgo(29 - i), views: 0 })),
   };
+  const dayIndex = new Map(stats.dailyViews.map((d, i) => [d.date, i]));
   const taps = new Map<EventType, number>();
   for (const r of await readRows({ username })) {
     const bucket = r.event_type === "page_view" ? stats.views : r.event_type === "contact_save" ? stats.saves : null;
+    if (r.event_type === "page_view") {
+      const i = dayIndex.get(r.event_date);
+      if (i !== undefined) stats.dailyViews[i].views += r.count;
+    }
     if (bucket) {
       bucket.all += r.count;
       if (r.event_date >= since30) bucket.last30 += r.count;
