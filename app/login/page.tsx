@@ -16,11 +16,11 @@ export default function LoginPage() {
       <div className="flex flex-col px-[var(--margin)] py-6">
         <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Unitouch home">
           <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} priority />
-          <span className="font-display text-[1.25rem] font-[650]">Unitouch</span>
+          <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
         </Link>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-16">
-          <h1 className="font-display text-[clamp(2.25rem,1.6rem+2vw,3.25rem)] font-[650]">Welcome back</h1>
+          <h1 className="font-display text-[clamp(2.25rem,1.6rem+2vw,3.25rem)] font-[600]">Welcome back</h1>
           <p className="text-text-secondary mt-3 mb-8">
             Enter the email you used when ordering your card and we&apos;ll send you a one-time code.
           </p>
@@ -30,7 +30,7 @@ export default function LoginPage() {
           />
           <p className="text-text-secondary mt-10 text-[0.9375rem]">
             No card yet?{" "}
-            <Link href="/order" className="text-text-primary font-[550] underline underline-offset-4">
+            <Link href="/order" className="text-text-primary font-[500] underline underline-offset-4">
               Order one
             </Link>
           </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Reveal from "@/components/motion/Reveal";
@@ -22,12 +22,29 @@ function toSlug(name: string) {
 const SAMPLE_NAME = "Priya Anand";
 const SAMPLE_TITLE = "Portrait & Brand Photographer";
 
+/* The NFC waves printed on the card. */
+function Waves({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
+      <circle cx="15" cy="12" r="1.6" fill="currentColor" />
+      <path d="M11.2 6.6a7 7 0 0 0 0 10.8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      <path d="M7.6 3.4a11.6 11.6 0 0 0 0 17.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const inputClass =
+  "bg-bg-base placeholder:text-text-muted h-12 w-full rounded-[12px] px-4 text-[1rem] outline-none transition-shadow focus-visible:shadow-[0_0_0_2px_var(--color-accent)]";
+
 /* The page's one live thing: type a name and a title and see them on the
-   back of the card, with the profile link the card would open. Purely in
-   the browser; nothing is saved or sent. */
+   card, flip it to see the front, and see the profile link it would open.
+   Purely in the browser; nothing is saved or sent. */
 export default function MakeItYours() {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
+  const [side, setSide] = useState<"back" | "front">("back");
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const stageRef = useRef<HTMLDivElement>(null);
   const nameId = useId();
   const titleId = useId();
 
@@ -35,81 +52,126 @@ export default function MakeItYours() {
   const shownTitle = title.trim() || SAMPLE_TITLE;
   const slug = toSlug(shownName) || "your-name";
 
+  // The card leans toward the pointer, a few degrees at most.
+  const onMove = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || !stageRef.current) return;
+    const r = stageRef.current.getBoundingClientRect();
+    setTilt({ x: ((e.clientY - r.top) / r.height - 0.5) * -10, y: ((e.clientX - r.left) / r.width - 0.5) * 14 });
+  };
+
   return (
-    <section id="make-it-yours" aria-labelledby="make-heading" className="px-[var(--margin)] py-28 md:py-40">
-      <div className="grid gap-12 md:grid-cols-12 md:items-center md:gap-x-6">
-        <Reveal className="flex flex-col gap-6 md:col-span-5">
-          <h2 id="make-heading" className="font-display text-[clamp(2rem,1.3rem+3.2vw,3.75rem)] font-[650]">
-            Make it yours
-          </h2>
-          <p className="max-w-[40ch] text-[1.0625rem]">
-            Type your name and see it on your card, with the profile link it opens. We finish the design with you
-            before anything is printed.
-          </p>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor={nameId} className="text-[0.9375rem] font-[550]">
-                Your name
-              </label>
-              <input
-                id={nameId}
-                value={name}
-                onChange={(e) => setName(e.target.value.slice(0, 40))}
-                placeholder={SAMPLE_NAME}
-                autoComplete="name"
-                className="bg-bg-elevated placeholder:text-text-muted h-12 rounded-[10px] px-4 text-[1.0625rem] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor={titleId} className="text-[0.9375rem] font-[550]">
-                What you do
-              </label>
-              <input
-                id={titleId}
-                value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, 48))}
-                placeholder={SAMPLE_TITLE}
-                autoComplete="organization-title"
-                className="bg-bg-elevated placeholder:text-text-muted h-12 rounded-[10px] px-4 text-[1.0625rem] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <Button variant="primary" size="md" href="/order">
-              Order your card
-            </Button>
-            <p className="text-text-secondary text-[0.9375rem]" aria-live="polite">
-              Your link: <span className="text-text-primary font-[550] break-all">unitouch.in/u/{slug}</span>
+    <section id="make-it-yours" aria-labelledby="make-heading" className="py-24 md:py-32">
+      <div className="container-page">
+        <div className="bg-bg-elevated grid items-center gap-12 rounded-[28px] p-6 sm:p-10 lg:grid-cols-2 lg:gap-16 lg:p-14">
+          <Reveal className="flex flex-col gap-6">
+            <h2 id="make-heading" className="font-display text-[length:var(--text-h2)] font-[600]">
+              Make it yours
+            </h2>
+            <p className="text-text-secondary max-w-[40ch] text-[1.0625rem] leading-relaxed">
+              Type your name to see it on your card, with the link it opens. Our team finishes the design with you
+              before anything is printed.
             </p>
-          </div>
-        </Reveal>
 
-        {/* The back of the card, drawn flat at full width of its column, in
-            the same layout as the 3D card's back face. */}
-        <div className="md:col-span-7">
-          <div
-            className="bg-bg-ink text-text-on-ink relative mx-auto aspect-[85.6/54] w-full max-w-[44rem] overflow-hidden rounded-[clamp(14px,2.4vw,26px)] p-[7%]"
-            aria-label={`Card preview: ${shownName}, ${shownTitle}`}
-            role="img"
-          >
-            <p className="font-display truncate text-[clamp(1.5rem,0.6rem+3.4vw,3.25rem)] font-[650]">{shownName}</p>
-            <p className="mt-[2%] truncate text-[clamp(0.9375rem,0.6rem+1.2vw,1.375rem)] opacity-75">{shownTitle}</p>
-            <p className="absolute bottom-[12%] left-[7%] text-[clamp(0.8125rem,0.5rem+1vw,1.125rem)] font-[550]">
-              Tap to connect
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={nameId} className="text-[0.875rem] font-[500]">
+                  Your name
+                </label>
+                <input
+                  id={nameId}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value.slice(0, 32));
+                    setSide("back");
+                  }}
+                  placeholder={SAMPLE_NAME}
+                  autoComplete="name"
+                  className={inputClass}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={titleId} className="text-[0.875rem] font-[500]">
+                  What you do
+                </label>
+                <input
+                  id={titleId}
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value.slice(0, 44));
+                    setSide("back");
+                  }}
+                  placeholder={SAMPLE_TITLE}
+                  autoComplete="organization-title"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <p className="bg-bg-base text-text-secondary rounded-[12px] px-4 py-3 text-[0.9375rem]" aria-live="polite">
+              Your profile link{" "}
+              <span className="text-text-primary block font-[500] break-all">unitouch.in/u/{slug}</span>
             </p>
-            <Image
-              src="/brand/u-mark-white.webp"
-              alt=""
-              width={512}
-              height={582}
-              className="absolute right-[7%] bottom-[10%] h-[24%] w-auto opacity-90"
-            />
+
+            <div>
+              <Button variant="primary" size="lg" href="/order">
+                Order your card
+              </Button>
+            </div>
+          </Reveal>
+
+          <div className="flex flex-col items-center gap-6">
+            <div
+              ref={stageRef}
+              onPointerMove={onMove}
+              onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+              className="w-full max-w-[30rem] [perspective:1400px]"
+            >
+              <div
+                role="img"
+                aria-label={`Card preview, ${side}: ${shownName}, ${shownTitle}`}
+                className="relative aspect-[85.6/54] w-full transition-transform duration-700 ease-[var(--ease-out)] [transform-style:preserve-3d]"
+                style={{
+                  transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y + (side === "front" ? 180 : 0)}deg)`,
+                }}
+              >
+                {/* Back: the person. */}
+                <div className="card-face absolute inset-0 overflow-hidden rounded-[5.5%/8.7%] p-[7%] [backface-visibility:hidden]">
+                  <p className="font-display truncate text-[clamp(1.375rem,0.8rem+2vw,2.125rem)] leading-tight font-[600]">
+                    {shownName}
+                  </p>
+                  <p className="mt-1 truncate text-[clamp(0.8125rem,0.65rem+0.6vw,1rem)] opacity-70">{shownTitle}</p>
+                  <p className="absolute bottom-[11%] left-[7%] text-[clamp(0.75rem,0.6rem+0.5vw,0.9375rem)] font-[500]">
+                    Tap to connect
+                  </p>
+                  <Waves className="absolute right-[7%] bottom-[9%] h-[17%] w-auto" />
+                </div>
+                {/* Front: the Unitouch mark. */}
+                <div className="card-face absolute inset-0 overflow-hidden rounded-[5.5%/8.7%] p-[7%] [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <Waves className="h-[15%] w-auto -scale-x-100" />
+                  <div className="absolute bottom-[12%] left-[7%] flex items-center gap-[0.6em] text-[clamp(1.5rem,0.9rem+2.2vw,2.375rem)]">
+                    <Image src="/brand/u-mark-white.webp" alt="" width={512} height={582} className="h-[1.2em] w-auto" />
+                    <span className="font-display font-[600]">Unitouch</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-bg-base inline-flex rounded-full p-1 text-[0.875rem]" role="group" aria-label="Card side">
+              {(["back", "front"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={side === s}
+                  onClick={() => setSide(s)}
+                  className={`rounded-full px-4 py-1.5 font-[500] capitalize transition-colors ${
+                    side === s ? "bg-bg-ink text-text-on-ink" : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
-          <p className="text-text-secondary mx-auto mt-4 max-w-[44rem] text-[0.9375rem]">
-            A preview of the back of your card. The front carries the Unitouch mark.
-          </p>
         </div>
       </div>
     </section>

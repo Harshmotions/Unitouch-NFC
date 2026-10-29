@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import Reveal from "@/components/motion/Reveal";
+import { BUSINESS } from "@/lib/business";
 
 export const FAQS = [
   {
@@ -47,32 +48,40 @@ export const FAQS = [
    these as FAQPage structured data (app/(marketing)/page.tsx). */
 export default function FAQ() {
   return (
-    <section id="faq" aria-labelledby="faq-heading" className="scroll-mt-16 px-[var(--margin)] py-28 md:py-40">
-      <h2
-        id="faq-heading"
-        className="font-display max-w-[14ch] text-[clamp(2.5rem,1rem+5.4vw,5.5rem)] leading-[0.98] font-[700]"
-      >
-        Questions, answered
-      </h2>
+    <section id="faq" aria-labelledby="faq-heading" className="scroll-mt-16 py-24 md:py-32">
+      <div className="container-page grid gap-10 lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-4">
+          <h2 id="faq-heading" className="font-display text-[length:var(--text-h2)] font-[600]">
+            Questions, answered
+          </h2>
+          <p className="text-text-secondary mt-4 max-w-[30ch] text-[0.9375rem] leading-relaxed">
+            Anything else? Write to us at{" "}
+            <a href={`mailto:${BUSINESS.email}`} className="text-text-primary underline underline-offset-4">
+              {BUSINESS.email}
+            </a>
+            .
+          </p>
+        </div>
 
-      <Reveal className="mt-14 flex flex-col gap-2 md:mt-20 md:ml-[33.333%]">
-        {FAQS.map((faq) => (
-          <details
-            key={faq.question}
-            className="group -mx-[var(--margin)] px-[var(--margin)] py-1 transition-colors duration-[240ms] open:bg-bg-subtle md:mx-[calc(var(--margin)*-0.75)] md:rounded-[14px] md:px-[calc(var(--margin)*0.75)]"
-          >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-[1.25rem] md:text-[1.5rem] [&::-webkit-details-marker]:hidden">
-              {faq.question}
-              <ChevronDown
-                aria-hidden
-                strokeWidth={2}
-                className="size-5 shrink-0 transition-transform duration-[240ms] ease-[var(--ease-out)] group-open:rotate-180"
-              />
-            </summary>
-            <p className="max-w-[48ch] pb-6 text-[1.0625rem]">{faq.answer}</p>
-          </details>
-        ))}
-      </Reveal>
+        <Reveal className="flex flex-col gap-2 lg:col-span-8">
+          {FAQS.map((faq) => (
+            <details
+              key={faq.question}
+              className="group bg-bg-elevated rounded-[16px] px-5 transition-colors duration-[240ms] open:bg-white md:px-6"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-[1.0625rem] font-[500] md:text-[1.125rem] [&::-webkit-details-marker]:hidden">
+                {faq.question}
+                <ChevronDown
+                  aria-hidden
+                  strokeWidth={2}
+                  className="text-text-secondary size-5 shrink-0 transition-transform duration-[240ms] ease-[var(--ease-out)] group-open:rotate-180"
+                />
+              </summary>
+              <p className="text-text-secondary max-w-[60ch] pb-5 text-[0.9375rem] leading-relaxed">{faq.answer}</p>
+            </details>
+          ))}
+        </Reveal>
+      </div>
     </section>
   );
 }

@@ -75,10 +75,10 @@ export default function Navbar() {
 
   return (
     <header className="bg-bg-base sticky top-0 z-50">
-      <div className="flex h-16 items-center justify-between gap-6 px-[var(--margin)] md:h-[4.5rem]">
+      <div className="container-page flex h-16 items-center justify-between gap-6 md:h-[4.5rem]">
         <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2.5" aria-label="Unitouch home">
           <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} priority />
-          <span className="font-display text-[1.25rem] font-[650]">Unitouch</span>
+          <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-8 text-[0.9375rem] lg:flex">
@@ -101,7 +101,7 @@ export default function Navbar() {
           </Button>
           <button
             type="button"
-            className="h-10 px-1 font-[550] lg:hidden"
+            className="h-10 px-1 font-[500] lg:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             onClick={() => setMenuOpen((open) => !open)}
@@ -121,12 +121,12 @@ export default function Navbar() {
           {NAV_LINKS.map((link) => {
             const { href, onClick } = linkProps(link.href);
             return (
-              <a key={link.label} href={href} onClick={onClick} className="font-display text-[2.25rem] font-[600]">
+              <a key={link.label} href={href} onClick={onClick} className="font-display text-[1.75rem] font-[600]">
                 {link.label}
               </a>
             );
           })}
-          <span className="font-display text-text-secondary text-[2.25rem] font-[600]">
+          <span className="font-display text-text-secondary text-[1.75rem] font-[600]">
             {account ?? <Link href="/login">Log in</Link>}
           </span>
         </nav>

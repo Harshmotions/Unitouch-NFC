@@ -92,19 +92,27 @@ export default function Card3D({
     ro.observe(canvas);
     cleanups.push(() => ro.disconnect());
 
-    // Drag to turn. Horizontal drags only, so vertical swipes still scroll.
+    // Drag to turn (and, with a mouse, to tilt). Vertical swipes on touch
+    // still scroll the page.
     let lastX: number | null = null;
+    let lastY = 0;
     let lastT = 0;
     const down = (e: PointerEvent) => {
       lastX = e.clientX;
+      lastY = e.clientY;
       lastT = e.timeStamp;
     };
     const move = (e: PointerEvent) => {
       if (lastX === null || !scene) return;
       const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
       const dt = Math.max(e.timeStamp - lastT, 8) / 1000;
-      scene.nudge((dx / canvas.clientWidth) * 3 * (1 / dt) * 0.25);
+      // Mouse drags tilt as well as turn; on touch, vertical movement is the
+      // page scrolling, so only the horizontal part turns the card.
+      const tiltBy = e.pointerType === "mouse" ? (dy / canvas.clientHeight) * 0.6 * (1 / dt) * 0.25 : 0;
+      scene.nudge((dx / canvas.clientWidth) * 3 * (1 / dt) * 0.25, tiltBy);
       lastX = e.clientX;
+      lastY = e.clientY;
       lastT = e.timeStamp;
     };
     const up = () => {

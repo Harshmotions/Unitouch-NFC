@@ -52,7 +52,7 @@ export default async function StudioPage({
     <main className="bg-bg-base min-h-screen px-6 pt-6 pb-16">
       <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Unitouch home">
         <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
-        <span className="font-display text-[1.25rem] font-[650]">Unitouch</span>
+        <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
       </Link>
       <div className="mx-auto mt-10 w-full max-w-2xl">
         <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Build your profile</h1>

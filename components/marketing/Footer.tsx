@@ -5,13 +5,16 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { handleHashLinkClick } from "@/lib/scroll";
 import { BUSINESS } from "@/lib/business";
-import Reveal from "@/components/motion/Reveal";
+import Button from "@/components/ui/Button";
 
-const MENU = [
+const EXPLORE = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
   { label: "Questions", href: "#faq" },
   { label: "Demo profile", href: "/u/priya" },
+];
+
+const ACCOUNT = [
   { label: "Order your card", href: "/order" },
   { label: "Log in", href: "/login" },
 ];
@@ -25,77 +28,80 @@ const POLICIES = [
   { label: "Contact Us", href: "/contact" },
 ];
 
-/* The close: half the footer is the card again, from closer than anywhere
-   above; the other half is the site's menu set large, then the contact
-   details and every policy. The footer also sits under the inner pages
-   (app/(site)/layout.tsx), where "#pricing" etc. become "/#pricing". */
+/* A compact footer in the page's centred column: the brand and the one
+   action, three short link columns, then every policy and the legal line.
+   It also sits under the inner pages (app/(site)/layout.tsx), where
+   "#pricing" etc. become "/#pricing". */
 export default function Footer() {
   const onHome = usePathname() === "/";
 
+  const linkFor = (href: string) => {
+    const isHash = href.startsWith("#");
+    return {
+      href: isHash && !onHome ? `/${href}` : href,
+      onClick: isHash && onHome ? handleHashLinkClick(href) : undefined,
+    };
+  };
+
   return (
-    <footer id="site-footer" className="bg-bg-subtle grid md:min-h-[100svh] md:grid-cols-12">
-      <div className="bg-bg-field relative h-[50svh] overflow-hidden md:col-span-6 md:h-auto">
-        <Image
-          src="/cards/card-close.webp"
-          alt="A Unitouch card up close, its fingerprint U catching the light"
-          fill
-          sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover object-[30%_60%]"
-        />
-      </div>
+    <footer id="site-footer" className="bg-bg-subtle">
+      <div className="container-page py-14 md:py-16">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Unitouch home">
+              <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
+              <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
+            </Link>
+            <p className="text-text-secondary mt-3 max-w-[32ch] text-[0.9375rem]">
+              NFC business cards with a live profile. Made in Kolhapur.
+            </p>
+          </div>
+          <Button variant="ink" size="md" href="/order" className="w-fit">
+            Order your card
+          </Button>
+        </div>
 
-      <div className="flex flex-col px-[var(--margin)] py-12 md:col-span-6 md:col-start-7 md:py-16 md:pl-[8.333%]">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Unitouch home">
-          <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
-          <span className="font-display text-[1.25rem] font-[650]">Unitouch</span>
-        </Link>
-
-        <nav aria-label="Footer" className="mt-10 md:mt-14">
-          <Reveal className="flex flex-col items-start gap-3 md:gap-4">
-          {MENU.map((item) => {
-            const isHash = item.href.startsWith("#");
-            return (
-              <a
-                key={item.label}
-                href={isHash && !onHome ? `/${item.href}` : item.href}
-                onClick={isHash && onHome ? handleHashLinkClick(item.href) : undefined}
-                className="font-display text-[clamp(2rem,1rem+3vw,2.75rem)] leading-[1.05] font-[650] transition-transform duration-[240ms] ease-[var(--ease-out)] hover:translate-x-3"
-              >
-                {item.label}
+        <div className="mt-12 grid gap-10 text-[0.9375rem] sm:grid-cols-3">
+          <nav aria-label="Explore" className="flex flex-col gap-2.5">
+            <p className="text-text-secondary text-[0.8125rem] font-[500]">Explore</p>
+            {EXPLORE.map((l) => (
+              <a key={l.label} {...linkFor(l.href)} className="link-draw w-fit">
+                {l.label}
               </a>
-            );
-          })}
-          </Reveal>
-        </nav>
-
-        <div className="mt-14 grid gap-8 text-[0.9375rem] sm:grid-cols-2 md:mt-16">
-          <div className="flex flex-col gap-1">
-            <p className="font-[600]">Contact</p>
+            ))}
+          </nav>
+          <nav aria-label="Account" className="flex flex-col gap-2.5">
+            <p className="text-text-secondary text-[0.8125rem] font-[500]">Your card</p>
+            {ACCOUNT.map((l) => (
+              <Link key={l.label} href={l.href} className="link-draw w-fit">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex flex-col gap-2.5">
+            <p className="text-text-secondary text-[0.8125rem] font-[500]">Contact</p>
             <a href={`mailto:${BUSINESS.email}`} className="link-draw w-fit">
               {BUSINESS.email}
             </a>
             <a href={`tel:${BUSINESS.phone}`} className="link-draw w-fit">
               {BUSINESS.phoneDisplay}
             </a>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="font-[600]">Made in Kolhapur</p>
-            {BUSINESS.addressLines.map((line) => (
-              <p key={line}>{line}</p>
-            ))}
+            <p className="text-text-secondary">{BUSINESS.addressLines.join(", ")}</p>
           </div>
         </div>
 
-        <nav aria-label="Policies" className="mt-10 flex flex-wrap gap-x-5 gap-y-2 text-[0.9375rem] md:mt-auto md:pt-16">
-          {POLICIES.map((p) => (
-            <Link key={p.href} href={p.href} className="link-draw">
-              {p.label}
-            </Link>
-          ))}
-        </nav>
-        <p className="text-text-secondary mt-4 text-[0.9375rem]">
-          © {new Date().getFullYear()} {BUSINESS.legalName}. All rights reserved.
-        </p>
+        <div className="border-bg-border mt-12 flex flex-col gap-4 border-t pt-6 text-[0.8125rem] md:flex-row md:items-center md:justify-between">
+          <nav aria-label="Policies" className="flex flex-wrap gap-x-5 gap-y-2">
+            {POLICIES.map((p) => (
+              <Link key={p.href} href={p.href} className="link-draw">
+                {p.label}
+              </Link>
+            ))}
+          </nav>
+          <p className="text-text-secondary">
+            © {new Date().getFullYear()} {BUSINESS.legalName}. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

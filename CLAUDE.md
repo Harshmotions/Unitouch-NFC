@@ -11,9 +11,10 @@ info, socials, and a vCard download with one tap.
   see `supabase/schema.sql`
 - Upstash Redis (rate limiting, Asia), Resend (email), Razorpay (payments)
 - Light "three stones" theme (Oct 2026 rebrand): tokens in `app/globals.css`,
-  one self-hosted variable face (TikTok Sans, `app/fonts/`), CSS-only
-  entrance motion (`components/motion/Reveal.tsx`), Lenis for smooth scroll,
-  three.js for the hero's 3D card (lazy-loaded)
+  Space Grotesk (headings) + Inter (text) via `next/font`, content in a
+  centred `.container-page` column, CSS-only entrance motion
+  (`components/motion/Reveal.tsx`), Lenis for smooth scroll, three.js for
+  the 3D card and phone (lazy-loaded)
 - Production: **https://www.unitouch.in** (`unitouch.in` redirects there)
 - Repo: https://github.com/Harshmotions/Unitouch-NFC
 
@@ -71,15 +72,21 @@ fail or are skipped, and everything else works.
 ## What's built
 
 **Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card),
-HowItWorks, ProfileShowcase (held scroll stage), MakeItYours (live name
-preview on the card, browser-only), Features, Pricing, FAQ, Footer, plus
-Organization / Product / FAQPage JSON-LD. The hero's card is a real three.js
-scene (`components/marketing/card3d/`): the page paints its still
-(`public/cards/hero-card.webp`) first and loads the scene only after the
-`load` event and an idle moment, pauses it off screen, and skips it under
-reduced motion. If you change the scene's framing (fill, angle, tilt, the
-16:10 box), re-render that still so the swap stays seamless. The other card
-pictures in `public/cards/` are stills of the same scene, not photographs.
+HowItWorks, PhoneStory (sticky 3D iPhone, steps change on scroll),
+MakeItYours (live name preview on the card, browser-only), TapDrum (two
+rolling columns of what a tap leads to), Pricing, FAQ, Footer, plus
+Organization / Product / FAQPage JSON-LD. The 3D lives in
+`components/marketing/card3d/`: `parts.ts` (studio light, the card, contact
+shadow), `scene.ts` (hero card: spins and sways on all axes, draggable) and
+`phoneScene.ts` (the phone story, driven by one scroll progress value). The
+phone is a real iPhone 14 Pro Max model, `public/models/iphone-14-pro-max.glb`
+(converted from the OBJ Harsh supplied, meshopt-compressed, materials set in
+code by part name; the screen shows `public/home/phone-screen.webp`). Pages
+paint stills first (`public/cards/hero-card.webp`, `public/home/phone-*.webp`)
+and load the scenes only when idle / near; reduced motion keeps the stills.
+If you change a scene's framing, re-render its still so the swap stays
+seamless. The card pictures in `public/cards/` are stills of the 3D card,
+not photographs.
 `Testimonials.tsx` is intentionally NOT rendered: it held made-up
 placeholder reviews, which got flagged for Razorpay website verification.
 Only re-add it with real customer quotes. Don't advertise features that

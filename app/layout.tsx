@@ -1,20 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { BUSINESS } from "@/lib/business";
 import { SHARE_IMAGE } from "@/lib/seo";
 
-/* TikTok Sans, one variable file (weight 300 to 900, width 75 to 150%),
-   Latin only and self-hosted so there's no request to Google at runtime.
-   Headings use the same face stretched wide (globals.css). */
-const tiktokSans = localFont({
-  src: "./fonts/tiktok-sans-latin.woff2",
-  variable: "--font-tiktok",
-  weight: "300 900",
+/* Space Grotesk for headings, Inter for everything else. next/font
+   self-hosts both at build time, so there's no request to Google at
+   runtime. */
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
   display: "swap",
-  declarations: [{ prop: "font-stretch", value: "75% 150%" }],
-  fallback: ["Helvetica Neue", "Arial", "sans-serif"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -57,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={tiktokSans.variable} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         {/* Marks the page as scripted before first paint, so entrance
             animations only hide content when they can also reveal it. */}

@@ -34,12 +34,12 @@
   --color-warning: #9a5b06;
 
   /* Type: few sizes, far apart */
-  --text-hero: clamp(2.5rem, 1rem + 6vw, 6.5rem);
-  --text-h1: clamp(2.25rem, 1.2rem + 3.6vw, 4.5rem);
-  --text-h2: clamp(2rem, 1.3rem + 3.2vw, 4rem);
-  --text-h3: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
-  --text-body-lg: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
-  --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --text-hero: clamp(2.5rem, 1.6rem + 3vw, 4.25rem);
+  --text-h1: clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem);
+  --text-h2: clamp(1.875rem, 1.4rem + 1.6vw, 2.75rem);
+  --text-h3: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --text-body-lg: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);
+  --text-body: 1rem;
   --text-sm: 0.9375rem;
   --text-xs: 0.8125rem;
 
@@ -56,20 +56,9 @@
   --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-/* One self-hosted variable face (app/layout.tsx). The rupee sign lives in a
-   4 KB subset so the main file stays Latin-only. */
-@font-face {
-  font-family: "Unitouch Rupee";
-  src: url("/fonts/tiktok-sans-rupee.woff2") format("woff2");
-  font-weight: 300 900;
-  font-stretch: 75% 150%;
-  font-display: swap;
-  unicode-range: U+20B9;
-}
-
 @theme inline {
-  --font-display: var(--font-tiktok), "Unitouch Rupee", "Helvetica Neue", Arial, sans-serif;
-  --font-body: var(--font-tiktok), "Unitouch Rupee", "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
@@ -121,21 +110,20 @@ p {
   text-wrap: pretty;
 }
 
-/* Headings: the same face stretched wide, tight and confident. */
+/* Headings: Space Grotesk, slightly tightened. */
 .font-display {
-  font-stretch: 125%;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+  line-height: 1.05;
 }
 
-/* The wide wordmark setting (hero, footer). */
-.font-wide {
-  font-family: var(--font-display);
-  font-stretch: 150%;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 0.9;
-  text-transform: uppercase;
+/* The page container: content sits in a centred column with generous side
+   space on wide screens. */
+.container-page {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
 }
 
 .tabular {
@@ -243,28 +231,44 @@ p {
   text-decoration-color: currentColor;
 }
 
-/* Hero arrival: the wordmark rises behind, the card settles in front. Both
-   are transform-only, so the first paint (and the LCP still) is never
-   hidden. */
+/* Hero arrival: the card floats up into place out of a soft blur, tilting
+   back to rest, while its light pool fades in. Opacity and filter only on the
+   card's wrapper; the headline (the page's main content) paints at once. */
+.hero-light {
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 72%);
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  html.js .hero-wordmark text {
-    animation: wordmark-rise 1200ms var(--ease-expo) both;
-  }
-
   html.js .hero-card {
-    animation: card-settle 1400ms var(--ease-expo) both;
+    animation: card-float-in 1600ms var(--ease-expo) 150ms both;
+    transform-origin: 50% 80%;
+  }
+
+  html.js .hero-light {
+    animation: fade 1800ms var(--ease-out) 100ms both;
   }
 }
 
-@keyframes wordmark-rise {
+@keyframes card-float-in {
   from {
-    transform: translateY(22%);
     opacity: 0;
+    filter: blur(14px);
+    transform: perspective(1200px) translate3d(0, 90px, 0) rotateX(22deg) scale(0.92);
+  }
+  60% {
+    filter: blur(0);
   }
 }
 
-@keyframes card-settle {
-  from {
-    transform: translate3d(0, 40px, 0) scale(0.96);
-  }
+/* The flat card preview ("Make it yours"): matte black with the light
+   falling across it from the upper left, and a soft, layered shadow so it
+   sits above the panel like a real card. */
+.card-face {
+  color: #f4f2ee;
+  background-color: #161616;
+  background-image: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0) 60%);
+  box-shadow:
+    0 1px 1px rgba(20, 18, 16, 0.12),
+    0 10px 20px -6px rgba(20, 18, 16, 0.25),
+    0 34px 60px -20px rgba(20, 18, 16, 0.35);
 }

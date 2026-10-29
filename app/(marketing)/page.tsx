@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Hero from "@/components/marketing/Hero";
 import HowItWorks from "@/components/marketing/HowItWorks";
-import ProfileShowcase from "@/components/marketing/ProfileShowcase";
+import PhoneStory from "@/components/marketing/PhoneStory";
 import MakeItYours from "@/components/marketing/MakeItYours";
-import Features from "@/components/marketing/Features";
+import TapDrum from "@/components/marketing/TapDrum";
 import Pricing from "@/components/marketing/Pricing";
 import FAQ, { FAQS } from "@/components/marketing/FAQ";
 import Footer from "@/components/marketing/Footer";
@@ -73,9 +73,9 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <Hero />
       <HowItWorks />
-      <ProfileShowcase />
+      <PhoneStory />
       <MakeItYours />
-      <Features />
+      <TapDrum />
       <Pricing />
       <FAQ />
       <Footer />

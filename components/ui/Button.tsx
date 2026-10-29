@@ -42,7 +42,7 @@ export default function Button({
   onClick,
 }: ButtonProps) {
   const classes = [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-[550] transition-[background-color,color,transform] duration-[180ms] ease-out active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-[500] transition-[background-color,color,transform] duration-[180ms] ease-out active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none",
     variantClasses[variant],
     sizeClasses[size],
     className,
