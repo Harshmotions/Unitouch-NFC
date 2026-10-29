@@ -11,7 +11,7 @@ export const SHARE_IMAGE = {
   url: "/og-image.jpg",
   width: 1200,
   height: 630,
-  alt: "Unitouch NFC business card next to a phone showing a live Unitouch profile",
+  alt: "The Unitouch NFC business card in matte black, with the line: Your business card, in one tap",
 };
 
 /* Title, description, canonical URL and a matching share preview for a

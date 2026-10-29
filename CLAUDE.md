@@ -10,7 +10,10 @@ info, socials, and a vCard download with one tap.
 - Supabase (Postgres + Auth + Storage), region **South Asia (Mumbai)** —
   see `supabase/schema.sql`
 - Upstash Redis (rate limiting, Asia), Resend (email), Razorpay (payments)
-- GSAP for entrance animations, Lenis for smooth scroll
+- Light "three stones" theme (Oct 2026 rebrand): tokens in `app/globals.css`,
+  one self-hosted variable face (TikTok Sans, `app/fonts/`), CSS-only
+  entrance motion (`components/motion/Reveal.tsx`), Lenis for smooth scroll,
+  three.js for the hero's 3D card (lazy-loaded)
 - Production: **https://www.unitouch.in** (`unitouch.in` redirects there)
 - Repo: https://github.com/Harshmotions/Unitouch-NFC
 
@@ -67,8 +70,16 @@ fail or are skipped, and everything else works.
 
 ## What's built
 
-**Marketing homepage** (`app/(marketing)/page.tsx`): Hero, SocialProof,
-ProductShowcase, HowItWorks, Features, Pricing, FAQ, Footer.
+**Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card),
+HowItWorks, ProfileShowcase (held scroll stage), MakeItYours (live name
+preview on the card, browser-only), Features, Pricing, FAQ, Footer, plus
+Organization / Product / FAQPage JSON-LD. The hero's card is a real three.js
+scene (`components/marketing/card3d/`): the page paints its still
+(`public/cards/hero-card.webp`) first and loads the scene only after the
+`load` event and an idle moment, pauses it off screen, and skips it under
+reduced motion. If you change the scene's framing (fill, angle, tilt, the
+16:10 box), re-render that still so the swap stays seamless. The other card
+pictures in `public/cards/` are stills of the same scene, not photographs.
 `Testimonials.tsx` is intentionally NOT rendered: it held made-up
 placeholder reviews, which got flagged for Razorpay website verification.
 Only re-add it with real customer quotes. Don't advertise features that
@@ -233,12 +244,17 @@ advisories, so bump patches promptly when it goes red.
   option doesn't call `preventDefault`. Every in-page `#anchor` link uses
   `handleHashLinkClick` from `lib/scroll.ts` (the footer switches to plain
   `/#…` links off the homepage).
-- **GSAP entrance timelines need bfcache handling**: Hero and Navbar replay
-  the intro on `pageshow` when `event.persisted`, after
-  `gsap.set(targets, { clearProps: "all" })`.
-- **Glass UI**: `.glass`, `.glass-icon-btn`, `.glass-pill` give the base
-  frosted look; layer one of `.glass-stroke-1` … `.glass-stroke-4` on top and
-  vary the number between neighbors.
+- **No GSAP**: entrances are CSS (`[data-reveal]`, `.rise-line`,
+  `.fade-in` in `globals.css`), hidden only under `html.js` (set by an inline
+  script in `app/layout.tsx`) and `prefers-reduced-motion: no-preference`, so
+  content never depends on script to appear. Animate transform and opacity
+  only.
+- **Design rules (light theme)**: one ground, one ink, one accent
+  (`--color-accent`, the main action only). No gradients, glows, glass,
+  shadows at rest, eyebrow labels, violet, or icon-topped card grids on the
+  public pages. `.glass*` and `.surface-card` still exist for older markup but
+  are flat tone-step surfaces now. Headlines stay at two lines or fewer at
+  390, 768 and 1440 px.
 - **`img { max-width: 100% }` global reset** can override a fixed Tailwind
   width on an `<img>` in an auto-sized container; add `max-w-none` and
   verify with `getBoundingClientRect()`.

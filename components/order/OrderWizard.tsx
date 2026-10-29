@@ -77,7 +77,7 @@ export default function OrderWizard({ defaultCardType }: { defaultCardType?: str
               <div className="flex min-w-0 items-center gap-2">
                 <span
                   className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-[600] ${
-                    active || done ? "bg-accent-purple text-bg-base" : "bg-bg-elevated text-text-muted"
+                    active || done ? "bg-accent text-accent-ink" : "bg-bg-elevated text-text-muted"
                   }`}
                 >
                   {stepNumber}

@@ -202,7 +202,7 @@ export default function OrderStepShippingPayment({
       {/* Card selection */}
       <div>
         <Label>Choose your card</Label>
-        <div className="relative mx-auto mb-3 aspect-[3.5/2] w-full max-w-md overflow-hidden rounded-xl border border-white/[0.08] bg-bg-base">
+        <div className="relative mx-auto mb-3 aspect-[3.5/2] w-full max-w-md overflow-hidden rounded-xl border border-bg-border bg-bg-base">
           <Image
             key={variant.id}
             src={CARD_IMAGES[variant.id].src}
@@ -286,7 +286,7 @@ export default function OrderStepShippingPayment({
           {...register("additionalNotes")}
           rows={3}
           placeholder="Anything else we should know?"
-          className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent-purple/50"
+          className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent/50"
         />
       </div>
 
@@ -303,7 +303,7 @@ export default function OrderStepShippingPayment({
           <span>Shipping (India)</span>
           <span>Free</span>
         </div>
-        <div className="mt-4 flex justify-between border-t border-white/10 pt-4">
+        <div className="mt-4 flex justify-between border-t border-bg-border pt-4">
           <span className="text-text-primary font-[600]">Total</span>
           <span className="text-text-primary font-[600]">₹{total.toLocaleString("en-IN")}</span>
         </div>
@@ -322,7 +322,7 @@ export default function OrderStepShippingPayment({
         By placing this order, you agree to our{" "}
         {POLICY_LINKS.map(({ href, label }, i) => (
           <span key={href}>
-            <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent-purple hover:underline">
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
               {label}
             </a>
             {i < POLICY_LINKS.length - 2 ? ", " : i === POLICY_LINKS.length - 2 ? ", and " : "."}

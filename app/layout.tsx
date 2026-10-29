@@ -1,21 +1,25 @@
-import type { Metadata } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { BUSINESS } from "@/lib/business";
 import { SHARE_IMAGE } from "@/lib/seo";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+/* TikTok Sans, one variable file (weight 300 to 900, width 75 to 150%),
+   Latin only and self-hosted so there's no request to Google at runtime.
+   Headings use the same face stretched wide (globals.css). */
+const tiktokSans = localFont({
+  src: "./fonts/tiktok-sans-latin.woff2",
+  variable: "--font-tiktok",
+  weight: "300 900",
+  display: "swap",
+  declarations: [{ prop: "font-stretch", value: "75% 150%" }],
+  fallback: ["Helvetica Neue", "Arial", "sans-serif"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
+export const viewport: Viewport = {
+  themeColor: "#eeecea",
+};
 
 const DESCRIPTION =
   "NFC business cards with a live digital profile. Tap once to share your contact, socials and links. No app needed. Made in India.";
@@ -53,8 +57,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}>
+    <html lang="en" className={tiktokSans.variable} suppressHydrationWarning>
+      <head>
+        {/* Marks the page as scripted before first paint, so entrance
+            animations only hide content when they can also reveal it. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
+      <body className="antialiased">
         <SmoothScroll />
         {children}
       </body>

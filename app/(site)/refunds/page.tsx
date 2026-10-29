@@ -42,7 +42,7 @@ export default function RefundsPage() {
         <p className="text-text-secondary">
           If your card arrives defective, damaged, or with a printing error that is our fault, we
           will replace it free of charge. To request a replacement, email{" "}
-          <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
+          <a href="mailto:support@unitouch.in" className="text-accent hover:underline">
             support@unitouch.in
           </a>{" "}
           within 7 days of delivery with your order number and a photo of the issue.
@@ -65,7 +65,7 @@ export default function RefundsPage() {
         <h2 className="font-display text-h3 text-text-primary font-[600]">5. Contact us</h2>
         <p className="text-text-secondary">
           For any question about an order, replacement, or refund, email{" "}
-          <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
+          <a href="mailto:support@unitouch.in" className="text-accent hover:underline">
             support@unitouch.in
           </a>
           .

@@ -58,7 +58,7 @@ export default function ShippingPage() {
         <p className="text-text-secondary">
           When your order ships, we share the tracking details with you on the email or phone
           number you used at checkout. If you have not received them, email{" "}
-          <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
+          <a href="mailto:support@unitouch.in" className="text-accent hover:underline">
             support@unitouch.in
           </a>{" "}
           with your order number.
@@ -79,7 +79,7 @@ export default function ShippingPage() {
         <p className="text-text-secondary">
           If your card arrives damaged, or your order does not arrive within the expected time,
           contact us and we will help. Replacements and refunds are handled under our{" "}
-          <a href="/refunds" className="text-accent-purple hover:underline">
+          <a href="/refunds" className="text-accent hover:underline">
             Cancellation and Refund Policy
           </a>
           .
@@ -90,7 +90,7 @@ export default function ShippingPage() {
         <h2 className="font-display text-h3 text-text-primary font-[600]">8. Contact us</h2>
         <p className="text-text-secondary">
           For any question about shipping or delivery, email{" "}
-          <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
+          <a href="mailto:support@unitouch.in" className="text-accent hover:underline">
             support@unitouch.in
           </a>
           .

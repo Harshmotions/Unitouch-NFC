@@ -15,8 +15,8 @@ export default function StudioLoading() {
         <div className="mt-8 flex animate-pulse flex-col gap-6" aria-hidden>
           {[0, 1, 2, 3].map((i) => (
             <div key={i}>
-              <div className="bg-white/[0.06] mb-2 h-3 w-24 rounded" />
-              <div className="bg-white/[0.06] h-11 rounded-xl" />
+              <div className="bg-bg-subtle mb-2 h-3 w-24 rounded" />
+              <div className="bg-bg-subtle h-11 rounded-xl" />
             </div>
           ))}
         </div>

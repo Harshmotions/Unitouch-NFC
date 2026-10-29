@@ -11,7 +11,7 @@ const STATUS: Record<AdminProfileStatus, { label: string; className: string }> =
   "draft-paid": { label: "Not published (paid)", className: "text-warning" },
   unpaid: { label: "Unpaid checkout", className: "text-text-muted" },
   draft: { label: "Draft, no order", className: "text-text-muted" },
-  demo: { label: "Demo", className: "text-accent-purple" },
+  demo: { label: "Demo", className: "text-accent" },
 };
 
 const FILTERS: { value: "all" | AdminProfileStatus; label: string }[] = [
@@ -116,7 +116,7 @@ export default function ProfilesList({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search by username, name, email, or order number"
-        className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted h-11 w-full max-w-md rounded-xl border px-4 text-sm outline-none transition-colors focus:border-accent-purple/50"
+        className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted h-11 w-full max-w-md rounded-xl border px-4 text-sm outline-none transition-colors focus:border-accent/50"
       />
 
       <div className="flex flex-wrap gap-2">
@@ -127,7 +127,7 @@ export default function ProfilesList({
             onClick={() => setFilter(f.value)}
             className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
               filter === f.value
-                ? "border-accent-purple bg-accent-purple/10 text-text-primary"
+                ? "border-accent bg-accent/10 text-text-primary"
                 : "border-bg-border text-text-secondary hover:text-text-primary"
             }`}
           >

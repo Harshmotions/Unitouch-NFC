@@ -32,7 +32,7 @@ export default async function AdminOrdersPage({
             name="q"
             defaultValue={q ?? ""}
             placeholder="Search order no., name, email, phone"
-            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted h-10 w-64 rounded-xl border px-3 text-sm outline-none focus:border-accent-purple/50"
+            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted h-10 w-64 rounded-xl border px-3 text-sm outline-none focus:border-accent/50"
           />
           <button className="glass text-text-secondary hover:text-text-primary h-10 rounded-xl px-4 text-sm">Search</button>
         </form>
@@ -45,7 +45,7 @@ export default async function AdminOrdersPage({
             href={href(v.value)}
             className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
               v.value === view
-                ? "border-accent-purple bg-accent-purple/10 text-text-primary"
+                ? "border-accent bg-accent/10 text-text-primary"
                 : "border-bg-border text-text-secondary hover:text-text-primary"
             }`}
           >
@@ -72,7 +72,7 @@ export default async function AdminOrdersPage({
           <Link
             key={o.id}
             href={`/admin/orders/${o.id}`}
-            className="hover:bg-white/[0.03] grid grid-cols-1 gap-2 px-5 py-4 text-sm transition-colors sm:grid-cols-[1.2fr_1.4fr_auto] sm:items-center"
+            className="hover:bg-bg-subtle grid grid-cols-1 gap-2 px-5 py-4 text-sm transition-colors sm:grid-cols-[1.2fr_1.4fr_auto] sm:items-center"
           >
             <div>
               <p className="text-text-primary font-[600]">{o.orderNumber}</p>

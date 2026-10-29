@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
 export interface ButtonProps {
-  variant: "primary" | "secondary" | "ghost" | "danger";
+  variant: "primary" | "secondary" | "ghost" | "danger" | "ink";
   size: "sm" | "md" | "lg";
   type?: "button" | "submit";
   loading?: boolean;
@@ -14,18 +14,20 @@ export interface ButtonProps {
   onClick?: (e: React.MouseEvent) => void;
 }
 
+/* Flat fills, one pill shape everywhere. Feedback is a tone step on hover
+   and a small press, never a glow. */
 const variantClasses: Record<ButtonProps["variant"], string> = {
-  primary:
-    "bg-accent-purple text-bg-base shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] hover:-translate-y-px hover:brightness-[1.07] active:translate-y-0",
-  secondary: "glass text-text-secondary hover:-translate-y-px hover:text-text-primary",
+  primary: "bg-accent text-accent-ink hover:bg-accent-hover",
+  ink: "bg-bg-ink text-text-on-ink hover:bg-black",
+  secondary: "bg-bg-subtle text-text-primary hover:bg-bg-field",
   ghost: "bg-transparent text-text-secondary hover:text-text-primary",
-  danger: "border border-error/40 bg-error/10 text-error hover:bg-error/15",
+  danger: "bg-error/10 text-error hover:bg-error/15",
 };
 
 const sizeClasses: Record<ButtonProps["size"], string> = {
-  sm: "h-9 px-4 text-sm",
-  md: "h-11 px-6 text-sm",
-  lg: "h-12 px-7 text-base",
+  sm: "h-10 px-5 text-sm",
+  md: "h-12 px-6 text-[0.9375rem]",
+  lg: "h-14 px-8 text-base",
 };
 
 export default function Button({
@@ -40,7 +42,7 @@ export default function Button({
   onClick,
 }: ButtonProps) {
   const classes = [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-display font-[500] transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-[550] transition-[background-color,color,transform] duration-[180ms] ease-out active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none",
     variantClasses[variant],
     sizeClasses[size],
     className,

@@ -23,7 +23,7 @@ export default function EmailTypoHint({
       <button
         type="button"
         onClick={() => onAccept(fixed)}
-        className="text-accent-purple font-[600] underline-offset-2 hover:underline"
+        className="text-accent font-[600] underline-offset-2 hover:underline"
       >
         {fixed}
       </button>

@@ -73,7 +73,7 @@ export default function OrderStatusForm({
               onClick={() => setStatus(s.value)}
               className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
                 status === s.value
-                  ? "border-accent-purple bg-accent-purple/10 text-text-primary"
+                  ? "border-accent bg-accent/10 text-text-primary"
                   : "border-bg-border text-text-secondary hover:text-text-primary"
               }`}
             >
@@ -97,12 +97,12 @@ export default function OrderStatusForm({
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
           placeholder="Only visible to admins"
-          className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted focus:border-accent-purple/50 w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
+          className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted focus:border-accent/50 w-full rounded-xl border px-4 py-3 text-sm outline-none transition-colors"
         />
       </div>
 
       {willEmail && (
-        <p className="border-accent-purple/30 bg-accent-purple/10 text-text-secondary rounded-xl border px-4 py-3 text-xs">
+        <p className="border-accent/30 bg-accent/10 text-text-secondary rounded-xl border px-4 py-3 text-xs">
           Saving will email the customer that their card has shipped
           {tracking.trim() ? `, with tracking "${tracking.trim()}"` : ""}.
         </p>

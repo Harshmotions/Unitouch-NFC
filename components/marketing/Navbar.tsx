@@ -1,28 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
-import gsap from "gsap";
 import Button from "@/components/ui/Button";
 import { handleHashLinkClick, smoothScrollToTop } from "@/lib/scroll";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const NAV_LINKS = [
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
+  { label: "How it works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
+  { label: "FAQ", href: "#faq" },
+  { label: "Demo profile", href: "/u/priya" },
 ];
 
+/* One navigation for every public page: the wordmark, four plain links, the
+   sign-in link and the one action. On the homepage the section links scroll
+   (Lenis); anywhere else they go to "/#section". On a phone the links open
+   in a full-screen sheet from a "Menu" button. */
 export default function Navbar() {
-  const navRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
+  const onHome = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
-  // null = session not checked yet (render no CTA to avoid a signed-out flash).
+  // null = not checked yet: render neither state, so nothing flashes.
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -34,158 +36,101 @@ export default function Navbar() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Already on the homepage — a Link to the same route is a no-op, so
-  // scroll back to the top ourselves instead of just sitting there.
+  useEffect(() => {
+    document.documentElement.style.overflow = menuOpen ? "hidden" : "";
+    if (menuOpen) window.lenisInstance?.stop();
+    else window.lenisInstance?.start();
+  }, [menuOpen]);
+
   function handleLogoClick(e: MouseEvent) {
-    if (pathname === "/") {
+    setMenuOpen(false);
+    if (onHome) {
       e.preventDefault();
       smoothScrollToTop();
     }
   }
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (!navRef.current) return;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (prefersReducedMotion) return;
-
-    const el = navRef.current;
-    let tween: gsap.core.Tween | undefined;
-
-    function playIntro() {
-      tween?.kill();
-      // Clears any inline style a previous, interrupted run left behind
-      // (e.g. navigating away mid-animation) before replaying.
-      gsap.set(el, { clearProps: "all" });
-      tween = gsap.from(el, { y: -24, opacity: 0, duration: 0.6, delay: 0.1, ease: "power2.out" });
-    }
-
-    playIntro();
-
-    // Browsers can restore this exact page from the back/forward cache when
-    // navigating back to it — a mid-flight tween freezes and resumes as-is,
-    // with no fresh mount/effect run. Replay cleanly when that happens.
-    function handlePageShow(e: PageTransitionEvent) {
-      if (e.persisted) playIntro();
-    }
-    window.addEventListener("pageshow", handlePageShow);
-
-    return () => {
-      window.removeEventListener("pageshow", handlePageShow);
-      tween?.kill();
+  const linkProps = (href: string) => {
+    if (!href.startsWith("#")) return { href, onClick: () => setMenuOpen(false) };
+    if (!onHome) return { href: `/${href}`, onClick: () => setMenuOpen(false) };
+    return {
+      href,
+      onClick: (e: MouseEvent) => {
+        setMenuOpen(false);
+        handleHashLinkClick(href)(e);
+      },
     };
-  }, []);
+  };
+
+  const account =
+    signedIn === null ? null : signedIn ? (
+      <Link href="/studio" className="link-draw">
+        Your profile
+      </Link>
+    ) : (
+      <Link href="/login" className="link-draw">
+        Log in
+      </Link>
+    );
 
   return (
-    <nav
-      ref={navRef}
-      className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl transition-colors duration-300 ${
-        scrolled
-          ? "border-white/[0.07] bg-bg-base/80"
-          : "border-transparent bg-bg-base/40"
-      }`}
-    >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Unitouch" width={28} height={28} />
-          <span className="font-display text-text-primary text-lg font-[600]">
-            Unitouch
-          </span>
+    <header className="bg-bg-base sticky top-0 z-50">
+      <div className="flex h-16 items-center justify-between gap-6 px-[var(--margin)] md:h-[4.5rem]">
+        <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2.5" aria-label="Unitouch home">
+          <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} priority />
+          <span className="font-display text-[1.25rem] font-[650]">Unitouch</span>
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={handleHashLinkClick(link.href)}
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
-            >
-              {link.label}
-            </a>
-          ))}
-          <Link
-            href="/u/priya"
-            className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
+        <nav aria-label="Main" className="hidden items-center gap-8 text-[0.9375rem] lg:flex">
+          {NAV_LINKS.map((link) => {
+            const { href, onClick } = linkProps(link.href);
+            return (
+              <a key={link.label} href={href} onClick={onClick} className="link-draw">
+                {link.label}
+              </a>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-5 text-[0.9375rem]">
+          <span className="hidden min-w-[5.5rem] text-right lg:inline">{account}</span>
+          <Button variant="primary" size="sm" href="/order">
+            <span>
+              Order<span className="hidden sm:inline"> your card</span>
+            </span>
+          </Button>
+          <button
+            type="button"
+            className="h-10 px-1 font-[550] lg:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((open) => !open)}
           >
-            Demo Profile
-          </Link>
+            {menuOpen ? "Close" : "Menu"}
+          </button>
         </div>
-
-        <div className="hidden min-h-9 items-center md:flex">
-          {signedIn === true && (
-            <Button variant="primary" size="sm" href="/studio">
-              Customize Profile
-            </Button>
-          )}
-          {signedIn === false && (
-            <Link
-              href="/login"
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
-            >
-              Already a customer? <span className="text-text-primary font-[500]">Log in</span>
-            </Link>
-          )}
-        </div>
-
-        <button
-          aria-label="Toggle menu"
-          className="text-text-primary md:hidden"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
       </div>
 
+      {/* Phone and tablet: a full-screen sheet of large links. */}
       <div
-        className={`bg-bg-base overflow-hidden border-t border-white/[0.06] transition-[max-height] duration-300 md:hidden ${
-          menuOpen ? "max-h-80" : "max-h-0"
-        }`}
+        id="mobile-menu"
+        hidden={!menuOpen}
+        className="bg-bg-base fixed inset-x-0 top-16 bottom-0 overflow-y-auto px-[var(--margin)] pt-8 pb-12 md:top-[4.5rem] lg:hidden"
       >
-        <div className="flex flex-col gap-4 px-6 py-6">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
-              onClick={(e) => {
-                handleHashLinkClick(link.href)(e);
-                setMenuOpen(false);
-              }}
-            >
-              {link.label}
-            </a>
-          ))}
-          <Link
-            href="/u/priya"
-            className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
-            onClick={() => setMenuOpen(false)}
-          >
-            Demo Profile
-          </Link>
-          {signedIn === true && (
-            <Button variant="primary" size="sm" href="/studio">
-              Customize Profile
-            </Button>
-          )}
-          {signedIn === false && (
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors duration-200"
-            >
-              Already a customer? <span className="text-text-primary font-[500]">Log in</span>
-            </Link>
-          )}
-        </div>
+        <nav aria-label="Main" className="flex flex-col gap-5">
+          {NAV_LINKS.map((link) => {
+            const { href, onClick } = linkProps(link.href);
+            return (
+              <a key={link.label} href={href} onClick={onClick} className="font-display text-[2.25rem] font-[600]">
+                {link.label}
+              </a>
+            );
+          })}
+          <span className="font-display text-text-secondary text-[2.25rem] font-[600]">
+            {account ?? <Link href="/login">Log in</Link>}
+          </span>
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }

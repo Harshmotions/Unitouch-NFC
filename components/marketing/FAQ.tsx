@@ -1,9 +1,7 @@
-"use client";
-
-import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import Reveal from "@/components/motion/Reveal";
 
-const FAQS = [
+export const FAQS = [
   {
     question: "How does NFC work?",
     answer:
@@ -21,12 +19,11 @@ const FAQS = [
   },
   {
     question: "What if I lose my card?",
-    answer:
-      "Reach out to support and we'll get a replacement card programmed with your existing profile.",
+    answer: "Reach out to support and we'll get a replacement card programmed with your existing profile.",
   },
   {
     question: "How long does delivery take?",
-    answer: "Roughly 5–7 days from order to delivery. See the full process timeline above.",
+    answer: "Roughly 5 to 7 days from order to delivery. Delivery is free anywhere in India.",
   },
   {
     question: "Do you ship across India?",
@@ -35,7 +32,7 @@ const FAQS = [
   {
     question: "Can I order for my entire team?",
     answer:
-      "Yes — for groups we put together a custom package with bulk pricing and centralized setup. Reach out and we'll scope it, or place multiple individual orders yourself.",
+      "Yes. For groups we put together a custom package with bulk pricing and centralized setup. Reach out and we'll scope it, or place multiple individual orders yourself.",
   },
   {
     question: "What's the difference between plans?",
@@ -44,57 +41,38 @@ const FAQS = [
   },
 ];
 
+/* A wide heading and the questions indented beneath it to the right, so the
+   empty ground under the heading is the composition. Native <details>, so
+   it works without script and with the keyboard. The page also publishes
+   these as FAQPage structured data (app/(marketing)/page.tsx). */
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
   return (
-    <section id="faq" className="bg-bg-subtle px-6 py-24 md:py-28">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-16 flex flex-col items-center gap-4 text-center">
-          <span className="eyebrow">FAQ</span>
-          <h2 className="font-display text-h2 text-text-primary font-[600]">
-            Questions? We&apos;ve got answers.
-          </h2>
-        </div>
+    <section id="faq" aria-labelledby="faq-heading" className="scroll-mt-16 px-[var(--margin)] py-28 md:py-40">
+      <h2
+        id="faq-heading"
+        className="font-display max-w-[14ch] text-[clamp(2.5rem,1rem+5.4vw,5.5rem)] leading-[0.98] font-[700]"
+      >
+        Questions, answered
+      </h2>
 
-        <div className="flex flex-col gap-3">
-          {FAQS.map((faq, i) => {
-            const isOpen = openIndex === i;
-            return (
-              <div
-                key={faq.question}
-                className={`surface-card rounded-2xl transition-colors duration-200 ${
-                  isOpen ? "border-accent-purple/25" : ""
-                }`}
-              >
-                <button
-                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                  onClick={() => setOpenIndex(isOpen ? null : i)}
-                >
-                  <span className="font-display text-text-primary font-[500]">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    className={`size-4 shrink-0 transition-transform duration-300 ${
-                      isOpen ? "text-accent-purple rotate-180" : "text-text-muted"
-                    }`}
-                  />
-                </button>
-                <div
-                  className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    isOpen ? "opacity-100" : "opacity-0"
-                  }`}
-                  style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-                >
-                  <p className="text-text-secondary min-h-0 px-6 pb-5 text-sm leading-relaxed">
-                    {faq.answer}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <Reveal className="mt-14 flex flex-col gap-2 md:mt-20 md:ml-[33.333%]">
+        {FAQS.map((faq) => (
+          <details
+            key={faq.question}
+            className="group -mx-[var(--margin)] px-[var(--margin)] py-1 transition-colors duration-[240ms] open:bg-bg-subtle md:mx-[calc(var(--margin)*-0.75)] md:rounded-[14px] md:px-[calc(var(--margin)*0.75)]"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-[1.25rem] md:text-[1.5rem] [&::-webkit-details-marker]:hidden">
+              {faq.question}
+              <ChevronDown
+                aria-hidden
+                strokeWidth={2}
+                className="size-5 shrink-0 transition-transform duration-[240ms] ease-[var(--ease-out)] group-open:rotate-180"
+              />
+            </summary>
+            <p className="max-w-[48ch] pb-6 text-[1.0625rem]">{faq.answer}</p>
+          </details>
+        ))}
+      </Reveal>
     </section>
   );
 }

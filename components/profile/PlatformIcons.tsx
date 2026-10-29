@@ -76,14 +76,14 @@ export const PLATFORMS: Record<PlatformKey, { Icon: ComponentType<IconProps> }> 
    needs these to appear verbatim in source, not built via string
    interpolation). Icons render white on top of these. */
 const PLATFORM_BG: Record<PlatformKey, string> = {
-  phone: "bg-gradient-to-br from-[#7BED8F] to-[#1FA83C]",
-  whatsapp: "bg-gradient-to-br from-[#2EE85A] to-[#0DA746]",
-  email: "bg-gradient-to-br from-[#5AC8FA] to-[#2563EB]",
-  website: "bg-gradient-to-br from-[#5AC8FA] to-[#0284C7]",
-  instagram: "bg-gradient-to-br from-[#FED373] via-[#E1306C] to-[#833AB4]",
-  linkedin: "bg-gradient-to-br from-[#0A66C2] to-[#004182]",
-  twitter: "bg-gradient-to-br from-[#3A3A3A] to-[#000000]",
-  youtube: "bg-gradient-to-br from-[#FF3B30] to-[#CC0000]",
+  phone: "bg-[#30B04F]",
+  whatsapp: "bg-[#25D366]",
+  email: "bg-[#2563EB]",
+  website: "bg-[#0284C7]",
+  instagram: "bg-[#E1306C]",
+  linkedin: "bg-[#0A66C2]",
+  twitter: "bg-[#111111]",
+  youtube: "bg-[#FF0000]",
 };
 
 /* Custom/arbitrary links (added during checkout, no known PlatformKey) show
@@ -100,7 +100,7 @@ function faviconUrl(href: string): string | null {
 }
 
 /* One grid cell: the app-icon-style badge (rounded square, real brand
-   colour/gradient — like the platform's actual home-screen icon) with its
+   colour, like the platform's actual home-screen icon) with its
    label underneath. Custom/arbitrary links (no known PlatformKey) fall back
    to a neutral badge since there's no brand colour to key off of. */
 export function PlatformTile({
@@ -128,7 +128,7 @@ export function PlatformTile({
       className="group flex w-14 shrink-0 flex-col items-center gap-2 transition-transform duration-200 active:scale-[0.94] sm:w-16"
     >
       <span
-        className={`${bg} flex size-14 items-center justify-center rounded-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5)] transition-shadow duration-200 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.25),0_0_18px_-2px_var(--color-accent-purple-glow)] sm:size-16`}
+        className={`${bg} flex size-14 items-center justify-center rounded-2xl transition-transform duration-200 group-hover:-translate-y-0.5 sm:size-16`}
       >
         {PlatformGlyph ? (
           <PlatformGlyph className="size-6 text-white sm:size-7" />

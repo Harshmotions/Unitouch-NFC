@@ -12,7 +12,7 @@ function Stat({ label, value, hint, href }: { label: string; value: string | num
     </>
   );
   return href ? (
-    <Link href={href} className="surface-card hover:border-accent-purple/40 rounded-2xl p-5 transition-colors">
+    <Link href={href} className="surface-card hover:border-accent/40 rounded-2xl p-5 transition-colors">
       {body}
     </Link>
   ) : (
@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-text-primary font-[600]">Fulfilment queue</h2>
-          <Link href="/admin/orders" className="text-accent-purple text-sm hover:underline">
+          <Link href="/admin/orders" className="text-accent text-sm hover:underline">
             All orders →
           </Link>
         </div>
@@ -60,7 +60,7 @@ export default async function AdminDashboardPage() {
             <Link
               key={o.id}
               href={`/admin/orders/${o.id}`}
-              className="hover:bg-white/[0.03] flex items-center justify-between gap-4 px-5 py-4 text-sm transition-colors"
+              className="hover:bg-bg-subtle flex items-center justify-between gap-4 px-5 py-4 text-sm transition-colors"
             >
               <div className="min-w-0">
                 <p className="text-text-primary font-[500]">
@@ -83,7 +83,7 @@ export default async function AdminDashboardPage() {
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-text-primary font-[600]">Profiles</h2>
-          <Link href="/admin/profiles" className="text-accent-purple text-sm hover:underline">
+          <Link href="/admin/profiles" className="text-accent text-sm hover:underline">
             All profiles →
           </Link>
         </div>

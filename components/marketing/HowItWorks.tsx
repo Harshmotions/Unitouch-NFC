@@ -1,139 +1,62 @@
-const STEPS = [
+import Image from "next/image";
+import Reveal from "@/components/motion/Reveal";
+
+/* Three stages, ordered by size: each tile is taller than the one before,
+   bottom-aligned, so the row reads left to right like something growing.
+   The words sit under each tile on its left edge. */
+const STAGES = [
   {
-    title: "Order Your Card",
-    duration: "5 minutes",
-    description: "Pick a card type and enter your details. Takes about 5 minutes, no design skills needed.",
+    name: "You order",
+    text: "Pick Standard or Premium, choose your profile link and pay. About five minutes, no account needed.",
+    image: { src: "/home/order-form.webp", alt: "The first step of the Unitouch order form: account type, name and email", w: 732, h: 980 },
+    span: "md:col-span-3",
+    tile: "bg-bg-subtle md:h-[30vh] md:min-h-[15rem]",
+    img: "w-[78%] md:w-[82%]",
   },
   {
-    title: "We Design It",
-    duration: "24–48 hrs",
-    description: "Our team builds your card layout and live profile, ready for a quick approval from you.",
+    name: "We make it",
+    text: "We design your card with you, print it and program its chip. It reaches you in 5 to 7 days.",
+    image: { src: "/cards/card-front.webp", alt: "The front of a Unitouch card: the fingerprint U and the wordmark", w: 1200, h: 900 },
+    span: "md:col-span-4",
+    tile: "bg-bg-border md:h-[44vh] md:min-h-[21rem]",
+    img: "w-[92%]",
   },
   {
-    title: "Card is Printed",
-    duration: "2–3 days",
-    description: "Your approved design goes to print in a premium matte finish, built to last daily use.",
-  },
-  {
-    title: "NFC Programmed",
-    duration: "Same day",
-    description: "We program the embedded chip to link straight to your live profile before it ships.",
-  },
-  {
-    title: "Shipped to You",
-    duration: "1–2 days",
-    description: "Tracked shipping straight to your door, anywhere in India.",
-  },
-  {
-    title: "Tap & Share",
-    duration: "Forever",
-    description: "Tap on the back of any phone to share everything instantly. No app, no battery, ever.",
+    name: "You tap",
+    text: "Hold it to the back of any phone. Your profile opens, and your contact is one tap from saved.",
+    image: { src: "/cards/card-back.webp", alt: "The back of a Unitouch card with the owner's name and title", w: 1200, h: 900 },
+    span: "md:col-span-5",
+    tile: "bg-bg-field md:h-[60vh] md:min-h-[28rem]",
+    img: "w-[96%]",
   },
 ];
 
-function StepNumber({ index, align }: { index: number; align: "start" | "end" }) {
-  return (
-    <div className={`flex items-center gap-3 ${align === "end" ? "justify-end" : ""}`}>
-      {align === "end" && (
-        <>
-          <span className="text-accent-purple font-display text-3xl font-[700]">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <span className="bg-accent-purple size-2 shrink-0 rounded-full" />
-          <span className="bg-accent-purple/50 hidden h-px w-8 md:block" />
-        </>
-      )}
-      {align === "start" && (
-        <>
-          <span className="bg-accent-purple/50 hidden h-px w-8 md:block" />
-          <span className="bg-accent-purple size-2 shrink-0 rounded-full" />
-          <span className="text-accent-purple font-display text-3xl font-[700]">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-        </>
-      )}
-    </div>
-  );
-}
-
-function StepContent({ title, duration, description }: { title: string; duration: string; description: string }) {
-  return (
-    <div className="mt-3">
-      <div className="mb-2 flex items-center gap-2">
-        <h3 className="font-display text-text-primary font-[600]">{title}</h3>
-        <span className="bg-accent-purple/10 text-accent-purple inline-block rounded-full border border-accent-purple/15 px-2.5 py-0.5 text-xs">
-          {duration}
-        </span>
-      </div>
-      <p className="text-text-secondary max-w-sm text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-}
-
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-bg-subtle px-6 py-24 md:py-28">
-      <div className="mx-auto w-full max-w-5xl">
-        <div className="mb-20 flex flex-col items-center gap-4 text-center">
-          <span className="eyebrow">The Process</span>
-          <h2 className="font-display text-h2 text-text-primary font-[600]">
-            From order to first tap in 5–7 days.
-          </h2>
-        </div>
-
-        {/* Desktop / tablet — alternating sides along a central vertical line */}
-        <div className="relative hidden md:block">
-          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/25" />
-
-          <div className="flex flex-col gap-14">
-            {STEPS.map((step, i) => {
-              const isRight = i % 2 === 0;
-              return (
-                <div key={step.title} className="relative grid grid-cols-2 items-start gap-x-10">
-                  <div className={isRight ? "text-right" : ""}>
-                    {!isRight && (
-                      <>
-                        <StepNumber index={i} align="end" />
-                        <div className="flex justify-end">
-                          <StepContent {...step} />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div className={isRight ? "" : "text-right"}>
-                    {isRight && (
-                      <>
-                        <StepNumber index={i} align="start" />
-                        <StepContent {...step} />
-                      </>
-                    )}
-                  </div>
-
-                  <span className="border-accent-purple bg-bg-subtle absolute top-[18px] left-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2" />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Mobile — single left-rail timeline */}
-        <div className="flex flex-col gap-10 md:hidden">
-          {STEPS.map((step, i) => (
-            <div key={step.title} className="relative flex gap-4">
-              {i < STEPS.length - 1 && (
-                <span className="absolute top-7 left-[7px] h-[calc(100%+1.5rem)] w-px bg-white/15" />
-              )}
-              <span className="border-accent-purple bg-bg-subtle relative z-10 mt-1.5 size-4 shrink-0 rounded-full border-2" />
-              <div>
-                <span className="text-accent-purple font-display text-2xl font-[700]">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <StepContent {...step} />
-              </div>
+    <section id="how-it-works" className="scroll-mt-20 px-[var(--margin)] pt-28 pb-24 md:pt-40 md:pb-36">
+      {/* On desktop the heading sits in the empty ground above the two
+          smaller tiles, level with the top of the tallest one. */}
+      <Reveal className="relative grid gap-y-12 md:grid-cols-12 md:items-end md:gap-x-[10px]">
+        <h2 className="font-display -mb-4 text-[clamp(2rem,1.3rem+3.2vw,3.75rem)] font-[650] md:absolute md:top-0 md:left-0 md:mb-0 md:w-[58%]">
+          How it works
+        </h2>
+        {STAGES.map((stage) => (
+          <div key={stage.name} className={stage.span}>
+            <div className={`flex aspect-[4/3] items-center justify-center overflow-hidden md:aspect-auto ${stage.tile}`}>
+              <Image
+                src={stage.image.src}
+                alt={stage.image.alt}
+                width={stage.image.w}
+                height={stage.image.h}
+                sizes="(min-width: 768px) 40vw, 90vw"
+                className={`h-auto max-h-[90%] object-contain ${stage.img}`}
+              />
             </div>
-          ))}
-        </div>
-      </div>
+            <h3 className="mt-5 text-[1.5rem] font-[600]">{stage.name}</h3>
+            <p className="mt-1.5 max-w-[34ch] text-[1.0625rem]">{stage.text}</p>
+          </div>
+        ))}
+      </Reveal>
     </section>
   );
 }

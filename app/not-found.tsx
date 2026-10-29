@@ -8,7 +8,7 @@ export default function NotFound() {
   return (
     <main className="bg-bg-base flex min-h-screen flex-col items-center justify-center px-6 py-16 text-center">
       <Link href="/" className="mb-10 flex items-center gap-2">
-        <Image src="/logo.png" alt="Unitouch" width={28} height={28} />
+        <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
         <span className="font-display text-text-primary text-lg font-[600]">Unitouch</span>
       </Link>
       <h1 className="font-display text-h2 text-text-primary mb-3 font-[600]">Page not found</h1>

@@ -1,6 +1,7 @@
 import Navbar from "@/components/marketing/Navbar";
-import StickyOrderBar from "@/components/marketing/StickyOrderBar";
 
+/* The sticky navigation carries the Order button on every screen size, so
+   there's no separate floating order bar covering the page. */
 export default function MarketingLayout({
   children,
 }: Readonly<{
@@ -10,7 +11,6 @@ export default function MarketingLayout({
     <>
       <Navbar />
       {children}
-      <StickyOrderBar />
     </>
   );
 }

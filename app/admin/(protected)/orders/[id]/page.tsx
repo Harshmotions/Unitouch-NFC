@@ -102,7 +102,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                     unitouch.in/u/{order.profile.username}
                   </a>{" "}
                   <span className="text-text-muted">({order.profile.isPublished ? "live" : "not published yet"})</span>
-                  <Link href={`/admin/profiles/${order.profile.id}`} className="text-accent-purple ml-2 hover:underline">
+                  <Link href={`/admin/profiles/${order.profile.id}`} className="text-accent ml-2 hover:underline">
                     Edit
                   </Link>
                 </>

@@ -409,7 +409,7 @@ export default function IdentityFields({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="border-bg-border text-text-muted hover:text-text-primary hover:border-accent-purple/40 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-6 text-sm transition-colors"
+                className="border-bg-border text-text-muted hover:text-text-primary hover:border-accent/40 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-6 text-sm transition-colors"
               >
                 <ImagePlus className="size-4" />
                 Upload an image
@@ -425,7 +425,7 @@ export default function IdentityFields({
           {/* Username */}
           <div>
             <Label htmlFor="username">Profile link</Label>
-            <div className="border-bg-border bg-bg-elevated focus-within:border-accent-purple/50 flex h-11 items-center gap-1 rounded-xl border px-4 transition-colors">
+            <div className="border-bg-border bg-bg-elevated focus-within:border-accent/50 flex h-11 items-center gap-1 rounded-xl border px-4 transition-colors">
               <span className="text-text-muted text-sm">unitouch.in/u/</span>
               <input
                 id="username"
@@ -459,7 +459,7 @@ export default function IdentityFields({
                     <button
                       type="button"
                       onClick={() => handleUsernameChange(suggestion)}
-                      className="text-accent-purple font-[600] underline-offset-2 hover:underline"
+                      className="text-accent font-[600] underline-offset-2 hover:underline"
                     >
                       Use @{suggestion}
                     </button>

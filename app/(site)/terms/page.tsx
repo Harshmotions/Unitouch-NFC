@@ -47,7 +47,7 @@ export default function TermsPage() {
           We ship across India, and shipping is included in the price. Most orders are dispatched
           within 3 to 5 business days of payment and delivered within 5 to 7 days. Delivery
           timelines are estimates, not guarantees. Full details are in our{" "}
-          <a href="/shipping" className="text-accent-purple hover:underline">
+          <a href="/shipping" className="text-accent hover:underline">
             Shipping and Delivery Policy
           </a>
           .
@@ -76,7 +76,7 @@ export default function TermsPage() {
         <h2 className="font-display text-h3 text-text-primary font-[600]">6. Cancellations, returns, and refunds</h2>
         <p className="text-text-secondary">
           Details on cancelling an order, returns, and refunds are covered in our{" "}
-          <a href="/refunds" className="text-accent-purple hover:underline">
+          <a href="/refunds" className="text-accent hover:underline">
             Cancellation and Refund Policy
           </a>
           .
@@ -119,11 +119,11 @@ export default function TermsPage() {
         <h2 className="font-display text-h3 text-text-primary font-[600]">11. Contact us</h2>
         <p className="text-text-secondary">
           Questions about these terms can be sent to{" "}
-          <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
+          <a href="mailto:support@unitouch.in" className="text-accent hover:underline">
             support@unitouch.in
           </a>{" "}
           or by phone at{" "}
-          <a href={`tel:${BUSINESS.phone}`} className="text-accent-purple hover:underline">
+          <a href={`tel:${BUSINESS.phone}`} className="text-accent hover:underline">
             {BUSINESS.phoneDisplay}
           </a>
           .

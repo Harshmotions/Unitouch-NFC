@@ -1,180 +1,165 @@
 @import "tailwindcss";
 
+/* Unitouch light theme ("three stones"): one stone ground, a darker stone
+   step for filled panels, a lighter step for form fields, charcoal ink and a
+   single grey-green accent that only marks the main action. Surfaces are
+   told apart by tone, not by shadows, glows or gradients. The token names
+   are the old ones so every page picked up the new palette in one place. */
 @theme {
-  /* Backgrounds */
-  --color-bg-base: #080808;
-  --color-bg-elevated: #0f0f0f;
-  --color-bg-subtle: #141414;
-  --color-bg-border: #1e1e1e;
+  /* Grounds */
+  --color-bg-base: #eeecea;
+  --color-bg-elevated: #f8f7f5;
+  --color-bg-subtle: #e4e1dd;
+  --color-bg-border: #d3cec7;
+  --color-bg-field: #cdc3b6;
+  --color-bg-ink: #2b2a29;
 
-  /* Typography colors */
-  --color-text-primary: #f5f5f5;
-  --color-text-secondary: #a0a0a0;
-  --color-text-muted: #5a5a5a;
+  /* Ink */
+  --color-text-primary: #2b2a29;
+  --color-text-secondary: #5f5b57;
+  --color-text-muted: #6f6a65;
+  --color-text-on-ink: #eeecea;
 
-  /* Accent — violet (brand) */
-  --color-accent-purple: #8b5cff;
-  --color-accent-purple-glow: rgba(124, 70, 255, 0.55);
-  --color-accent-purple-glow-soft: rgba(96, 45, 200, 0.32);
+  /* The one accent: the main action, focus rings, selection */
+  --color-accent: #4f5e48;
+  --color-accent-hover: #435040;
+  --color-accent-ink: #ffffff;
 
-  /* Verified tick — universal blue, used only on profile pages */
-  --color-verified: #3b9eff;
+  /* Verified tick: universal blue, used only on profile pages */
+  --color-verified: #2f7fd6;
 
-  /* Functional */
-  --color-success: #4ade80;
-  --color-error: #f87171;
-  --color-warning: #fbbf24;
+  /* Functional, darkened to read on a light ground */
+  --color-success: #2f7a46;
+  --color-error: #b42318;
+  --color-warning: #9a5b06;
 
-  /* Type scale */
-  --text-hero: clamp(52px, 7vw, 96px);
-  --text-h1: clamp(36px, 4.5vw, 64px);
-  --text-h2: clamp(28px, 3.5vw, 48px);
-  --text-h3: clamp(22px, 2.5vw, 32px);
-  --text-body-lg: 18px;
-  --text-body: 16px;
-  --text-sm: 14px;
-  --text-xs: 12px;
+  /* Type: few sizes, far apart */
+  --text-hero: clamp(2.5rem, 1rem + 6vw, 6.5rem);
+  --text-h1: clamp(2.25rem, 1.2rem + 3.6vw, 4.5rem);
+  --text-h2: clamp(2rem, 1.3rem + 3.2vw, 4rem);
+  --text-h3: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  --text-body-lg: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --text-sm: 0.9375rem;
+  --text-xs: 0.8125rem;
 
-  /* Border radius */
+  /* One corner radius for controls and panels, decided once */
   --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-/* "inline" because these reference next/font's runtime variable names,
-   which are only resolvable on the html/body element, not at build time. */
+/* One self-hosted variable face (app/layout.tsx). The rupee sign lives in a
+   4 KB subset so the main file stays Latin-only. */
+@font-face {
+  font-family: "Unitouch Rupee";
+  src: url("/fonts/tiktok-sans-rupee.woff2") format("woff2");
+  font-weight: 300 900;
+  font-stretch: 75% 150%;
+  font-display: swap;
+  unicode-range: U+20B9;
+}
+
 @theme inline {
-  --font-display: var(--font-space-grotesk), sans-serif;
-  --font-body: var(--font-inter), sans-serif;
+  --font-display: var(--font-tiktok), "Unitouch Rupee", "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-tiktok), "Unitouch Rupee", "Helvetica Neue", Arial, sans-serif;
 }
 
 :root {
-  /* Ambient glow — kept raw, not a utility color token */
-  --color-accent-glow: rgba(124, 70, 255, 0.08);
-
-  /* Font weights */
-  --weight-hero: 700;
-  --weight-h: 600;
-  --weight-body: 400;
-  --weight-label: 500;
-
-  /* Spacing — 8px grid */
-  --space-1: 8px;
-  --space-2: 16px;
-  --space-3: 24px;
-  --space-4: 32px;
-  --space-5: 48px;
-  --space-6: 64px;
-  --space-7: 80px;
-  --space-8: 96px;
-  --space-9: 128px;
-  --space-10: 160px;
-
-  /* Motion durations */
-  --dur-fast: 0.25s;
-  --dur-normal: 0.45s;
-  --dur-slow: 0.75s;
-  --dur-hero: 1.2s;
+  color-scheme: light;
+  --margin: clamp(1rem, 2.2vw, 2rem);
+  --t-press: 140ms;
+  --t-hover: 180ms;
+  --t-ui: 240ms;
+  --t-reveal: 800ms;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* scroll-behavior intentionally omitted — Lenis (components/SmoothScroll.tsx)
-   owns all scroll easing, including anchor-link jumps. Layering native CSS
-   smooth-scroll on top would fight Lenis's per-frame position and stutter. */
+/* scroll-behavior intentionally omitted: Lenis (components/SmoothScroll.tsx)
+   owns all scroll easing, including anchor-link jumps. */
 
 body {
   background-color: var(--color-bg-base);
-  /* Soft ambient light from the top — single low-opacity radial, fixed so it
-     reads as lighting rather than a gradient blob that scrolls. */
-  background-image: radial-gradient(
-    70% 55% at 50% -8%,
-    rgba(139, 92, 255, 0.06),
-    transparent 60%
-  );
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   color: var(--color-text-primary);
   font-family: var(--font-body);
-  letter-spacing: -0.011em;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Display type sits tighter for a more crafted, premium headline feel. */
-.font-display {
-  letter-spacing: -0.02em;
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 
-/* Standardised eyebrow label — replaces ad-hoc bordered pills with a single
-   restrained, tracked uppercase mark used above every section heading. */
-.eyebrow {
-  display: inline-block;
-  color: var(--color-accent-purple);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  hyphens: none;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Headings: the same face stretched wide, tight and confident. */
+.font-display {
+  font-stretch: 125%;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+/* The wide wordmark setting (hero, footer). */
+.font-wide {
+  font-family: var(--font-display);
+  font-stretch: 150%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 0.9;
   text-transform: uppercase;
 }
 
-/* Glass-edge stroke: a gradient border bright at the top-right and
-   bottom-left corners, fading to nothing in between — light catching
-   the rim of glass, rather than a flat uniform border. */
-.glass-border {
-  position: relative;
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
-.glass-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0) 35%,
-    rgba(255, 255, 255, 0) 65%,
-    rgba(255, 255, 255, 0.55) 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Premium frosted glass — restrained Apple-style: realistic low-opacity
-   translucency, a gentle blur, a hairline border, and a single soft highlight
-   along the top edge. No milky fill, no neon, no heavy glassmorphism. Used on
-   secondary CTAs, floating controls, and profile action elements. */
+/* Formerly frosted glass. The light theme has no glass: these are flat
+   tone-step surfaces, so every page that used them stays consistent. */
 .glass,
 .glass-icon-btn,
 .glass-pill {
   position: relative;
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(14px) saturate(1.3);
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  transition: background-color var(--t-hover) ease;
 }
 
 .glass:hover,
 .glass-icon-btn:hover,
 .glass-pill:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: #ffffff;
 }
 
-/* Corner-stroke accents — a masked gradient ring that only catches light at
-   two opposite corners, like glass catching a rim light, layered on top of
-   the base hairline border above. Four variants at different angles/extents
-   so glass elements sitting near each other don't all show the identical
-   stroke position. Pair with .glass / .glass-icon-btn / .glass-pill. */
+.glass-border,
 .glass-stroke-1,
 .glass-stroke-2,
 .glass-stroke-3,
@@ -182,86 +167,104 @@ body {
   position: relative;
 }
 
-.glass-stroke-1::before,
-.glass-stroke-2::before,
-.glass-stroke-3::before,
-.glass-stroke-4::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* bottom-left / top-right, wide bright patch */
-.glass-stroke-1::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    transparent 24%,
-    transparent 76%,
-    rgba(255, 255, 255, 0.4) 100%
-  );
-}
-
-/* top-left / bottom-right, tighter patch */
-.glass-stroke-2::before {
-  background: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    transparent 30%,
-    transparent 70%,
-    rgba(255, 255, 255, 0.6) 100%
-  );
-}
-
-/* bottom-left / top-right, shifted further toward the corners */
-.glass-stroke-3::before {
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    transparent 16%,
-    transparent 62%,
-    rgba(255, 255, 255, 0.32) 100%
-  );
-}
-
-/* top-left / bottom-right, asymmetric brightness */
-.glass-stroke-4::before {
-  background: linear-gradient(
-    20deg,
-    rgba(255, 255, 255, 0.38) 0%,
-    transparent 32%,
-    transparent 84%,
-    rgba(255, 255, 255, 0.65) 100%
-  );
-}
-
-/* Premium surface card — layered depth from a faint top sheen, a hairline
-   border, an inner top highlight, and a soft grounded shadow. Replaces flat
-   AI-looking cards without making them float. */
+/* Panels on app screens (studio, checkout, admin): one lighter tone step
+   and a faint edge so form-heavy screens still read as separate blocks. */
 .surface-card {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 40%),
-    var(--color-bg-elevated);
-  border: 1px solid var(--color-bg-border);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 18px 44px -28px rgba(0, 0, 0, 0.85);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-bg-border); /* taste-skill-ignore: app-screen panels */
 }
 
-/* Accent surface — same depth language, tuned for the highlighted tier. */
 .surface-card-accent {
-  background:
-    linear-gradient(180deg, rgba(139, 92, 255, 0.08), transparent 50%),
-    var(--color-bg-elevated);
-  border: 1px solid rgba(139, 92, 255, 0.3);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 20px 50px -26px rgba(139, 92, 255, 0.3);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-accent); /* taste-skill-ignore: app-screen panels */
+}
+
+/* Reveal-on-scroll (components/motion/Reveal.tsx). Hidden states only apply
+   once JS has marked the page, and never under reduced motion, so content
+   is always there without script. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] > * {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    transition:
+      opacity 700ms var(--ease-expo),
+      transform 900ms var(--ease-expo);
+    transition-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  html.js [data-reveal].is-in > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Masked line rise for headings. */
+  html.js .rise-line {
+    display: block;
+    overflow: clip;
+  }
+
+  html.js .rise-line > span {
+    display: block;
+    transform: translate3d(0, 105%, 0);
+    animation: rise 1000ms var(--ease-expo) forwards;
+    animation-delay: calc(120ms + var(--i, 0) * 90ms);
+  }
+
+  html.js .fade-in {
+    opacity: 0;
+    animation: fade 900ms var(--ease-out) forwards;
+    animation-delay: calc(300ms + var(--i, 0) * 90ms);
+  }
+}
+
+@keyframes rise {
+  to {
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Links that answer the pointer: an underline that draws in. */
+.link-draw {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.2em;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--t-hover) ease;
+}
+
+.link-draw:hover,
+.link-draw:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+/* Hero arrival: the wordmark rises behind, the card settles in front. Both
+   are transform-only, so the first paint (and the LCP still) is never
+   hidden. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .hero-wordmark text {
+    animation: wordmark-rise 1200ms var(--ease-expo) both;
+  }
+
+  html.js .hero-card {
+    animation: card-settle 1400ms var(--ease-expo) both;
+  }
+}
+
+@keyframes wordmark-rise {
+  from {
+    transform: translateY(22%);
+    opacity: 0;
+  }
+}
+
+@keyframes card-settle {
+  from {
+    transform: translate3d(0, 40px, 0) scale(0.96);
+  }
 }

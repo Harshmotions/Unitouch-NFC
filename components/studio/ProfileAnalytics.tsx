@@ -85,7 +85,7 @@ export default function ProfileAnalytics({ username, stats }: { username: string
                 {d.views > 0 && (
                   <span
                     className={`block w-full max-w-6 rounded-t-[4px] transition-opacity ${
-                      active === null || active === i ? "bg-accent-purple" : "bg-accent-purple opacity-40"
+                      active === null || active === i ? "bg-accent" : "bg-accent opacity-40"
                     }`}
                     style={{ height: `${(d.views / max) * 100}%` }}
                   />

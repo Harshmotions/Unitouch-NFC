@@ -47,7 +47,7 @@ export default function YourOrders({ orders }: { orders: CustomerOrder[] }) {
                 {ORDER_STATUSES.map((s, i) => (
                   <span
                     key={s.value}
-                    className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-accent-purple" : "bg-white/10"}`}
+                    className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-accent" : "bg-bg-subtle"}`}
                   />
                 ))}
               </div>
