@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/* Light through a sheer curtain, falling across the whole hero: soft folds
-   of shadow that drift and billow slowly and never quite repeat. A still
+/* Light falling across a fabric-like ground over the whole hero, the way
+   Cartier's pages look: long, soft, slightly slanted shadows, each one
+   different, drifting slowly in different directions so the pattern never
+   repeats, over a fine still grain (fabric-grain.webp). A still
    frame (public/home/fabric-shade.webp, rendered from this same shader at
    START) paints first and is the reduced-motion view; once the page is
    idle a tiny WebGL shader takes over and keeps it moving. It draws at a
@@ -22,20 +24,23 @@ uniform float t;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
 return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
-float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+float fbs(vec2 p){float v=0.,a=.5;for(int i=0;i<3;i++){v+=a*n(p);p=mat2(1.6,1.2,-1.2,1.6)*p+vec2(3.1,7.7);a*=.5;}return v/.875;}
 void main(){
   vec2 uv=gl_FragCoord.xy/r.y;
-  // The breeze: a slow warp that bends the folds and moves them about.
-  float w=fbm(vec2(uv.x*.9-t*.035,uv.y*.45+t*.012));
-  float w2=fbm(vec2(uv.x*.5+t*.02,uv.y*.3-t*.01)+w);
-  // Folds: long, slightly slanted bands, like a hanging curtain.
-  float x=uv.x+uv.y*.28+w2*1.15;
-  float f=sin(x*6.5+t*.16)*.55+sin(x*11.3-t*.11+w*3.)*.3+sin(x*23.-t*.07+w2*5.)*.15;
-  f=smoothstep(-.1,1.,f);
-  // Broad patches of light and shade drifting over the folds.
-  float l=smoothstep(.3,.75,fbm(uv*.75+vec2(t*.03,-t*.018)));
-  // Mostly light, with the folds and patches going properly dark.
-  float shade=smoothstep(.22,.95,f*.6+(1.-l)*.4);
+  // Shadows fall in long, soft streaks, a little off horizontal.
+  vec2 p=mat2(.985,-.17,.17,.985)*uv;
+  // The breeze: the streaks are bent and pushed about by slow, wandering
+  // noise, so no two are alike and the pattern never repeats.
+  vec2 w=vec2(fbs(p*.45+vec2(t*.018,-t*.011)),fbs(p*.45+vec2(5.2-t*.014,1.3+t*.009)));
+  vec2 q=p+(w-.5)*vec2(.9,.35);
+  // Broad soft shadows, stretched along the streak direction.
+  float s1=fbs(vec2(q.x*.28-t*.024,q.y*1.5+t*.005));
+  // Narrower streaks drifting the other way, at a different pace.
+  float s2=fbs(vec2(q.x*.4+t*.016,q.y*3.2-t*.007)+3.7);
+  // Soft folds in the fabric: gentle ridges, never hard lines.
+  float c=1.-abs(2.*fbs(vec2(q.x*.35-t*.008,q.y*5.)+w)-1.);
+  float shade=smoothstep(.4,.82,s1)*.6+smoothstep(.47,.83,s2)*.32+smoothstep(.75,1.,c)*.18;
+  shade=smoothstep(.04,.9,shade);
   gl_FragColor=vec4(vec3(1.-shade),1.);
 }`;
 
@@ -140,11 +145,16 @@ export default function FabricShade() {
   }, []);
 
   return (
-    <div aria-hidden className="fabric-shade pointer-events-none absolute inset-0">
-      <canvas
-        ref={canvasRef}
-        className={`h-full w-full transition-opacity duration-1000 ${live ? "opacity-100" : "opacity-0"}`}
-      />
+    <div aria-hidden className="pointer-events-none absolute inset-0">
+      <div className="fabric-shade absolute inset-0">
+        <canvas
+          ref={canvasRef}
+          className={`h-full w-full transition-opacity duration-1000 ${live ? "opacity-100" : "opacity-0"}`}
+        />
+      </div>
+      {/* The weave: a fine, still grain over everything, so the ground reads
+          as a material rather than a flat colour. */}
+      <div className="fabric-grain absolute inset-0" />
     </div>
   );
 }

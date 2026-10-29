@@ -268,8 +268,16 @@ p {
    over without a jump. */
 .fabric-shade {
   background: url("/home/fabric-shade.webp") left bottom / auto 100% no-repeat;
-  opacity: 0.32;
+  opacity: 0.4;
   mix-blend-mode: multiply;
+}
+
+/* A tile of fine grain and short fibres, mid-grey on average, so soft-light
+   only roughens the ground without darkening it. */
+.fabric-grain {
+  background: url("/home/fabric-grain.webp") 0 0 / 256px 256px repeat;
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
 }
 
 @media (prefers-reduced-motion: no-preference) {

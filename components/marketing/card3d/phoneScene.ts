@@ -280,6 +280,8 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   let last = 0;
   let frame = 0;
 
+  let baseDist = 10;
+
   function resize() {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -290,13 +292,23 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     const half = Math.tan((camera.fov * Math.PI) / 360);
     const byHeight = (PH * 1.14) / (2 * half);
     const byWidth = (PH * 0.82) / (2 * half * camera.aspect);
-    camera.position.set(0, 0.15, Math.max(byHeight, byWidth));
-    camera.lookAt(0, 0, 0);
+    baseDist = Math.max(byHeight, byWidth);
     camera.updateProjectionMatrix();
     render();
   }
 
   function render() {
+    /* Before the story starts (p below 0, while the section is still
+       coming up the screen) the phone is already turning towards its
+       starting pose, so it's moving from the moment it appears and flows
+       straight into the story with no start. The camera also eases in a
+       little over the whole story, so the frame is never perfectly still
+       between steps. */
+    const pre = Math.min(0, p);
+    const along = clamp(p);
+    camera.position.set(0, 0.15 + pre * 0.4, baseDist * (1.06 - 0.06 * along - pre * 0.25));
+    camera.lookAt(0, pre * 0.3, 0);
+
     // 1. The card flies in on a curve, turning on all three axes as it
     //    comes, and taps the upper back of the phone (0 to 0.18). It rests
     //    there a beat, then sweeps off to the upper left (0.22 to 0.42)
@@ -305,7 +317,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     const leave = soft(0.22, 0.42, p);
     const press = Math.sin(Math.PI * clamp((p - 0.16) / 0.07)) * 0.05;
     const hover = Math.sin(t * 1.1) * 0.025 * (1 - approach + leave);
-    const ax = curve(2.5, 1.5, 0.1, approach);
+    const ax = curve(2.5 - pre * 2, 1.5, 0.1, approach);
     const ay = curve(1.7, 0.5, 0.05, approach);
     const az = curve(1.8, 1.5, 0.72 - press, approach);
     card.group.position.set(
@@ -321,13 +333,13 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     card.group.visible = leave < 0.999;
 
     // 2. The phone turns round from its back to its front as the screen
-    //    wakes (0.2 to 0.5), lifting a little on the way like it's picked
+    //    wakes (0.18 to 0.55), lifting a little on the way like it's picked
     //    up, then settles with a slow sway.
-    const reveal = soft(0.2, 0.5, p);
+    const reveal = soft(0.18, 0.55, p);
     const lift = Math.sin(Math.PI * reveal);
     const sway = Math.sin(t * 0.5) * 0.04;
-    turn.rotation.y = mix(Math.PI - 0.55, -0.22, reveal) + sway;
-    turn.rotation.x = mix(0.12, -0.06, reveal) - lift * 0.1 + Math.sin(t * 0.4) * 0.02;
+    turn.rotation.y = mix(Math.PI - 0.55, -0.22, reveal) + sway + pre * 2.4 + (along - 0.5) * 0.16;
+    turn.rotation.x = mix(0.12, -0.06, reveal) - lift * 0.1 + Math.sin(t * 0.4) * 0.02 - pre * 0.35;
     turn.rotation.z = mix(-0.05, 0.03, reveal) + lift * 0.04;
     turn.position.y = Math.sin(t * 0.7) * 0.03 + lift * 0.08;
     turn.position.z = lift * 0.25;
@@ -343,14 +355,14 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     ripple.scale.setScalar(0.6 + r * 2.4);
     rippleMat.opacity = r > 0 && r < 1 ? (1 - r) * 0.7 : 0;
 
-    // 3. The profile scrolls down to the links (0.52 to 0.74).
-    const scroll = soft(0.52, 0.74, p);
+    // 3. The profile scrolls down to the links (0.48 to 0.8).
+    const scroll = soft(0.48, 0.8, p);
     const shot = screenMat.map;
     if (shot) shot.offset.y = mix(0, 1 - VIEW_H / SHOT_H, scroll);
 
     // 4. "Contact saved" grows out of the Dynamic Island and drops just
-    //    below it (0.78 to 0.92), all inside the screen, like iOS does.
-    const saved = soft(0.78, 0.92, p);
+    //    below it (0.8 to 0.95), all inside the screen, like iOS does.
+    const saved = soft(0.8, 0.95, p);
     const drop = settle(saved);
     pillMat.opacity = clamp(saved * 25);
     toastMat.opacity = soft(0.45, 1, saved);
@@ -373,7 +385,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     /* Follow the scroll position on a critically damped spring: the story
        picks up speed gently, glides, and comes to rest without a bump, even
        when the page is scrolled in jumps (a mouse wheel's notches). */
-    const W0 = 5.2;
+    const W0 = 3.4;
     for (let i = 0; i < 2; i++) {
       const h = dt / 2;
       v += (W0 * W0 * (target - p) - 2 * W0 * v) * h;
@@ -388,7 +400,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   return {
     ready: ready.then(() => render()),
     setProgress(v: number) {
-      target = clamp(v);
+      target = clamp(v, -1, 1);
     },
     start() {
       if (running) return;

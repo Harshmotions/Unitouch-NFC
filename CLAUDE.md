@@ -72,14 +72,17 @@ fail or are skipped, and everything else works.
 ## What's built
 
 **Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card that
-casts a soft shadow on an invisible wall behind it; full-bleed moving
-"light through a sheer curtain" shadows from `FabricShade.tsx`, a tiny
-plain-WebGL shader whose still `public/home/fabric-shade.webp` paints first
-and is preloaded because it's the LCP element; the hero runs up behind the
+casts a soft shadow on an invisible wall behind it; a full-bleed
+Cartier-like fabric ground from `FabricShade.tsx`: long, soft, random
+shadow streaks drifting from a tiny plain-WebGL noise shader, whose still
+`public/home/fabric-shade.webp` paints first and is preloaded, plus a fine
+grain tile `public/home/fabric-grain.webp`; the hero runs up behind the
 navbar, which is see-through only at the top of the homepage; it stops
 short of the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
 equal numbered steps), PhoneStory (sticky 3D iPhone; the scene follows the
-scroll on a critically damped spring, the canvas has feathered edges
+scroll on a soft critically damped spring, starts turning while the section
+is still coming up the screen (`PRE_ROLL`, negative progress) and keeps a
+slow camera drift so it never sits still between steps, the canvas has feathered edges
 (`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
 step text rises word by word out of clipping masks, `.mask-word`),
 MakeItYours (live preview: the client's name on the front, a real QR code

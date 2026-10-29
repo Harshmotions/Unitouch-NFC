@@ -24,6 +24,10 @@ const STEPS = [
   },
 ];
 
+// How far into its turn the phone starts, in story progress, before the
+// section reaches the top of the screen.
+const PRE_ROLL = 0.3;
+
 /* Splits text into words, each in its own clipping mask, so a step's words
    can rise into view one after another (the mask-word rules in
    globals.css). The masks are for looks only: the words read as one line. */
@@ -62,12 +66,19 @@ export default function PhoneStory() {
     let visible = false;
     let raf = 0;
 
-    // Progress: 0 when the section's top reaches the top of the screen,
-    // 1 when its bottom reaches the bottom.
+    /* Progress: 0 when the section's top reaches the top of the screen,
+       1 when its bottom reaches the bottom. While the section is still
+       coming up the screen it runs from -PRE_ROLL to 0, so the phone is
+       already turning the moment it appears and flows into the story
+       without a start. */
     const progress = () => {
       const r = section.getBoundingClientRect();
       const span = r.height - window.innerHeight;
-      return span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0;
+      if (span <= 0) return 0;
+      const raw = -r.top / span;
+      if (raw >= 0) return Math.min(1, raw);
+      const entering = window.innerHeight / span;
+      return -PRE_ROLL * Math.min(1, -raw / entering);
     };
 
     const onScroll = () => {
@@ -75,7 +86,7 @@ export default function PhoneStory() {
       raf = requestAnimationFrame(() => {
         const p = progress();
         scene?.setProgress(p);
-        setActive(Math.min(STEPS.length - 1, Math.floor(p * STEPS.length * 0.999)));
+        setActive(Math.min(STEPS.length - 1, Math.floor(Math.max(0, p) * STEPS.length * 0.999)));
       });
     };
 
