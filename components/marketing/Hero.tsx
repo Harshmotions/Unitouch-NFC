@@ -13,7 +13,7 @@ const FACTS = [`From ₹${FROM_PRICE}, one payment`, "Free delivery in 5 to 7 da
    on the right, turning slowly and casting a soft shadow on the wall
    behind it, while light through a sheer curtain drifts across the whole
    hero (it runs up behind the see-through navigation bar too). On load the
-   card floats up into place out of a blur (CSS, on its still, so it plays
+   card floats up and tilts into place (CSS, on its still, so it plays
    on the first paint); the live 3D scene takes over once the page is idle.
    The hero stops short of the fold so the next section's band peeks in. */
 export default function Hero() {

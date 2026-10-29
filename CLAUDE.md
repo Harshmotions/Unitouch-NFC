@@ -74,9 +74,12 @@ fail or are skipped, and everything else works.
 **Marketing homepage** (`app/(marketing)/page.tsx`): a first-visit intro
 loader (`PageLoader.tsx`: ink ground, U mark + wordmark, hairline bar, then
 4 x 16 slats thin away in a wave; driven by an inline script + CSS, once per
-browser session, skipped with reduced motion, opens when the hero card's 3D
-fires `unitouch:hero-ready` or a second after load, capped at 5 s; while
-`html.loading` is set the hero entrances are paused and Lenis is stopped),
+browser session, skipped with reduced motion; it opens only once the hero
+card, the fabric shader and the phone scene have each called `markReady()`
+(`lib/loader.ts`, on success or failure; the phone boots straight away
+while the loader is up) and the browser is idle, capped at 6 s, so their
+start-up never stutters the reveal; while `html.loading` is set the hero
+entrances are paused and Lenis is stopped),
 Hero (3D card that
 casts a soft shadow on an invisible wall behind it; a full-bleed
 Cartier-like fabric ground from `FabricShade.tsx`: long, soft, random

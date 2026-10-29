@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { PhoneScene } from "@/components/marketing/card3d/phoneScene";
+import { loaderShowing, markReady } from "@/lib/loader";
 
 const STEPS = [
   {
@@ -110,11 +111,15 @@ export default function PhoneStory() {
         sync();
       } catch {
         // No 3D: the still stays.
+      } finally {
+        markReady("phone");
       }
     };
 
     // Load the scene a screen or so before the section arrives, but never
-    // before the page itself has loaded and gone idle.
+    // before the page itself has loaded and gone idle. While the first-visit
+    // loader is up, load it straight away instead, so its download and
+    // start-up happen behind the loader rather than mid-scroll.
     const whenIdle = (fn: () => void) => {
       const go = () => (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(fn, { timeout: 3000 });
       if (document.readyState === "complete") go();
@@ -129,7 +134,8 @@ export default function PhoneStory() {
       },
       { rootMargin: "120% 0px" }
     );
-    near.observe(section);
+    if (loaderShowing()) whenIdle(() => void boot());
+    else near.observe(section);
 
     const onScreen = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;

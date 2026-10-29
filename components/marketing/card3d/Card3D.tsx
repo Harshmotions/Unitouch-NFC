@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { CardScene, CardSceneOptions } from "./scene";
+import { markReady } from "@/lib/loader";
 
 interface Props extends CardSceneOptions {
   /** Pre-rendered still of the same scene, shown on first paint. */
@@ -59,11 +60,11 @@ export default function Card3D({
         await scene.ready;
         if (cancelled) return;
         setLive(true);
-        // Lets the first-visit loader (PageLoader.tsx) open on a ready hero.
-        window.dispatchEvent(new Event("unitouch:hero-ready"));
         sync();
       } catch {
         // No 3D: the poster simply stays.
+      } finally {
+        markReady("hero");
       }
     };
 

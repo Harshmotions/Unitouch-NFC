@@ -20,15 +20,15 @@ const COLS = 16;
 
 const SCRIPT = `(function(){var d=document.documentElement;
 try{if(sessionStorage.getItem('ut-intro')||matchMedia('(prefers-reduced-motion: reduce)').matches)return}catch(e){}
-d.classList.add('loading');var t0=Date.now(),done=false;
-function finish(){if(done)return;done=true;setTimeout(function(){
-d.classList.add('loader-done');try{sessionStorage.setItem('ut-intro','1')}catch(e){}
+d.classList.add('loading');var t0=Date.now(),done=false,ready={};
+function open(){d.classList.add('loader-done');try{sessionStorage.setItem('ut-intro','1')}catch(e){}
 setTimeout(function(){d.classList.remove('loading');window.dispatchEvent(new Event('unitouch:loaded'))},450);
-setTimeout(function(){d.classList.add('loader-gone')},1900)},Math.max(0,1500-(Date.now()-t0)))}
-addEventListener('unitouch:hero-ready',finish);
-function loaded(){setTimeout(finish,1000)}
-if(document.readyState==='complete')loaded();else addEventListener('load',loaded);
-setTimeout(finish,5000)})();`;
+setTimeout(function(){d.classList.add('loader-gone')},1900)}
+function finish(){if(done)return;done=true;setTimeout(function(){
+requestAnimationFrame(function(){requestAnimationFrame(function(){
+(window.requestIdleCallback||function(f){setTimeout(f,150)})(open,{timeout:400})})})},Math.max(0,1500-(Date.now()-t0)))}
+addEventListener('unitouch:ready',function(e){ready[e.detail]=1;if(ready.hero&&ready.fabric&&ready.phone)finish()});
+setTimeout(finish,6000)})();`;
 
 export default function PageLoader() {
   return (

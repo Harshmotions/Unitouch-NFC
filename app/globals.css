@@ -294,11 +294,7 @@ p {
 @keyframes card-float-in {
   from {
     opacity: 0.01;
-    filter: blur(14px);
     transform: perspective(1200px) translate3d(0, 90px, 0) rotateX(22deg) scale(0.92);
-  }
-  60% {
-    filter: blur(0);
   }
 }
 
@@ -403,8 +399,8 @@ html.loading :is(.rise-line > *, .fade-in, .hero-card) {
   animation-play-state: paused;
 }
 
-/* The ground: 4 x 16 slats of ink, each a hair wider than its cell so no
-   seams show. */
+/* The ground: 4 x 16 slats of ink, each a pixel wider and taller than its
+   cell so no seams show between them at fractional sizes. */
 .page-loader-slats {
   position: absolute;
   inset: 0;
@@ -415,7 +411,12 @@ html.loading :is(.rise-line > *, .fade-in, .hero-card) {
 
 .page-loader-slats > span {
   background: var(--color-bg-ink);
-  margin-right: -1px;
+  margin: 0 -1px -1px 0;
+  backface-visibility: hidden;
+}
+
+html.loader-done .page-loader-slats > span {
+  will-change: transform;
 }
 
 .page-loader-slats > .origin-right {

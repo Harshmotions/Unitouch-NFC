@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { markReady } from "@/lib/loader";
 
 /* Light falling across a fabric-like ground over the whole hero, the way
    Cartier's pages look: long, soft, slightly slanted shadows, each one
@@ -61,6 +62,14 @@ export default function FabricShade() {
     const cleanups: (() => void)[] = [];
 
     const boot = () => {
+      try {
+        start();
+      } finally {
+        markReady("fabric");
+      }
+    };
+
+    const start = () => {
       if (cancelled) return;
       const gl = canvas.getContext("webgl", { alpha: false, antialias: false, depth: false, powerPreference: "low-power" });
       if (!gl) return;
