@@ -56,7 +56,7 @@ export const DEMO_PROFILES: Record<string, Profile> = {
     instagram: "https://instagram.com/priyaanand.photo",
     location: "Bengaluru, India",
     bio: "I help founders and creators look as good in photos as they sound in pitch meetings.",
-    avatarUrl: "/profile-user.png",
+    avatarUrl: "/profile-user.jpg",
     interests: ["📸 Photography", "✈️ Travel", "☕ Coffee"],
     isPublished: true,
     profileStyle: "personal",

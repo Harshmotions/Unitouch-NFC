@@ -56,7 +56,7 @@ const PROFILES = [
     instagram: "https://instagram.com/priyaanand.photo",
     location: "Bengaluru, India",
     bio: "I help founders and creators look as good in photos as they sound in pitch meetings.",
-    avatar_url: "/profile-user.png",
+    avatar_url: "/profile-user.jpg",
     interests: ["📸 Photography", "✈️ Travel", "☕ Coffee"],
     is_published: true,
     profile_style: "personal",
