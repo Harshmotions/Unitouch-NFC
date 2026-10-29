@@ -112,7 +112,9 @@ paint stills first (`public/cards/hero-card.webp`, `public/home/phone-*.webp`)
 and load the scenes only when idle / near; reduced motion keeps the stills.
 If you change a scene's framing, re-render its still so the swap stays
 seamless. The card pictures in `public/cards/` are stills of the 3D card,
-not photographs. The physical card design: front = the customer's name and
+not photographs, and every card picture reads "Your Name / What you do"
+(a placeholder, never a made-up person; the QR on the back points to the
+homepage). The physical card design: front = the customer's name and
 title plus NFC waves; back = QR code plus a small Unitouch mark,
 bottom-right, nothing else. The Premium still prints in gold; confirm the
 print shop can do that before advertising it as a feature.
@@ -255,10 +257,13 @@ project's SQL editor).
 Storage: `profile-photos` (public, used by uploads); `card-designs`
 (private) and `assets` (public) exist but are unused.
 
-Demo profiles (`rohan`, `priya`) are seeded via `scripts/seed-profiles.js`
+Demo profiles (`rohan`, `priya`, listed in `DEMO_USERNAMES`,
+`lib/profile-demo.ts`) are seeded via `scripts/seed-profiles.js`
 (safe to re-run, upserts by username). **Both are intentionally fully
-fictional**; don't put real contact details back into that script. They
-have no order, so they can never be claimed.
+fictional**; don't put real contact details back into that script. Their
+pages show an "Example profile · Get your own card" pill, and the
+homepage phone story labels its screen "Example profile". They have no
+order, so they can never be claimed.
 
 ## Dependencies
 

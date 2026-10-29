@@ -39,7 +39,7 @@ export default function Pricing() {
                     src={image.src}
                     alt={image.alt}
                     width={1600}
-                    height={915}
+                    height={1100}
                     sizes="(min-width: 768px) 26rem, 90vw"
                     className="mx-auto w-[82%]"
                   />

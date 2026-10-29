@@ -1,6 +1,6 @@
 /* Card mockup images, keyed by card variant id. Import-free so both the
    marketing pricing section and the client-side checkout can use it.
-   Files live in public/cards/ (1600×915, 7:4 landscape, WebP, transparent
+   Files live in public/cards/ (1600×1100, landscape, WebP, transparent
    background). They are stills of the homepage's 3D card
    (components/marketing/card3d), not photographs; replace them in place
    with real product photos when there are some (HANDOFF.md Section 6). */

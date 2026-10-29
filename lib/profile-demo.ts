@@ -1,5 +1,9 @@
 import type { Profile } from "@/types";
 
+/* The fictional demo profiles the marketing site links to. Their pages say
+   they're examples (PersonalProfile), and admin refuses to delete them. */
+export const DEMO_USERNAMES = ["priya", "rohan"];
+
 export function formatMemberSince(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString("en-US", {
     month: "long",

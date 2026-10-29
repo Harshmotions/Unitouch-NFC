@@ -1,13 +1,14 @@
 import { Redis } from "@upstash/redis";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getReminderCounts } from "@/lib/draft-reminders";
+import { DEMO_USERNAMES } from "@/lib/profile-demo";
 
 /* Admin profile management: the enriched profiles list and deletion.
    Callers are behind requireAdmin()/getAdminUser(). */
 
 /* Demo profiles linked from the marketing site ("See a Live Profile",
    navbar "Demo Profile"). Deleting them would break those links. */
-export const PROTECTED_USERNAMES = ["priya", "rohan"];
+export const PROTECTED_USERNAMES = DEMO_USERNAMES;
 
 export type AdminProfileStatus = "published" | "draft-paid" | "unpaid" | "demo" | "draft";
 

@@ -173,30 +173,34 @@ export default function PhoneStory() {
       <div className="sticky top-16 h-[calc(100svh-4rem)] md:top-[4.5rem] md:h-[calc(100svh-4.5rem)]">
         <div className="container-page grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 py-3 md:grid-cols-[1.1fr_1fr] md:grid-rows-1 md:items-center md:gap-10 md:py-4">
           {/* The phone. */}
-          <div className="feather relative h-full min-h-0 md:-ml-[6%]">
-            <Image
-              src="/home/phone-poster.webp"
-              alt=""
-              width={900}
-              height={1000}
-              sizes="(min-width: 768px) 45vw, 90vw"
-              className={`pointer-events-none absolute inset-0 h-full w-full max-w-none object-contain motion-reduce:hidden ${
-                live ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <Image
-              src="/home/phone-front.webp"
-              alt="Priya Anand's Unitouch profile open on an iPhone"
-              width={900}
-              height={1000}
-              sizes="(min-width: 768px) 45vw, 90vw"
-              className="pointer-events-none absolute inset-0 hidden h-full w-full max-w-none object-contain motion-reduce:block"
-            />
-            <canvas
-              ref={canvasRef}
-              aria-hidden
-              className={`absolute inset-0 h-full w-full ${live ? "opacity-100" : "opacity-0"}`}
-            />
+          <div className="relative h-full min-h-0 md:-ml-[6%]">
+            <div className="feather absolute inset-0">
+              <Image
+                src="/home/phone-poster.webp"
+                alt=""
+                width={900}
+                height={1000}
+                sizes="(min-width: 768px) 45vw, 90vw"
+                className={`pointer-events-none absolute inset-0 h-full w-full max-w-none object-contain motion-reduce:hidden ${
+                  live ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <Image
+                src="/home/phone-front.webp"
+                alt="An example Unitouch profile open on an iPhone"
+                width={900}
+                height={1000}
+                sizes="(min-width: 768px) 45vw, 90vw"
+                className="pointer-events-none absolute inset-0 hidden h-full w-full max-w-none object-contain motion-reduce:block"
+              />
+              <canvas
+                ref={canvasRef}
+                aria-hidden
+                className={`absolute inset-0 h-full w-full ${live ? "opacity-100" : "opacity-0"}`}
+              />
+            </div>
+            {/* The screen shows the demo profile, not the card owner's. */}
+            <p className="text-text-muted absolute inset-x-0 bottom-0 text-center text-[0.8125rem]">Example profile</p>
           </div>
 
           {/* The words: one step at a time, rising in word by word as you scroll. */}
@@ -232,7 +236,7 @@ export default function PhoneStory() {
               ))}
             </div>
             <Link href="/u/priya" className="link-draw mt-8 hidden font-[500] md:inline-block">
-              Open the demo profile
+              Open the example profile
             </Link>
           </div>
         </div>
