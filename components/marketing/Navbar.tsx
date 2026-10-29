@@ -26,6 +26,17 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   // null = not checked yet: render neither state, so nothing flashes.
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  /* At the very top of the homepage the bar is see-through, so the hero's
+     moving shadows run up behind it; it turns solid once you scroll. */
+  const [atTop, setAtTop] = useState(true);
+
+  useEffect(() => {
+    if (!onHome) return;
+    const update = () => setAtTop(window.scrollY < 8);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [onHome]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -74,7 +85,11 @@ export default function Navbar() {
     );
 
   return (
-    <header className="bg-bg-base sticky top-0 z-50">
+    <header
+      className={`sticky top-0 z-50 transition-colors duration-500 ${
+        onHome && atTop && !menuOpen ? "bg-transparent" : "bg-bg-base"
+      }`}
+    >
       <div className="container-page flex h-16 items-center justify-between gap-6 md:h-[4.5rem]">
         <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2.5" aria-label="Unitouch home">
           <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} priority />

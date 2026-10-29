@@ -1,8 +1,16 @@
 /* The hero's 3D Unitouch card. Loaded with a dynamic import only after the
    page is interactive (Card3D.tsx), so none of this is in the first-load
    bundle. */
-import { Group, PerspectiveCamera } from "three";
-import { W, H, buildCard, contactShadow, createStudio, type CardFinish } from "./parts";
+import {
+  DirectionalLight,
+  Group,
+  Mesh,
+  PerspectiveCamera,
+  PlaneGeometry,
+  ShadowMaterial,
+  VSMShadowMap,
+} from "three";
+import { W, buildCard, createStudio, type CardFinish } from "./parts";
 
 export interface CardSceneOptions {
   /** Radians per second of the spin. Negative turns the other way. */
@@ -59,9 +67,30 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
   const card = buildCard(renderer, { name, title, finish, url: "https://www.unitouch.in/u/priya" });
   spin.add(card.group);
 
-  const shadow = contactShadow(W * 1.7, H * 0.7);
-  shadow.mesh.position.y = -H / 2 - 0.22;
-  scene.add(shadow.mesh);
+  /* The card's shadow, cast onto a wall a little behind it (an invisible
+     plane that shows only the shadow), from a soft light up and to the
+     left. It turns, narrows and stretches with the card, like a real
+     object in front of a wall. Variance shadow maps at low resolution keep
+     it very soft; the light adds no brightness, only the shadow. */
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = VSMShadowMap;
+  card.group.traverse((o) => {
+    if ((o as Mesh).isMesh) o.castShadow = true;
+  });
+  const sun = new DirectionalLight(0xffffff, 0);
+  sun.position.set(-1.1, 1.5, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(256, 256);
+  sun.shadow.radius = 14;
+  sun.shadow.blurSamples = 20;
+  Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 0.5, far: 12 });
+  scene.add(sun);
+  const wallGeo = new PlaneGeometry(40, 40);
+  const wallMat = new ShadowMaterial({ color: 0x1c1712, opacity: 0.3 });
+  const wall = new Mesh(wallGeo, wallMat);
+  wall.position.z = -1.4;
+  wall.receiveShadow = true;
+  scene.add(wall);
 
   const ready = card.ready.then(() => render());
 
@@ -107,10 +136,6 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
     const turn = eased(phase) + dragX;
     spin.rotation.y = turn;
     sway.position.y = still ? 0 : Math.sin(t * 0.8) * 0.04;
-    // The shadow tightens when the card turns edge-on and as it lifts.
-    const face = Math.abs(Math.cos(turn));
-    shadow.mesh.scale.set(0.45 + 0.55 * face, 1, 1);
-    shadow.mat.opacity = 0.7 + 0.3 * face - sway.position.y * 2;
     renderer.render(scene, camera);
   }
 
@@ -153,7 +178,9 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
       running = false;
       cancelAnimationFrame(frame);
       card.dispose();
-      shadow.dispose();
+      sun.shadow.dispose();
+      wallGeo.dispose();
+      wallMat.dispose();
       studio.dispose();
     },
   };

@@ -261,25 +261,15 @@ p {
 /* Hero arrival: the card floats up into place out of a soft blur, tilting
    back to rest, while its light pool fades in. Opacity and filter only on the
    card's wrapper; the headline (the page's main content) paints at once. */
-.hero-light {
-  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 72%);
-}
-
-/* Sunlight through a branch onto the wall behind the hero: a soft, blurred
-   leaf shadow (a still image, multiplied onto the ground) that sways
-   slowly, as if in a breeze. Transform only, so it costs nothing. */
-.hero-shade {
-  background: url("/home/hero-shade.webp") right top / auto 115% no-repeat;
-  opacity: 0.2;
+/* Light through a sheer curtain across the whole hero (FabricShade.tsx):
+   multiplied onto the ground, so its white is invisible and only the folds
+   of shadow show. The still is laid out exactly as the shader draws it
+   (scaled to the height, from the bottom left), so the live version takes
+   over without a jump. */
+.fabric-shade {
+  background: url("/home/fabric-shade.webp") left bottom / auto 100% no-repeat;
+  opacity: 0.32;
   mix-blend-mode: multiply;
-  transform-origin: 100% 0;
-}
-
-@media (max-width: 1023px) {
-  .hero-shade {
-    background-size: auto 70%;
-    opacity: 0.14;
-  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -287,28 +277,15 @@ p {
     animation: card-float-in 1600ms var(--ease-expo) 150ms both;
     transform-origin: 50% 80%;
   }
-
-  html.js .hero-light {
-    animation: fade 1800ms var(--ease-out) 100ms both;
-  }
-
-  .hero-shade {
-    animation: leaf-sway 11s ease-in-out infinite alternate;
-  }
 }
 
-@keyframes leaf-sway {
-  from {
-    transform: rotate(-1.2deg) translate3d(0.6%, -0.4%, 0);
-  }
-  to {
-    transform: rotate(1deg) translate3d(-0.8%, 0.6%, 0);
-  }
-}
 
+/* Starts at 1% rather than 0 opacity: browsers don't count a fully
+   transparent paint, so from 0 the card (the hero's largest paint on a
+   phone) would only register once the animation ended. */
 @keyframes card-float-in {
   from {
-    opacity: 0;
+    opacity: 0.01;
     filter: blur(14px);
     transform: perspective(1200px) translate3d(0, 90px, 0) rotateX(22deg) scale(0.92);
   }

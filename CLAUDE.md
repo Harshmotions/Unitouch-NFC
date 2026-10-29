@@ -71,10 +71,13 @@ fail or are skipped, and everything else works.
 
 ## What's built
 
-**Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card, a
-blurred leaf shadow `public/home/hero-shade.webp` swaying on the wall
-behind it, preloaded because it's the LCP element; the hero stops short of
-the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
+**Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card that
+casts a soft shadow on an invisible wall behind it; full-bleed moving
+"light through a sheer curtain" shadows from `FabricShade.tsx`, a tiny
+plain-WebGL shader whose still `public/home/fabric-shade.webp` paints first
+and is preloaded because it's the LCP element; the hero runs up behind the
+navbar, which is see-through only at the top of the homepage; it stops
+short of the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
 equal numbered steps), PhoneStory (sticky 3D iPhone; the scene follows the
 scroll on a critically damped spring, the canvas has feathered edges
 (`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
