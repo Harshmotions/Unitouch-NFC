@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Share2, Check, BadgeCheck, Eye, Bookmark, Download, MapPin, ChevronDown } from "lucide-react";
 import type { Profile, EventType } from "@/types";
-import { formatMemberSince } from "@/lib/profile-demo";
+import { DEMO_USERNAMES, formatMemberSince } from "@/lib/profile-demo";
 import { downloadVCard } from "@/lib/vcard";
 import { track } from "@/lib/track";
 import { shareProfile } from "@/lib/share";
@@ -103,6 +103,15 @@ export default function PersonalProfile({
 
   return (
     <main className="bg-bg-base min-h-screen pb-32 lg:pb-0">
+      {/* The demo profiles are fictional: say so, and offer the real thing. */}
+      {!preview && DEMO_USERNAMES.includes(profile.username) && (
+        <Link
+          href="/order"
+          className="bg-bg-ink text-text-on-ink fixed top-3 left-1/2 z-40 -translate-x-1/2 rounded-full px-4 py-2 text-[0.8125rem] font-[500] whitespace-nowrap"
+        >
+          Example profile · Get your own card
+        </Link>
+      )}
       {/* Stacked column on mobile; two-column split (hero | details) on desktop. */}
       <div className="lg:mx-auto lg:flex lg:min-h-screen lg:max-w-6xl">
         {/* Hero — top on mobile, left half (sticky, full height) on desktop. */}

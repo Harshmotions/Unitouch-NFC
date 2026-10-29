@@ -11,7 +11,7 @@ const STEPS = [
   {
     name: "We make it",
     text: "We design your card with you, print it and program its chip. It reaches you in 5 to 7 days.",
-    image: { src: "/cards/card-front.webp", alt: "A Unitouch card printed with its owner's name, Priya Anand, and her title", w: 1200, h: 900 },
+    image: { src: "/cards/card-front.webp", alt: "A Unitouch card printed with its owner's name and title", w: 1200, h: 900 },
     img: "w-[96%]",
   },
   {

@@ -70,7 +70,7 @@ export default function Hero() {
           <div className="hero-card feather relative">
             <Card3D
               poster="/cards/hero-card.webp"
-              posterAlt="A matte black Unitouch NFC business card printed with the owner's name, Priya Anand, and her title"
+              posterAlt="A matte black Unitouch NFC business card printed with a name and title"
               posterWidth={1500}
               posterHeight={1200}
               priority

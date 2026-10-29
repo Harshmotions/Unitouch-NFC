@@ -45,8 +45,8 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
     tilt = -0.14,
     fill = 0.72,
     still = false,
-    name = "Priya Anand",
-    title = "Portrait & Brand Photographer",
+    name = "Your Name",
+    title = "What you do",
     finish = "standard",
   } = opts;
 
@@ -64,7 +64,7 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
   sway.add(spin);
   scene.add(sway);
 
-  const card = buildCard(renderer, { name, title, finish, url: "https://www.unitouch.in/u/priya" });
+  const card = buildCard(renderer, { name, title, finish, url: "https://www.unitouch.in" });
   spin.add(card.group);
 
   /* The card's shadow, cast onto a wall a little behind it (an invisible

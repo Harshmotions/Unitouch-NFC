@@ -19,8 +19,8 @@ function toSlug(name: string) {
     .replace(/-+$/, "");
 }
 
-const SAMPLE_NAME = "Priya Anand";
-const SAMPLE_TITLE = "Portrait & Brand Photographer";
+const SAMPLE_NAME = "Your Name";
+const SAMPLE_TITLE = "What you do";
 // Shorter, so the placeholder fits the field at every width.
 const TITLE_PLACEHOLDER = "Photographer";
 

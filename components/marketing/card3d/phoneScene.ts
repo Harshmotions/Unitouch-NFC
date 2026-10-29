@@ -173,7 +173,7 @@ function toastTexture(): CanvasTexture {
   ctx.fillText("Contact saved", 140, 66);
   ctx.fillStyle = "rgba(255,255,255,0.7)";
   ctx.font = `400 29px ${family}`;
-  ctx.fillText("Priya Anand was added to Contacts", 140, 108);
+  ctx.fillText("Added to your contacts", 140, 108);
   const t = new CanvasTexture(c);
   t.colorSpace = SRGBColorSpace;
   return t;
@@ -310,9 +310,9 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
 
   // ── The card, which taps the back of the phone ──────────────────────────
   const card = buildCard(renderer, {
-    name: "Priya Anand",
-    title: "Portrait & Brand Photographer",
-    url: "https://www.unitouch.in/u/priya",
+    name: "Your Name",
+    title: "What you do",
+    url: "https://www.unitouch.in",
   });
   scene.add(card.group);
   disposables.push(card);

@@ -61,7 +61,7 @@ export default function LoginPage() {
           <div className="relative flex flex-1 items-center justify-center px-10">
             <Image
               src="/cards/card-login.webp"
-              alt="A Unitouch card printed with its owner's name, Priya Anand, and her title"
+              alt="A Unitouch card printed with its owner's name and title"
               width={1200}
               height={960}
               priority
