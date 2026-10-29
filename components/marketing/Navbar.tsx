@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { handleHashLinkClick, smoothScrollToTop } from "@/lib/scroll";
+import { handleHashLinkClick, settleArrivalHash, smoothScrollToTop } from "@/lib/scroll";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const NAV_LINKS = [
@@ -47,6 +47,12 @@ export default function Navbar() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Landed on the homepage with a section link (/#faq): scroll there, then
+  // clear the hash from the address bar.
+  useEffect(() => {
+    if (onHome) settleArrivalHash();
+  }, [onHome]);
+
   useEffect(() => {
     document.documentElement.style.overflow = menuOpen ? "hidden" : "";
     if (menuOpen) window.lenisInstance?.stop();
@@ -67,6 +73,9 @@ export default function Navbar() {
     return {
       href,
       onClick: (e: MouseEvent) => {
+        // Unlock the page before scrolling: while the menu is open the
+        // page's overflow is hidden, which would swallow the scroll.
+        document.documentElement.style.overflow = "";
         setMenuOpen(false);
         handleHashLinkClick(href)(e);
       },

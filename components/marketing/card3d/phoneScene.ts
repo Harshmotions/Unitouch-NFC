@@ -16,6 +16,7 @@ import {
   ShapeGeometry,
   SRGBColorSpace,
   TextureLoader,
+  Vector3,
   type BufferGeometry,
   type Material,
   type Texture,
@@ -34,10 +35,12 @@ const BACK_Z = -3.65 * MM;
 const SW = 71.1 * MM;
 const SH = 155 * MM;
 const SR = 9.5 * MM;
-// The screenshot on the screen: 780 x 1950 px, the screen shows 780 x 1688.
-const SHOT_H = 1950;
-const VIEW_H = 1688;
-const BAR_H = 180;
+// The screenshot on the screen: 1170 x 2925 px (the demo profile at 3x, so
+// it stays crisp when the camera closes in), the screen shows 1170 x 2532.
+const SHOT_W = 1170;
+const SHOT_H = 2925;
+const VIEW_H = 2532;
+const BAR_H = 270;
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -119,7 +122,17 @@ const cardRY = track([[-0.3, -1.7], [0, -0.85], [0.12, -0.15], [0.22, -0.9], [0.
 const cardRZ = track([[-0.3, 0.75], [0, 0.32], [0.12, 0.06], [0.22, 0.35], [0.4, 0.65]]);
 const wakeAt = track([[0.14, 0], [0.36, 1]]);
 const scrollAt = track([[0.4, 0], [0.62, 0.55], [0.86, 1]]);
-const savedAt = track([[0.72, 0], [0.92, 1]]);
+const savedAt = track([[0.76, 0], [0.93, 1]]);
+/* The close-up: as the note drops, the camera pushes in on the Dynamic
+   Island while the phone swings round, tips its top towards us and rolls,
+   overshooting a little and settling square to the camera, which banks with
+   it and levels out, so the moment lands with some drama and ends
+   readable. */
+const zoomAt = track([[0.7, 0], [0.9, 1]]);
+const swingYaw = track([[0.7, 0], [0.8, 0.6], [0.92, 0.18]]);
+const swingTilt = track([[0.7, 0], [0.82, 0.22], [0.92, 0.1]]);
+const swingRoll = track([[0.7, 0], [0.8, -0.24], [0.92, -0.04]]);
+const camBank = track([[0.7, 0], [0.8, 0.14], [0.93, 0]]);
 
 /* A rounded rectangle with separate top and bottom corner radii, for the
    Save Contact bar that sits flush with the screen's rounded bottom. */
@@ -147,9 +160,11 @@ function fitUVs(geo: BufferGeometry, w: number, h: number) {
 /* The note that drops out of the Dynamic Island at the end. */
 function toastTexture(): CanvasTexture {
   const c = document.createElement("canvas");
-  c.width = 720;
-  c.height = 150;
+  // Drawn at twice its layout size, so it stays sharp in the close-up.
+  c.width = 1440;
+  c.height = 300;
   const ctx = c.getContext("2d")!;
+  ctx.scale(2, 2);
   const css = getComputedStyle(document.documentElement);
   const family = css.getPropertyValue("--font-inter").trim() || "sans-serif";
   ctx.fillStyle = "rgba(28,28,30,0.94)";
@@ -191,6 +206,9 @@ export interface PhoneScene {
 
 export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: number } = {}): PhoneScene {
   const studio = createStudio(canvas);
+  // A touch above 1x even on standard screens, so the close-up isn't
+  // jagged; never above 2x, so it stays quick.
+  studio.renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2));
   const { renderer, scene } = studio;
   const camera = new PerspectiveCamera(22, 1, 0.1, 100);
   const disposables: { dispose(): void }[] = [];
@@ -280,7 +298,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     phone.add(gltf.scene);
   })();
 
-  const barH = (SW * BAR_H) / 780;
+  const barH = (SW * BAR_H) / SHOT_W;
   const barGeo = track(new ShapeGeometry(barShape(SW, barH, SR), 32));
   fitUVs(barGeo, SW, barH);
   const barMat = track(new MeshBasicMaterial({ color: 0x000000, toneMapped: false, transparent: true }));
@@ -347,6 +365,11 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   let frame = 0;
 
   let baseDist = 10;
+  // How far the close-up sits from the island: near enough that the note
+  // fills most of the frame, at any canvas shape.
+  let closeDist = 4;
+  const focus = new Vector3();
+  const aim = new Vector3();
 
   function resize() {
     const w = canvas.clientWidth;
@@ -359,15 +382,15 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     const byHeight = (PH * 1.14) / (2 * half);
     const byWidth = (PH * 0.82) / (2 * half * camera.aspect);
     baseDist = Math.max(byHeight, byWidth);
+    closeDist = Math.max((SW * 1.25) / (2 * half * camera.aspect), (SW * 0.85) / (2 * half));
     camera.updateProjectionMatrix();
     render();
   }
 
   function render() {
     // Small breathing motions on top, so even at rest nothing is frozen.
-    const sway = Math.sin(t * 0.5) * 0.04;
-    camera.position.set(0, camY(p), baseDist * camDist(p));
-    camera.lookAt(0, camY(p) - 0.15, 0);
+    const zoom = zoomAt(p);
+    const sway = Math.sin(t * 0.5) * 0.04 * (1 - zoom * 0.7);
 
     // The card (see the tracks above).
     card.group.position.set(cardX(p), cardY(p) + Math.sin(t * 1.1) * 0.025, cardZ(p));
@@ -375,11 +398,29 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     card.group.visible = p < 0.4;
 
     // The phone.
-    turn.rotation.y = phoneYaw(p) + sway;
-    turn.rotation.x = phoneTilt(p) + Math.sin(t * 0.4) * 0.02;
-    turn.rotation.z = phoneRoll(p);
+    turn.rotation.y = phoneYaw(p) + sway + swingYaw(p);
+    turn.rotation.x = phoneTilt(p) + Math.sin(t * 0.4) * 0.02 + swingTilt(p);
+    turn.rotation.z = phoneRoll(p) + swingRoll(p);
     turn.position.y = phoneRise(p) + Math.sin(t * 0.7) * 0.03;
     turn.position.z = phoneNear(p);
+
+    // The camera: the wide framing, blended into the close-up on the island
+    // and the note under it (a point between them, found in world space
+    // after the phone has moved, so the close-up follows the swing).
+    turn.updateMatrixWorld();
+    focus.set(0, (ISLAND_Y + TOAST_Y) / 2, FRONT_Z);
+    turn.localToWorld(focus);
+    const wideY = camY(p);
+    const e = zoom * zoom * (3 - 2 * zoom);
+    camera.position.set(
+      mix(0, focus.x, e),
+      mix(wideY, focus.y + 0.12, e),
+      mix(baseDist * camDist(p), focus.z + closeDist, e)
+    );
+    aim.set(mix(0, focus.x, e), mix(wideY - 0.15, focus.y, e), mix(0, focus.z, e));
+    const bank = camBank(p);
+    camera.up.set(Math.sin(bank), Math.cos(bank), 0);
+    camera.lookAt(aim);
 
     const wake = wakeAt(p);
     screenMat.color.setScalar(wake);

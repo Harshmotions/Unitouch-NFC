@@ -205,8 +205,6 @@ export default function PhoneStory() {
                 className={`absolute inset-0 h-full w-full ${live ? "opacity-100" : "opacity-0"}`}
               />
             </div>
-            {/* The screen shows the demo profile, not the card owner's. */}
-            <p className="text-text-muted absolute inset-x-0 bottom-0 text-center text-[0.8125rem]">Example profile</p>
           </div>
 
           {/* The words: one step at a time, rising in word by word as you scroll. */}

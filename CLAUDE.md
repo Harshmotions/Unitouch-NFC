@@ -98,7 +98,12 @@ its back and flies on without stopping, and the screen scroll and saved
 note overlap the turn; progress goes negative (`PRE_ROLL`) while the
 section is still coming up the screen; the story uses the first
 `STORY_SHARE` (80%) of the section's scroll and the rest holds the final
-"contact saved" frame so it can be read; on phones the step text is
+"contact saved" frame so it can be read; as the note drops, the camera
+pushes in on the Dynamic Island while the phone swings, tilts and rolls and
+the camera banks, settling square and readable (`zoomAt`, `swing*`,
+`camBank` tracks); the screen texture is the demo profile at 3x
+(`phone-screen.webp` 1170 x 2925, `phone-bar.webp`), the note is drawn at
+2x, and the phone canvas renders at 1.5x to 2x pixel ratio; on phones the step text is
 centred under the phone, the canvas has feathered edges
 (`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
 step text rises word by word out of clipping masks, `.mask-word`),
@@ -290,7 +295,12 @@ advisories, so bump patches promptly when it goes red.
 - **Hash links must not use native anchor behavior**: Lenis's `anchors`
   option doesn't call `preventDefault`. Every in-page `#anchor` link uses
   `handleHashLinkClick` from `lib/scroll.ts` (the footer switches to plain
-  `/#…` links off the homepage).
+  `/#…` links off the homepage). Arriving on the homepage with a hash, the
+  Navbar calls `settleArrivalHash()`, which scrolls there and strips the
+  hash from the address bar. Sections carry `scroll-mt-16` and Lenis honours
+  it, so `NAV_OFFSET` is only the gap under the header. Mobile menu links
+  unlock the page before scrolling (Lenis `force: true`), since the open
+  menu locks scrolling.
 - **No GSAP**: entrances are CSS (`[data-reveal]`, `.rise-line`,
   `.fade-in` in `globals.css`), hidden only under `html.js` (set by an inline
   script in `app/layout.tsx`) and `prefers-reduced-motion: no-preference`, so
