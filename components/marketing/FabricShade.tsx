@@ -160,7 +160,7 @@ export default function FabricShade() {
       <div className="fabric-shade absolute inset-0">
         <canvas
           ref={canvasRef}
-          className={`h-full w-full transition-opacity duration-1000 ${live ? "opacity-100" : "opacity-0"}`}
+          className={`h-full w-full ${live ? "opacity-100" : "opacity-0"}`}
         />
       </div>
       {/* The weave: a fine, still grain over everything, so the ground reads

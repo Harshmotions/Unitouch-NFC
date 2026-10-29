@@ -180,7 +180,7 @@ export default function PhoneStory() {
               width={900}
               height={1000}
               sizes="(min-width: 768px) 45vw, 90vw"
-              className={`pointer-events-none absolute inset-0 h-full w-full max-w-none object-contain transition-opacity duration-700 motion-reduce:hidden ${
+              className={`pointer-events-none absolute inset-0 h-full w-full max-w-none object-contain motion-reduce:hidden ${
                 live ? "opacity-0" : "opacity-100"
               }`}
             />
@@ -195,7 +195,7 @@ export default function PhoneStory() {
             <canvas
               ref={canvasRef}
               aria-hidden
-              className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${live ? "opacity-100" : "opacity-0"}`}
+              className={`absolute inset-0 h-full w-full ${live ? "opacity-100" : "opacity-0"}`}
             />
           </div>
 

@@ -17,8 +17,10 @@ interface Props extends CardSceneOptions {
 
 /* The poster is the real first paint (and the reduced-motion and no-WebGL
    view). The 3D scene is fetched only once the browser is idle after load,
-   then fades in over the poster. It stops rendering whenever it's off
-   screen or the tab is hidden, and a drag turns the card by hand. */
+   and its first frame is the poster exactly, so it replaces it in one
+   frame with no crossfade (a fade showed the still and the moving card
+   at once, doubled). It stops rendering whenever it's off screen or the
+   tab is hidden, and a drag turns the card by hand. */
 export default function Card3D({
   poster,
   posterAlt,
@@ -148,14 +150,14 @@ export default function Card3D({
         height={posterHeight}
         priority={priority}
         sizes="(min-width: 1024px) 60vw, 100vw"
-        className={`pointer-events-none absolute inset-0 h-full w-full max-w-none object-contain transition-opacity duration-700 ${
+        className={`pointer-events-none absolute inset-0 h-full w-full max-w-none object-contain ${
           live ? "opacity-0" : "opacity-100"
         }`}
       />
       <canvas
         ref={canvasRef}
         aria-hidden
-        className={`absolute inset-0 h-full w-full cursor-grab touch-pan-y transition-opacity duration-700 active:cursor-grabbing ${
+        className={`absolute inset-0 h-full w-full cursor-grab touch-pan-y active:cursor-grabbing ${
           live ? "opacity-100" : "opacity-0"
         }`}
       />

@@ -129,13 +129,23 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
     render();
   }
 
+  /* The scene's first frame is exactly the poster still, which it replaces
+     without a crossfade; from there the spin and sway build up gently over
+     the first second and a half, so the hand-over is invisible and the
+     card starts moving like something set in motion, not switched on. */
+  const ease = () => {
+    const x = Math.min(1, t / 1.6);
+    return x * x * (3 - 2 * x);
+  };
+
   function render() {
-    const swayX = still ? 0 : 0.2 * Math.sin(t * 0.42);
-    const swayZ = still ? 0 : 0.07 * Math.sin(t * 0.31);
+    const k = still ? 0 : ease();
+    const swayX = 0.2 * Math.sin(t * 0.42) * k;
+    const swayZ = 0.07 * Math.sin(t * 0.31) * k;
     sway.rotation.set(tilt + swayX + dragY, 0, swayZ);
     const turn = eased(phase) + dragX;
     spin.rotation.y = turn;
-    sway.position.y = still ? 0 : Math.sin(t * 0.8) * 0.04;
+    sway.position.y = Math.sin(t * 0.8) * 0.04 * k;
     renderer.render(scene, camera);
   }
 
@@ -144,7 +154,7 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     t += dt;
-    phase += spinSpeed * dt;
+    phase += spinSpeed * dt * ease();
     dragX += velX * dt;
     dragY += velY * dt;
     // Momentum fades over about a second; the hand tilt eases back to rest.
