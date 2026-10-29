@@ -87,17 +87,23 @@ shadow streaks drifting from a tiny plain-WebGL noise shader, whose still
 `public/home/fabric-shade.webp` paints first and is preloaded, plus a fine
 grain tile `public/home/fabric-grain.webp`; the hero runs up behind the
 navbar, which is see-through only at the top of the homepage; it stops
-short of the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
-equal numbered steps), PhoneStory (sticky 3D iPhone; the scene follows the
+short of the fold so HowItWorks' darker rounded band peeks in; its words,
+card and actions are three grid blocks, so on a phone the card sits between
+the headline and the buttons and the whole pitch fits the first screen),
+HowItWorks (three equal numbered steps; a swipeable snap row on phones), PhoneStory (sticky 3D iPhone; the scene follows the
 scroll on a soft critically damped spring; every property follows a
 monotone-cubic keyframe `track()` over progress -0.3 to 1, with the keys
 overlapping so the phone turns one way only, the card swoops in, touches
 its back and flies on without stopping, and the screen scroll and saved
 note overlap the turn; progress goes negative (`PRE_ROLL`) while the
-section is still coming up the screen, the canvas has feathered edges
+section is still coming up the screen; the story uses the first
+`STORY_SHARE` (80%) of the section's scroll and the rest holds the final
+"contact saved" frame so it can be read; on phones the step text is
+centred under the phone, the canvas has feathered edges
 (`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
 step text rises word by word out of clipping masks, `.mask-word`),
-MakeItYours (live preview: the client's name on the front, a real QR code
+MakeItYours (on phones the card preview sits between the heading and the
+fields, so typing shows on it; live preview: the client's name on the front, a real QR code
 to their profile link on the back via `lib/qr.ts`, small Unitouch mark in
 the back's corner, browser-only), TapDrum (two
 rolling columns of what a tap leads to), Pricing, FAQ, Footer, plus

@@ -28,6 +28,9 @@ const STEPS = [
 // How far into its turn the phone starts, in story progress, before the
 // section reaches the top of the screen.
 const PRE_ROLL = 0.3;
+// The share of the section's scroll the story takes; the rest is a hold on
+// its final frame.
+const STORY_SHARE = 0.8;
 
 /* Splits text into words, each in its own clipping mask, so a step's words
    can rise into view one after another (the mask-word rules in
@@ -85,7 +88,10 @@ export default function PhoneStory() {
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const p = progress();
+        // The story itself plays over the first part of the scroll; the
+        // rest holds its last moment (the contact saved) on screen, so
+        // there's time to take it in before the section moves on.
+        const p = progress() / STORY_SHARE;
         scene?.setProgress(p);
         setActive(Math.min(STEPS.length - 1, Math.floor(Math.max(0, p) * STEPS.length * 0.999)));
       });
@@ -168,7 +174,7 @@ export default function PhoneStory() {
       id="profile"
       aria-labelledby="profile-heading"
       className="relative"
-      style={{ height: `${STEPS.length * 90 + 20}svh` }}
+      style={{ height: `${STEPS.length * 100 + 100}svh` }}
     >
       <div className="sticky top-16 h-[calc(100svh-4rem)] md:top-[4.5rem] md:h-[calc(100svh-4.5rem)]">
         <div className="container-page grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 py-3 md:grid-cols-[1.1fr_1fr] md:grid-rows-1 md:items-center md:gap-10 md:py-4">
@@ -204,8 +210,8 @@ export default function PhoneStory() {
           </div>
 
           {/* The words: one step at a time, rising in word by word as you scroll. */}
-          <div className="relative pb-4 md:pr-4 md:pb-0">
-            <h2 id="profile-heading" className="font-display text-text-secondary mb-4 text-[1.0625rem] font-[500] md:mb-6">
+          <div className="relative pb-4 text-center md:pr-4 md:pb-0 md:text-left">
+            <h2 id="profile-heading" className="font-display text-text-secondary mb-3 text-[1rem] font-[500] md:mb-6 md:text-[1.0625rem]">
               What people see when you tap
             </h2>
             <div className="relative grid">
@@ -216,10 +222,10 @@ export default function PhoneStory() {
                   data-state={i === active ? "active" : i < active ? "past" : "next"}
                   className="mask-step col-start-1 row-start-1"
                 >
-                  <p className="font-display text-[clamp(2rem,1.3rem+2.4vw,3.25rem)] leading-[1.08] font-[600]">
+                  <p className="font-display text-[clamp(1.75rem,1.3rem+2.4vw,3.25rem)] leading-[1.08] font-[600]">
                     <MaskedWords text={step.title} step={1} />
                   </p>
-                  <p className="text-text-secondary mt-5 max-w-[36ch] text-[1.125rem] leading-relaxed">
+                  <p className="text-text-secondary mx-auto mt-3 max-w-[34ch] text-[1rem] leading-relaxed md:mx-0 md:mt-5 md:max-w-[36ch] md:text-[1.125rem]">
                     <MaskedWords text={step.text} step={0.25} />
                   </p>
                 </div>
@@ -227,7 +233,7 @@ export default function PhoneStory() {
             </div>
 
             {/* Where you are in the story. */}
-            <div className="mt-8 flex items-center gap-2" aria-hidden>
+            <div className="mt-5 flex items-center justify-center gap-2 md:mt-8 md:justify-start" aria-hidden>
               {STEPS.map((step, i) => (
                 <span
                   key={step.title}

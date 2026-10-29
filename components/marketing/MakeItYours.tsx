@@ -85,10 +85,14 @@ export default function MakeItYours() {
   };
 
   return (
-    <section id="make-it-yours" aria-labelledby="make-heading" className="py-24 md:py-32">
+    <section id="make-it-yours" aria-labelledby="make-heading" className="py-16 md:py-32">
       <div className="container-page">
-        <div className="bg-bg-elevated grid items-center gap-12 rounded-[28px] p-6 sm:p-10 lg:grid-cols-2 lg:gap-16 lg:p-14">
-          <Reveal className="flex flex-col gap-6">
+        {/* Three blocks: the heading, the card, the form. On a phone they
+            stack in that order, so the card is right above the fields and
+            your name lands on it as you type; on desktop the heading and
+            form share the left column and the card spans both rows. */}
+        <div className="bg-bg-elevated grid gap-8 rounded-[28px] p-5 sm:p-10 lg:grid-cols-2 lg:grid-rows-[auto_auto] lg:gap-x-16 lg:gap-y-6 lg:p-14">
+          <Reveal className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1 lg:gap-6 lg:self-end">
             <h2 id="make-heading" className="font-display text-[length:var(--text-h2)] font-[600]">
               Make it yours
             </h2>
@@ -96,55 +100,9 @@ export default function MakeItYours() {
               Type your name to see it on your card, with the link it opens. Our team finishes the design with you
               before anything is printed.
             </p>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor={nameId} className="text-[0.875rem] font-[500]">
-                  Your name
-                </label>
-                <input
-                  id={nameId}
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value.slice(0, 32));
-                    setSide("front");
-                  }}
-                  placeholder={SAMPLE_NAME}
-                  autoComplete="name"
-                  className={inputClass}
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor={titleId} className="text-[0.875rem] font-[500]">
-                  What you do
-                </label>
-                <input
-                  id={titleId}
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value.slice(0, 44));
-                    setSide("front");
-                  }}
-                  placeholder={TITLE_PLACEHOLDER}
-                  autoComplete="organization-title"
-                  className={inputClass}
-                />
-              </div>
-            </div>
-
-            <p className="bg-bg-base text-text-secondary rounded-[12px] px-4 py-3 text-[0.9375rem]" aria-live="polite">
-              Your profile link{" "}
-              <span className="text-text-primary block font-[500] break-all">unitouch.in/u/{slug}</span>
-            </p>
-
-            <div>
-              <Button variant="primary" size="lg" href="/order">
-                Order your card
-              </Button>
-            </div>
           </Reveal>
 
-          <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:gap-6 lg:self-center">
             <div
               ref={stageRef}
               onPointerMove={onMove}
@@ -203,6 +161,53 @@ export default function MakeItYours() {
               ))}
             </div>
           </div>
+          <Reveal className="flex flex-col gap-5 lg:col-start-1 lg:row-start-2 lg:gap-6 lg:self-start">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={nameId} className="text-[0.875rem] font-[500]">
+                  Your name
+                </label>
+                <input
+                  id={nameId}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value.slice(0, 32));
+                    setSide("front");
+                  }}
+                  placeholder={SAMPLE_NAME}
+                  autoComplete="name"
+                  className={inputClass}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor={titleId} className="text-[0.875rem] font-[500]">
+                  What you do
+                </label>
+                <input
+                  id={titleId}
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value.slice(0, 44));
+                    setSide("front");
+                  }}
+                  placeholder={TITLE_PLACEHOLDER}
+                  autoComplete="organization-title"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <p className="bg-bg-base text-text-secondary rounded-[12px] px-4 py-3 text-[0.9375rem]" aria-live="polite">
+              Your profile link{" "}
+              <span className="text-text-primary block font-[500] break-all">unitouch.in/u/{slug}</span>
+            </p>
+
+            <div>
+              <Button variant="primary" size="lg" href="/order" className="w-full sm:w-auto">
+                Order your card
+              </Button>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>
