@@ -124,15 +124,19 @@ const wakeAt = track([[0.14, 0], [0.36, 1]]);
 const scrollAt = track([[0.4, 0], [0.62, 0.55], [0.86, 1]]);
 const savedAt = track([[0.76, 0], [0.93, 1]]);
 /* The close-up: as the note drops, the camera pushes in on the Dynamic
-   Island while the phone swings round, tips its top towards us and rolls,
-   overshooting a little and settling square to the camera, which banks with
-   it and levels out, so the moment lands with some drama and ends
-   readable. */
-const zoomAt = track([[0.7, 0], [0.9, 1]]);
-const swingYaw = track([[0.7, 0], [0.8, 0.6], [0.92, 0.18]]);
-const swingTilt = track([[0.7, 0], [0.82, 0.22], [0.92, 0.1]]);
-const swingRoll = track([[0.7, 0], [0.8, -0.24], [0.92, -0.04]]);
-const camBank = track([[0.7, 0], [0.8, 0.14], [0.93, 0]]);
+   Island over the whole last stretch of the section, easing in and out,
+   while the phone swings one way and flows back into its final pose,
+   turned about 35 degrees and tipped back about 25 so the screen faces
+   slightly up and to the left (y -0.61 and x -0.44 in total, with the
+   story's own end pose), and the camera banks and levels out with it. */
+// Past 1 the story keeps going gently through the held stretch at the end
+// of the section (PhoneStory's STORY_SHARE), arriving only as the section
+// leaves the screen, so there's no frozen last frame.
+const END = 1.25;
+const swingYaw = track([[0.66, 0], [0.84, 0.32], [1.02, -0.12], [END, -0.31]]);
+const swingTilt = track([[0.66, 0], [0.84, 0.14], [1.04, -0.22], [END, -0.36]]);
+const swingRoll = track([[0.66, 0], [0.84, -0.18], [1.04, -0.08], [END, -0.04]]);
+const camBank = track([[0.66, 0], [0.84, 0.1], [1.1, 0.02], [END, 0]]);
 
 /* A rounded rectangle with separate top and bottom corner radii, for the
    Save Contact bar that sits flush with the screen's rounded bottom. */
@@ -389,7 +393,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
 
   function render() {
     // Small breathing motions on top, so even at rest nothing is frozen.
-    const zoom = zoomAt(p);
+    const zoom = soft(0.66, END, p);
     const sway = Math.sin(t * 0.5) * 0.04 * (1 - zoom * 0.7);
 
     // The card (see the tracks above).
@@ -411,7 +415,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     focus.set(0, (ISLAND_Y + TOAST_Y) / 2, FRONT_Z);
     turn.localToWorld(focus);
     const wideY = camY(p);
-    const e = zoom * zoom * (3 - 2 * zoom);
+    const e = zoom;
     camera.position.set(
       mix(0, focus.x, e),
       mix(wideY, focus.y + 0.12, e),
@@ -478,7 +482,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   return {
     ready: ready.then(() => render()),
     setProgress(v: number) {
-      target = clamp(v, -1, 1);
+      target = clamp(v, -1, END);
     },
     start() {
       if (running) return;
