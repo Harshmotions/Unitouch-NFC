@@ -25,7 +25,7 @@ export default function ProgressNotice({
           : "surface-card flex items-start gap-3 rounded-xl p-4"
       }
     >
-      <Loader2 className={`text-accent-purple shrink-0 animate-spin ${overlay ? "size-8" : "mt-0.5 size-4"}`} />
+      <Loader2 className={`text-accent shrink-0 animate-spin ${overlay ? "size-8" : "mt-0.5 size-4"}`} />
       <div>
         <p className={`text-text-primary font-[600] ${overlay ? "text-lg" : "text-sm"}`}>{title}</p>
         {hint && <p className="text-text-muted mt-1 text-xs leading-relaxed">{hint}</p>}
@@ -36,7 +36,7 @@ export default function ProgressNotice({
   if (!overlay) return body;
 
   return (
-    <div className="bg-bg-base/80 fixed inset-0 z-[100] flex items-center justify-center px-6 backdrop-blur-sm">
+    <div className="bg-bg-base/95 fixed inset-0 z-[100] flex items-center justify-center px-6">
       {body}
     </div>
   );

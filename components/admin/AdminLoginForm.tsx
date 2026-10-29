@@ -91,7 +91,7 @@ export default function AdminLoginForm() {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="bg-accent-purple/10 text-accent-purple mb-5 flex size-11 items-center justify-center rounded-xl">
+      <div className="bg-accent/10 text-accent mb-5 flex size-11 items-center justify-center rounded-xl">
         <Lock className="size-5" />
       </div>
       <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Admin sign in</h1>

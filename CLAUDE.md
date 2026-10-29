@@ -10,7 +10,11 @@ info, socials, and a vCard download with one tap.
 - Supabase (Postgres + Auth + Storage), region **South Asia (Mumbai)** —
   see `supabase/schema.sql`
 - Upstash Redis (rate limiting, Asia), Resend (email), Razorpay (payments)
-- GSAP for entrance animations, Lenis for smooth scroll
+- Light "three stones" theme (Oct 2026 rebrand): tokens in `app/globals.css`,
+  Space Grotesk (headings) + Inter (text) via `next/font`, content in a
+  centred `.container-page` column, CSS-only entrance motion
+  (`components/motion/Reveal.tsx`), Lenis for smooth scroll, three.js for
+  the 3D card and phone (lazy-loaded)
 - Production: **https://www.unitouch.in** (`unitouch.in` redirects there)
 - Repo: https://github.com/Harshmotions/Unitouch-NFC
 
@@ -67,8 +71,51 @@ fail or are skipped, and everything else works.
 
 ## What's built
 
-**Marketing homepage** (`app/(marketing)/page.tsx`): Hero, SocialProof,
-ProductShowcase, HowItWorks, Features, Pricing, FAQ, Footer.
+**Marketing homepage** (`app/(marketing)/page.tsx`): a first-visit intro
+loader (`PageLoader.tsx`: ink ground, U mark + wordmark, hairline bar, then
+4 x 16 slats thin away in a wave; driven by an inline script + CSS, once per
+browser session, skipped with reduced motion; it opens only once the hero
+card, the fabric shader and the phone scene have each called `markReady()`
+(`lib/loader.ts`, on success or failure; the phone boots straight away
+while the loader is up) and the browser is idle, capped at 6 s, so their
+start-up never stutters the reveal; while `html.loading` is set the hero
+entrances are paused and Lenis is stopped),
+Hero (3D card that
+casts a soft shadow on an invisible wall behind it; a full-bleed
+Cartier-like fabric ground from `FabricShade.tsx`: long, soft, random
+shadow streaks drifting from a tiny plain-WebGL noise shader, whose still
+`public/home/fabric-shade.webp` paints first and is preloaded, plus a fine
+grain tile `public/home/fabric-grain.webp`; the hero runs up behind the
+navbar, which is see-through only at the top of the homepage; it stops
+short of the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
+equal numbered steps), PhoneStory (sticky 3D iPhone; the scene follows the
+scroll on a soft critically damped spring; every property follows a
+monotone-cubic keyframe `track()` over progress -0.3 to 1, with the keys
+overlapping so the phone turns one way only, the card swoops in, touches
+its back and flies on without stopping, and the screen scroll and saved
+note overlap the turn; progress goes negative (`PRE_ROLL`) while the
+section is still coming up the screen, the canvas has feathered edges
+(`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
+step text rises word by word out of clipping masks, `.mask-word`),
+MakeItYours (live preview: the client's name on the front, a real QR code
+to their profile link on the back via `lib/qr.ts`, small Unitouch mark in
+the back's corner, browser-only), TapDrum (two
+rolling columns of what a tap leads to), Pricing, FAQ, Footer, plus
+Organization / Product / FAQPage JSON-LD. The 3D lives in
+`components/marketing/card3d/`: `parts.ts` (studio light, the card, contact
+shadow), `scene.ts` (hero card: spins and sways on all axes, draggable) and
+`phoneScene.ts` (the phone story, driven by one scroll progress value). The
+phone is a real iPhone 14 Pro Max model, `public/models/iphone-14-pro-max.glb`
+(converted from the OBJ Harsh supplied, meshopt-compressed, materials set in
+code by part name; the screen shows `public/home/phone-screen.webp`). Pages
+paint stills first (`public/cards/hero-card.webp`, `public/home/phone-*.webp`)
+and load the scenes only when idle / near; reduced motion keeps the stills.
+If you change a scene's framing, re-render its still so the swap stays
+seamless. The card pictures in `public/cards/` are stills of the 3D card,
+not photographs. The physical card design: front = the customer's name and
+title plus NFC waves; back = QR code plus a small Unitouch mark,
+bottom-right, nothing else. The Premium still prints in gold; confirm the
+print shop can do that before advertising it as a feature.
 `Testimonials.tsx` is intentionally NOT rendered: it held made-up
 placeholder reviews, which got flagged for Razorpay website verification.
 Only re-add it with real customer quotes. Don't advertise features that
@@ -233,12 +280,17 @@ advisories, so bump patches promptly when it goes red.
   option doesn't call `preventDefault`. Every in-page `#anchor` link uses
   `handleHashLinkClick` from `lib/scroll.ts` (the footer switches to plain
   `/#…` links off the homepage).
-- **GSAP entrance timelines need bfcache handling**: Hero and Navbar replay
-  the intro on `pageshow` when `event.persisted`, after
-  `gsap.set(targets, { clearProps: "all" })`.
-- **Glass UI**: `.glass`, `.glass-icon-btn`, `.glass-pill` give the base
-  frosted look; layer one of `.glass-stroke-1` … `.glass-stroke-4` on top and
-  vary the number between neighbors.
+- **No GSAP**: entrances are CSS (`[data-reveal]`, `.rise-line`,
+  `.fade-in` in `globals.css`), hidden only under `html.js` (set by an inline
+  script in `app/layout.tsx`) and `prefers-reduced-motion: no-preference`, so
+  content never depends on script to appear. Animate transform and opacity
+  only.
+- **Design rules (light theme)**: one ground, one ink, one accent
+  (`--color-accent`, the main action only). No gradients, glows, glass,
+  shadows at rest, eyebrow labels, violet, or icon-topped card grids on the
+  public pages. `.glass*` and `.surface-card` still exist for older markup but
+  are flat tone-step surfaces now. Headlines stay at two lines or fewer at
+  390, 768 and 1440 px.
 - **`img { max-width: 100% }` global reset** can override a fixed Tailwind
   width on an `<img>` in an auto-sized container; add `max-w-none` and
   verify with `getBoundingClientRect()`.
@@ -246,4 +298,9 @@ advisories, so bump patches promptly when it goes red.
   in `lib/supabase/server.ts`). Shared constants go in import-free files
   (`lib/checkout-config.ts`, `lib/order-status.ts`).
 - **Customer-facing copy**: no em dashes.
+- **Text isn't selectable on the public site** (`body.no-copy` in
+  `app/layout.tsx`). Form fields, `mailto:`/`tel:` links, `<address>` and
+  anything inside `.copyable` still select; `/admin` and `/studio` are
+  `.copyable` throughout. Mark new copy-worthy text (IDs, links the customer
+  needs) with `.copyable`.
 - Run `npm run lint` before considering any change done.

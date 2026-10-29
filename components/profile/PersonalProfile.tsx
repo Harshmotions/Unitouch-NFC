@@ -92,10 +92,10 @@ export default function PersonalProfile({
 
   const firstName = profile.fullName.trim().split(/\s+/)[0] || "them";
 
-  const interestPills = (profile.interests ?? []).map((tag, i) => (
+  const interestPills = (profile.interests ?? []).map((tag) => (
     <span
       key={tag}
-      className={`glass-pill glass-stroke-${((i + 2) % 4) + 1} text-text-primary shrink-0 rounded-full px-4 py-2 text-sm font-[500] whitespace-nowrap`}
+      className={`glass-pill text-text-primary shrink-0 rounded-full px-4 py-2 text-sm font-[500] whitespace-nowrap`}
     >
       {tag}
     </span>
@@ -116,7 +116,7 @@ export default function PersonalProfile({
               <>
                 {/* Shimmer underneath: visible until the photo paints over it,
                     so a slow image never leaves an empty black hero. */}
-                <div className="absolute inset-0 animate-pulse bg-white/[0.06]" aria-hidden />
+                <div className="absolute inset-0 animate-pulse bg-bg-subtle" aria-hidden />
                 <Image
                   src={profile.avatarUrl}
                   alt={profile.fullName}
@@ -129,10 +129,7 @@ export default function PersonalProfile({
             ) : (
               <div
                 className="absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(120% 80% at 20% 0%, var(--color-accent-purple-glow-soft), transparent 60%), linear-gradient(160deg, #1b1030 0%, #100a1c 45%, #080808 100%)",
-                }}
+                style={{ background: "var(--color-bg-subtle)" }}
               />
             )}
             {/* long, multi-stop wipe so the photo melts into the page — no hard edge.
@@ -142,21 +139,14 @@ export default function PersonalProfile({
               className="pointer-events-none absolute inset-0 lg:hidden"
               style={{
                 background:
-                  "linear-gradient(to top, var(--color-bg-base) 2%, rgba(8,8,8,0.8) 14%, rgba(8,8,8,0.3) 26%, transparent 38%)",
+                  "linear-gradient(to top, var(--color-bg-base) 2%, rgba(238,236,234,0.82) 14%, rgba(238,236,234,0.32) 26%, transparent 38%)",
               }}
             />
             <div
               className="pointer-events-none absolute inset-0 hidden lg:block"
               style={{
                 background:
-                  "linear-gradient(to top, var(--color-bg-base) 4%, rgba(8,8,8,0.85) 22%, rgba(8,8,8,0.35) 42%, transparent 72%)",
-              }}
-            />
-            {/* top scrim so the floating glass controls stay legible over light photos */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-32"
-              style={{
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)",
+                  "linear-gradient(to top, var(--color-bg-base) 4%, rgba(238,236,234,0.86) 22%, rgba(238,236,234,0.36) 42%, transparent 72%)",
               }}
             />
 
@@ -167,7 +157,8 @@ export default function PersonalProfile({
                   setShared(true);
                   setTimeout(() => setShared(false), 1500);
                 }}
-                className="glass-icon-btn glass-stroke-4 flex size-10 items-center justify-center rounded-full text-text-primary"
+                aria-label={shared ? "Link copied" : "Share this profile"}
+                className="glass-icon-btn flex size-10 items-center justify-center rounded-full text-text-primary"
               >
                 {shared ? <Check className="text-success size-4" /> : <Share2 className="size-4" />}
               </button>
@@ -216,19 +207,19 @@ export default function PersonalProfile({
           )}
 
           <div className="order-3 mx-auto mt-4 w-[calc(100%-2.5rem)] lg:order-none lg:mt-0 lg:w-full">
-            <div className="rounded-2xl border border-white/10 bg-bg-elevated/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_50px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+            <div className="bg-bg-elevated rounded-2xl p-5">
               {profile.bio && (
                 <p className="text-text-secondary text-sm leading-relaxed">{profile.bio}</p>
               )}
 
-              <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-4">
+              <div className="mt-4 flex items-center gap-4 border-t border-bg-border pt-4">
                 <div className="flex items-center gap-1.5">
-                  <Eye className="text-accent-purple size-4" />
+                  <Eye className="text-accent size-4" />
                   <span className="text-text-primary text-sm font-[600]">{stats.views.toLocaleString()}</span>
                   <span className="text-text-muted text-xs">views</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Bookmark className="text-accent-purple size-4" />
+                  <Bookmark className="text-accent size-4" />
                   <span className="text-text-primary text-sm font-[600]">{stats.saves.toLocaleString()}</span>
                   <span className="text-text-muted text-xs">saves</span>
                 </div>
@@ -255,23 +246,23 @@ export default function PersonalProfile({
           <div className="mx-auto mt-6 hidden w-[calc(100%-2.5rem)] lg:block lg:w-full">
             <button
               onClick={handleSaveContact}
-              className="bg-accent-purple text-bg-base flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
+              className="bg-accent text-accent-ink flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] transition-colors duration-200 ease-out hover:bg-accent-hover"
             >
               <Download className="size-4" />
               Save Contact
             </button>
           </div>
 
-          <div className="order-4 mx-auto mt-10 flex w-[calc(100%-2.5rem)] flex-col items-center gap-4 border-t border-white/10 pt-6 lg:order-none lg:w-full">
+          <div className="order-4 mx-auto mt-10 flex w-[calc(100%-2.5rem)] flex-col items-center gap-4 border-t border-bg-border pt-6 lg:order-none lg:w-full">
             <Link href="/" className="flex items-center gap-1.5 opacity-70 transition-opacity hover:opacity-100">
-              <Image src="/logo.png" alt="" width={16} height={16} />
+              <Image src="/brand/u-mark-ink.png" alt="" width={14} height={16} />
               <span className="text-text-muted text-xs font-[500]">This profile is powered by Unitouch</span>
             </Link>
             <Link
               href="/"
-              className="glass glass-stroke-2 text-text-primary rounded-full px-4 py-2 text-xs font-[500]"
+              className="glass text-text-primary rounded-full px-4 py-2 text-xs font-[500]"
             >
-              Get your NFC card →
+              Get your own Unitouch card
             </Link>
           </div>
         </div>
@@ -279,7 +270,7 @@ export default function PersonalProfile({
 
       {/* Save Contact — fixed bottom bar on mobile only. */}
       <div className="fixed inset-x-0 bottom-0 z-10 px-5 pb-6 pt-4 lg:hidden">
-        <div className="bg-bg-base/80 absolute inset-0 -z-10 backdrop-blur-xl" />
+        <div className="bg-bg-base absolute inset-0 -z-10" />
         {/* Scroll hint: a small line inside the bar (so it never covers page
             content) that collapses for good on the first scroll. */}
         <div
@@ -293,7 +284,7 @@ export default function PersonalProfile({
         </div>
         <button
           onClick={handleSaveContact}
-          className="bg-accent-purple text-bg-base mx-auto flex w-full max-w-xl items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_30px_-12px_var(--color-accent-purple-glow)] transition-all duration-200 ease-out hover:brightness-[1.07]"
+          className="bg-accent text-accent-ink mx-auto flex w-full max-w-xl items-center justify-center gap-2 rounded-full py-3.5 text-sm font-[600] transition-colors duration-200 ease-out hover:bg-accent-hover"
         >
           <Download className="size-4" />
           Save Contact

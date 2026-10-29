@@ -39,12 +39,9 @@ function slugify(name: string): string {
 }
 
 /* The identity form for the new order Step 1 — account type, display name,
-   email (typed twice), logo/photo, and username, with a simplified live
-   preview. Checkout is guest-only: the email is stored on the order and is
-   what the customer signs in with later to manage their profile, so the
-   confirm field guards against a typo locking them out. Layout constraint:
-   on mobile the preview sits below the inputs but above Continue; on desktop
-   it's side-by-side. */
+   email (typed twice), logo/photo, and username. Checkout is guest-only:
+   the email is stored on the order and is what the customer signs in with
+   later to manage their profile, so the confirm field guards against a typo locking them out. */
 export default function IdentityFields({
   defaultValues,
   logoFile,
@@ -288,223 +285,199 @@ export default function IdentityFields({
 
   const nameLabel = isBusiness ? "Business name" : "Name on card";
   const namePlaceholder = isBusiness ? "Acme Inc." : "Your name";
-  const previewName = displayName.trim() || (isBusiness ? "Business name" : "Your name");
   const previewHandle = username.trim().toLowerCase() || "username";
-  const previewInitial = (displayName.trim()[0] || "U").toUpperCase();
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-      <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
-        {/* Inputs */}
-        <div className="flex flex-1 flex-col gap-6">
-          {/* Account type toggle */}
-          <div>
-            <Label>Account type</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {(["personal", "business"] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setAccountType(type)}
-                  className={`rounded-xl p-4 text-left transition-colors ${
-                    accountType === type ? "surface-card-accent" : "surface-card"
-                  }`}
-                >
-                  <p className="text-text-primary font-[600] capitalize">{type}</p>
-                  <p className="text-text-muted text-xs">
-                    {type === "personal" ? "For yourself" : "For a company or brand"}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Display name */}
-          <div>
-            <Label htmlFor="displayName">{nameLabel}</Label>
-            <Input
-              id="displayName"
-              value={displayName}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder={namePlaceholder}
-            />
-            {submitAttempted && displayName.trim().length < 2 && (
-              <p className="text-error mt-1.5 text-xs">Enter your {nameLabel.toLowerCase()}.</p>
-            )}
-          </div>
-
-          {/* Email — the key for managing the profile after checkout */}
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={handleEmailBlur}
-              placeholder="you@example.com"
-            />
-            <EmailTypoHint email={email} focused={emailFocused} onAccept={acceptEmailFix} />
-            {submitAttempted && emailInvalid ? (
-              <p className="text-error mt-1.5 text-xs">Enter a valid email address.</p>
-            ) : domainError ? (
-              <p className="text-error mt-1.5 text-xs">{domainError}</p>
-            ) : (
-              <p className="text-text-muted mt-1.5 text-xs">
-                You&apos;ll use this email to manage your profile later, so double-check it.
-                Ordering more than one card? Use the same email for all of them and switch
-                between your profiles after you sign in.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="confirmEmail">Confirm email</Label>
-            <Input
-              id="confirmEmail"
-              type="email"
-              autoComplete="email"
-              value={confirmEmail}
-              onChange={(e) => setConfirmEmail(e.target.value)}
-              placeholder="Type your email again"
-            />
-            {(submitAttempted || confirmEmail.trim().length >= email.trim().length) &&
-              confirmEmail.trim().length > 0 &&
-              !emailInvalid &&
-              emailMismatch && (
-              <p className="text-error mt-1.5 text-xs">Emails don&apos;t match.</p>
-            )}
-          </div>
-
-          {/* Logo / photo */}
-          <div>
-            <Label>
-              {isBusiness ? "Logo" : "Profile picture"}{" "}
-              <span className="text-text-muted">{isBusiness ? "(required)" : "(optional)"}</span>
-            </Label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleLogoPick(e.target.files?.[0])}
-            />
-            {logoFile && logoUrl ? (
-              <div className="surface-card flex items-center gap-3 rounded-xl p-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoUrl} alt="Logo preview" className="size-12 rounded-lg object-cover" />
-                <span className="text-text-secondary flex-1 truncate text-sm">{logoFile.name}</span>
-                <button
-                  type="button"
-                  onClick={() => onLogoChange(null)}
-                  className="text-text-muted hover:text-text-primary"
-                  aria-label="Remove image"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            ) : (
+      <div className="flex flex-col gap-6">
+        {/* Account type toggle */}
+        <div>
+          <Label>Account type</Label>
+          <div className="grid grid-cols-2 gap-3">
+            {(["personal", "business"] as const).map((type) => (
               <button
+                key={type}
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="border-bg-border text-text-muted hover:text-text-primary hover:border-accent-purple/40 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-6 text-sm transition-colors"
+                onClick={() => setAccountType(type)}
+                className={`rounded-xl p-4 text-left transition-colors ${
+                  accountType === type ? "surface-card-accent" : "surface-card"
+                }`}
               >
-                <ImagePlus className="size-4" />
-                Upload an image
+                <p className="text-text-primary font-[600] capitalize">{type}</p>
+                <p className="text-text-muted text-xs">
+                  {type === "personal" ? "For yourself" : "For a company or brand"}
+                </p>
               </button>
-            )}
-            {(logoError || (submitAttempted && logoRequiredMissing)) && (
-              <p className="text-error mt-1.5 text-xs">
-                {logoError ?? "A logo is required for business cards."}
-              </p>
-            )}
-          </div>
-
-          {/* Username */}
-          <div>
-            <Label htmlFor="username">Profile link</Label>
-            <div className="border-bg-border bg-bg-elevated focus-within:border-accent-purple/50 flex h-11 items-center gap-1 rounded-xl border px-4 transition-colors">
-              <span className="text-text-muted text-sm">unitouch.in/u/</span>
-              <input
-                id="username"
-                value={username}
-                onChange={(e) => handleUsernameChange(e.target.value)}
-                placeholder="yourname"
-                className="text-text-primary placeholder:text-text-muted h-full min-w-0 flex-1 bg-transparent text-sm outline-none"
-              />
-              {usernameStatus === "checking" && <Loader2 className="text-text-muted size-4 animate-spin" />}
-              {usernameStatus === "available" && <Check className="text-success size-4" />}
-            </div>
-            {usernameStatus === "invalid" && (
-              <p className="text-text-muted mt-1.5 text-xs">
-                3+ characters, lowercase letters, numbers and hyphens only.
-              </p>
-            )}
-            {usernameStatus === "available" && (
-              <p className="text-success mt-1.5 text-xs">
-                @{previewHandle} is available
-                {swappedFrom && (
-                  <span className="text-text-muted"> (@{swappedFrom} was taken, so we picked this one)</span>
-                )}
-              </p>
-            )}
-            {usernameStatus === "taken" && (
-              <p className="text-error mt-1.5 text-xs">
-                That username is already taken.
-                {suggestion && (
-                  <>
-                    {" "}
-                    <button
-                      type="button"
-                      onClick={() => handleUsernameChange(suggestion)}
-                      className="text-accent-purple font-[600] underline-offset-2 hover:underline"
-                    >
-                      Use @{suggestion}
-                    </button>
-                  </>
-                )}
-              </p>
-            )}
-            {usernameStatus === "error" && (
-              <p className="text-error mt-1.5 text-xs">Couldn&apos;t check availability. Try again.</p>
-            )}
-            {!usernameTouched && username ? (
-              <p className="text-text-muted mt-1 text-xs">Filled in from your name. You can edit it.</p>
-            ) : (
-              usernameTouched &&
-              nameSlug.length >= 3 &&
-              nameSlug !== username.trim() && (
-                <button
-                  type="button"
-                  onClick={resetUsernameToName}
-                  className="text-text-muted hover:text-text-primary mt-1 text-xs underline underline-offset-2"
-                >
-                  Use my name instead
-                </button>
-              )
-            )}
+            ))}
           </div>
         </div>
 
-        {/* Simplified preview — below inputs on mobile, beside them on desktop */}
-        <div className="lg:w-72 lg:shrink-0">
-          <Label>Preview</Label>
-          <div className="surface-card flex flex-col items-center gap-3 rounded-2xl p-6 text-center">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt="" className="size-20 rounded-full object-cover" />
-            ) : (
-              <div className="bg-bg-elevated text-text-muted flex size-20 items-center justify-center rounded-full text-2xl font-[600]">
-                {previewInitial}
-              </div>
-            )}
-            <div>
-              <p className="text-text-primary font-[600]">{previewName}</p>
-              <p className="text-text-muted text-sm">@{previewHandle}</p>
+        {/* Display name */}
+        <div>
+          <Label htmlFor="displayName">{nameLabel}</Label>
+          <Input
+            id="displayName"
+            value={displayName}
+            onChange={(e) => handleNameChange(e.target.value)}
+            placeholder={namePlaceholder}
+          />
+          {submitAttempted && displayName.trim().length < 2 && (
+            <p className="text-error mt-1.5 text-xs">Enter your {nameLabel.toLowerCase()}.</p>
+          )}
+        </div>
+
+        {/* Email — the key for managing the profile after checkout */}
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            onFocus={() => setEmailFocused(true)}
+            onBlur={handleEmailBlur}
+            placeholder="you@example.com"
+          />
+          <EmailTypoHint email={email} focused={emailFocused} onAccept={acceptEmailFix} />
+          {submitAttempted && emailInvalid ? (
+            <p className="text-error mt-1.5 text-xs">Enter a valid email address.</p>
+          ) : domainError ? (
+            <p className="text-error mt-1.5 text-xs">{domainError}</p>
+          ) : (
+            <p className="text-text-muted mt-1.5 text-xs">
+              You&apos;ll use this email to manage your profile later, so double-check it.
+              Ordering more than one card? Use the same email for all of them and switch
+              between your profiles after you sign in.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="confirmEmail">Confirm email</Label>
+          <Input
+            id="confirmEmail"
+            type="email"
+            autoComplete="email"
+            value={confirmEmail}
+            onChange={(e) => setConfirmEmail(e.target.value)}
+            placeholder="Type your email again"
+          />
+          {(submitAttempted || confirmEmail.trim().length >= email.trim().length) &&
+            confirmEmail.trim().length > 0 &&
+            !emailInvalid &&
+            emailMismatch && (
+            <p className="text-error mt-1.5 text-xs">Emails don&apos;t match.</p>
+          )}
+        </div>
+
+        {/* Logo / photo */}
+        <div>
+          <Label>
+            {isBusiness ? "Logo" : "Profile picture"}{" "}
+            <span className="text-text-muted">{isBusiness ? "(required)" : "(optional)"}</span>
+          </Label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleLogoPick(e.target.files?.[0])}
+          />
+          {logoFile && logoUrl ? (
+            <div className="surface-card flex items-center gap-3 rounded-xl p-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoUrl} alt="Logo preview" className="size-12 rounded-lg object-cover" />
+              <span className="text-text-secondary flex-1 truncate text-sm">{logoFile.name}</span>
+              <button
+                type="button"
+                onClick={() => onLogoChange(null)}
+                className="text-text-muted hover:text-text-primary"
+                aria-label="Remove image"
+              >
+                <X className="size-4" />
+              </button>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="border-bg-border text-text-muted hover:text-text-primary hover:border-accent/40 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-6 text-sm transition-colors"
+            >
+              <ImagePlus className="size-4" />
+              Upload an image
+            </button>
+          )}
+          {(logoError || (submitAttempted && logoRequiredMissing)) && (
+            <p className="text-error mt-1.5 text-xs">
+              {logoError ?? "A logo is required for business cards."}
+            </p>
+          )}
+        </div>
+
+        {/* Username */}
+        <div>
+          <Label htmlFor="username">Profile link</Label>
+          <div className="border-bg-border bg-bg-elevated focus-within:border-accent/50 flex h-11 items-center gap-1 rounded-xl border px-4 transition-colors">
+            <span className="text-text-muted text-sm">unitouch.in/u/</span>
+            <input
+              id="username"
+              value={username}
+              onChange={(e) => handleUsernameChange(e.target.value)}
+              placeholder="yourname"
+              className="text-text-primary placeholder:text-text-muted h-full min-w-0 flex-1 bg-transparent text-sm outline-none"
+            />
+            {usernameStatus === "checking" && <Loader2 className="text-text-muted size-4 animate-spin" />}
+            {usernameStatus === "available" && <Check className="text-success size-4" />}
           </div>
+          {usernameStatus === "invalid" && (
+            <p className="text-text-muted mt-1.5 text-xs">
+              3+ characters, lowercase letters, numbers and hyphens only.
+            </p>
+          )}
+          {usernameStatus === "available" && (
+            <p className="text-success mt-1.5 text-xs">
+              @{previewHandle} is available
+              {swappedFrom && (
+                <span className="text-text-muted"> (@{swappedFrom} was taken, so we picked this one)</span>
+              )}
+            </p>
+          )}
+          {usernameStatus === "taken" && (
+            <p className="text-error mt-1.5 text-xs">
+              That username is already taken.
+              {suggestion && (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    onClick={() => handleUsernameChange(suggestion)}
+                    className="text-accent font-[600] underline-offset-2 hover:underline"
+                  >
+                    Use @{suggestion}
+                  </button>
+                </>
+              )}
+            </p>
+          )}
+          {usernameStatus === "error" && (
+            <p className="text-error mt-1.5 text-xs">Couldn&apos;t check availability. Try again.</p>
+          )}
+          {!usernameTouched && username ? (
+            <p className="text-text-muted mt-1 text-xs">Filled in from your name. You can edit it.</p>
+          ) : (
+            usernameTouched &&
+            nameSlug.length >= 3 &&
+            nameSlug !== username.trim() && (
+              <button
+                type="button"
+                onClick={resetUsernameToName}
+                className="text-text-muted hover:text-text-primary mt-1 text-xs underline underline-offset-2"
+              >
+                Use my name instead
+              </button>
+            )
+          )}
         </div>
       </div>
 

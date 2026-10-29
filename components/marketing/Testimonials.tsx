@@ -28,7 +28,7 @@ export default function Testimonials() {
     <section className="px-6 py-24 md:py-28">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-16 flex flex-col items-center gap-4 text-center">
-          <span className="eyebrow">Placeholder Testimonials</span>
+          <span className="text-text-secondary text-sm">Placeholder Testimonials</span>
           <h2 className="font-display text-h2 text-text-primary font-[600]">
             What people say about Unitouch.
           </h2>
@@ -39,7 +39,7 @@ export default function Testimonials() {
             <div key={t.name} className="surface-card rounded-2xl p-7">
               <p className="text-text-primary/90 mb-6 text-[15px] leading-relaxed">“{t.quote}”</p>
               <div className="flex items-center gap-3">
-                <div className="bg-accent-purple/10 text-accent-purple flex size-10 items-center justify-center rounded-full border border-accent-purple/15">
+                <div className="bg-accent/10 text-accent flex size-10 items-center justify-center rounded-full border border-accent/15">
                   <User className="size-5" />
                 </div>
                 <div>

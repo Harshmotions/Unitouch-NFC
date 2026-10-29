@@ -31,7 +31,7 @@ export default async function OrderSuccessPage({
               href={`/u/${encodeURIComponent(username)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-text-primary font-[600] underline decoration-white/30 underline-offset-4 hover:decoration-white"
+              className="copyable text-text-primary font-[600] underline decoration-text-muted underline-offset-4 hover:decoration-text-primary"
             >
               unitouch.in/u/{username}
             </a>

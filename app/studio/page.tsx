@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { claimProfilesForUser, getEditableProfile, getOwnedProfiles } from "@/lib/profile";
 import ProfileStudio from "@/components/studio/ProfileStudio";
@@ -48,8 +49,12 @@ export default async function StudioPage({
   const analytics = isPremium && profile ? await getProfileStatsDetail(profile.username) : null;
 
   return (
-    <main className="bg-bg-base min-h-screen px-6 py-16">
-      <div className="mx-auto w-full max-w-2xl">
+    <main className="copyable bg-bg-base min-h-screen px-6 pt-6 pb-16">
+      <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Unitouch home">
+        <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
+        <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
+      </Link>
+      <div className="mx-auto mt-10 w-full max-w-2xl">
         <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Build your profile</h1>
         <p className="text-text-secondary mb-10">
           Add your details and links, preview it, then publish when you&apos;re ready.
@@ -76,8 +81,8 @@ export default async function StudioPage({
                     aria-current={selected ? "page" : undefined}
                     className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
                       selected
-                        ? "border-accent-purple bg-accent-purple/10 text-text-primary"
-                        : "border-bg-border bg-bg-elevated text-text-secondary hover:border-accent-purple/40 hover:text-text-primary"
+                        ? "border-accent bg-accent/10 text-text-primary"
+                        : "border-bg-border bg-bg-elevated text-text-secondary hover:border-accent/40 hover:text-text-primary"
                     }`}
                   >
                     <span className="block font-[500]">@{ownedProfile.username}</span>

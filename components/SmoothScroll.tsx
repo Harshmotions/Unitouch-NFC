@@ -22,6 +22,13 @@ export default function SmoothScroll() {
     // directly from explicit click handlers instead.
     window.lenisInstance = lenis;
 
+    // Hold the page still while the first-visit loader covers it.
+    const release = () => lenis.start();
+    if (document.documentElement.classList.contains("loading")) {
+      lenis.stop();
+      window.addEventListener("unitouch:loaded", release, { once: true });
+    }
+
     let frameId: number;
     function raf(time: number) {
       lenis.raf(time);
@@ -31,6 +38,7 @@ export default function SmoothScroll() {
 
     return () => {
       cancelAnimationFrame(frameId);
+      window.removeEventListener("unitouch:loaded", release);
       lenis.destroy();
       window.lenisInstance = undefined;
     };

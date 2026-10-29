@@ -315,7 +315,7 @@ export default function ProfileStudio({
             {...register("bio")}
             rows={3}
             placeholder="A line or two about what you do"
-            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent-purple/50"
+            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent/50"
           />
           {errors.bio && <p className="text-error mt-1.5 text-xs">{errors.bio.message}</p>}
         </div>
@@ -328,7 +328,7 @@ export default function ProfileStudio({
             onChange={(e) => setInterestsText(e.target.value)}
             rows={2}
             placeholder="I run a branding agency, love UI design, startups, coffee, public speaking and photography."
-            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted mt-1 w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent-purple/50"
+            className="border-bg-border bg-bg-elevated text-text-primary placeholder:text-text-muted mt-1 w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none transition-colors focus:border-accent/50"
           />
           {!interestsText.trim() && interests.length < MAX_INTERESTS && popularPicks.length > 0 && (
             <div className="mt-3">
@@ -339,7 +339,7 @@ export default function ProfileStudio({
                     key={tag}
                     type="button"
                     onClick={() => addInterestTag(tag)}
-                    className="border-bg-border text-text-secondary hover:border-accent-purple/50 hover:text-text-primary flex items-center gap-1.5 rounded-full border border-dashed px-3.5 py-1.5 text-sm transition-colors"
+                    className="border-bg-border text-text-secondary hover:border-accent/50 hover:text-text-primary flex items-center gap-1.5 rounded-full border border-dashed px-3.5 py-1.5 text-sm transition-colors"
                   >
                     <Plus className="size-3" />
                     {tag}
@@ -357,7 +357,7 @@ export default function ProfileStudio({
                     key={tag}
                     type="button"
                     onClick={() => addInterestTag(tag)}
-                    className="border-bg-border text-text-secondary hover:border-accent-purple/50 hover:text-text-primary flex items-center gap-1.5 rounded-full border border-dashed px-3.5 py-1.5 text-sm transition-colors"
+                    className="border-bg-border text-text-secondary hover:border-accent/50 hover:text-text-primary flex items-center gap-1.5 rounded-full border border-dashed px-3.5 py-1.5 text-sm transition-colors"
                   >
                     <Plus className="size-3" />
                     {tag}
@@ -514,11 +514,11 @@ export default function ProfileStudio({
         </div>
 
         <div className="glass glass-stroke-3 flex items-start gap-3 rounded-xl p-4">
-          <Sparkles className="text-accent-purple size-5 shrink-0" />
+          <Sparkles className="text-accent size-5 shrink-0" />
           <div>
             <p className="text-text-primary font-[600]">Save now, refine anytime</p>
             <p className="text-text-secondary mt-1 text-sm">
-              You&apos;re signed in — save a draft and come back later, or publish to make your
+              You&apos;re signed in. Save a draft and come back later, or publish to make your
               profile live immediately.
             </p>
           </div>

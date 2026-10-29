@@ -10,6 +10,8 @@ const isDev = process.env.NODE_ENV === "development";
    moving to a per-request nonce in middleware, which forces every currently
    static page to render dynamically — a real tradeoff, deliberately not taken
    here. 'unsafe-eval' is dev-only (Turbopack HMR needs it).
+   'wasm-unsafe-eval' allows compiling WebAssembly only (not JS eval): the
+   homepage's 3D iPhone is meshopt-compressed and its decoder is WASM.
 
    Everything else is tight: no plugins/objects, no framing, forms and base
    URLs pinned to our own origin. The external hosts are Supabase (API, auth,
@@ -22,7 +24,7 @@ const isDev = process.env.NODE_ENV === "development";
    analytics) and the sub-hosts individual payment methods use. */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://*.razorpay.com`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""} https://*.razorpay.com`,
   "style-src 'self' 'unsafe-inline'",
   /* blob: covers the local object URLs used for image previews before upload.
      gstatic.com is required alongside google.com because the favicon service

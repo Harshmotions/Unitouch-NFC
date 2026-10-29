@@ -5,75 +5,102 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { handleHashLinkClick } from "@/lib/scroll";
 import { BUSINESS } from "@/lib/business";
+import Button from "@/components/ui/Button";
 
-const LINKS = [
-  { label: "Home", href: "/" },
-  { label: "Features", href: "#features" },
+const EXPLORE = [
+  { label: "How it works", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Questions", href: "#faq" },
+  { label: "Demo profile", href: "/u/priya" },
 ];
 
+const ACCOUNT = [
+  { label: "Order your card", href: "/order" },
+  { label: "Log in", href: "/login" },
+];
+
+/* Razorpay's website check expects every page to link to each of these. */
+const POLICIES = [
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Service", href: "/terms" },
+  { label: "Cancellation & Refunds", href: "/refunds" },
+  { label: "Shipping Policy", href: "/shipping" },
+  { label: "Contact Us", href: "/contact" },
+];
+
+/* A compact footer in the page's centred column: the brand and the one
+   action, three short link columns, then every policy and the legal line.
+   It also sits under the inner pages (app/(site)/layout.tsx), where
+   "#pricing" etc. become "/#pricing". */
 export default function Footer() {
-  /* The footer also sits under the policy/contact/order pages (see
-     app/(site)/layout.tsx), where "#features" etc. don't exist. Off the
-     homepage, point them at "/#…" and let the browser navigate normally. */
   const onHome = usePathname() === "/";
 
+  const linkFor = (href: string) => {
+    const isHash = href.startsWith("#");
+    return {
+      href: isHash && !onHome ? `/${href}` : href,
+      onClick: isHash && onHome ? handleHashLinkClick(href) : undefined,
+    };
+  };
+
   return (
-    <footer id="site-footer" className="border-t border-white/[0.06] px-6 py-16">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-8 sm:flex-row sm:items-start">
-        <div className="flex flex-col items-center gap-2 sm:items-start">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Unitouch" width={24} height={24} />
-            <span className="font-display text-text-primary font-[600]">Unitouch</span>
-          </Link>
-          <p className="text-text-muted text-sm">Tap. Connect. Impress.</p>
+    <footer id="site-footer" className="bg-bg-subtle">
+      <div className="container-page py-14 md:py-16">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Unitouch home">
+              <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
+              <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
+            </Link>
+            <p className="text-text-secondary mt-3 max-w-[32ch] text-[0.9375rem]">
+              NFC business cards with a live profile. Made in Kolhapur.
+            </p>
+          </div>
+          <Button variant="ink" size="md" href="/order" className="w-fit">
+            Order your card
+          </Button>
         </div>
 
-        <div className="flex gap-6">
-          {LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={onHome || !link.href.startsWith("#") ? link.href : `/${link.href}`}
-              onClick={onHome && link.href.startsWith("#") ? handleHashLinkClick(link.href) : undefined}
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors"
-            >
-              {link.label}
+        <div className="mt-12 grid gap-10 text-[0.9375rem] sm:grid-cols-3">
+          <nav aria-label="Explore" className="flex flex-col gap-2.5">
+            <p className="text-text-secondary text-[0.8125rem] font-[500]">Explore</p>
+            {EXPLORE.map((l) => (
+              <a key={l.label} {...linkFor(l.href)} className="link-draw w-fit">
+                {l.label}
+              </a>
+            ))}
+          </nav>
+          <nav aria-label="Account" className="flex flex-col gap-2.5">
+            <p className="text-text-secondary text-[0.8125rem] font-[500]">Your card</p>
+            {ACCOUNT.map((l) => (
+              <Link key={l.label} href={l.href} className="link-draw w-fit">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex flex-col gap-2.5">
+            <p className="text-text-secondary text-[0.8125rem] font-[500]">Contact</p>
+            <a href={`mailto:${BUSINESS.email}`} className="link-draw w-fit">
+              {BUSINESS.email}
             </a>
-          ))}
+            <a href={`tel:${BUSINESS.phone}`} className="link-draw w-fit">
+              {BUSINESS.phoneDisplay}
+            </a>
+            <address className="text-text-secondary not-italic">{BUSINESS.addressLines.join(", ")}</address>
+          </div>
         </div>
 
-        <div className="text-text-muted flex flex-col items-center gap-1 text-sm sm:items-end">
-          <a href={`tel:${BUSINESS.phone}`} className="hover:text-text-primary transition-colors">
-            {BUSINESS.phoneDisplay}
-          </a>
-          <a href={`mailto:${BUSINESS.email}`} className="hover:text-text-primary transition-colors">
-            {BUSINESS.email}
-          </a>
-          <p className="text-center sm:text-right">{BUSINESS.addressLines.join(", ")}</p>
-        </div>
-      </div>
-
-      <div className="mx-auto mt-10 flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/[0.06] pt-8 sm:flex-row">
-        <p className="text-text-muted text-xs">
-          © {new Date().getFullYear()} {BUSINESS.legalName}. All rights reserved. Made in India 🇮🇳
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/privacy" className="text-text-muted hover:text-text-primary text-xs transition-colors">
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className="text-text-muted hover:text-text-primary text-xs transition-colors">
-            Terms of Service
-          </Link>
-          <Link href="/refunds" className="text-text-muted hover:text-text-primary text-xs transition-colors">
-            Cancellation &amp; Refunds
-          </Link>
-          <Link href="/shipping" className="text-text-muted hover:text-text-primary text-xs transition-colors">
-            Shipping Policy
-          </Link>
-          <Link href="/contact" className="text-text-muted hover:text-text-primary text-xs transition-colors">
-            Contact Us
-          </Link>
+        <div className="border-bg-border mt-12 flex flex-col gap-4 border-t pt-6 text-[0.8125rem] md:flex-row md:items-center md:justify-between">
+          <nav aria-label="Policies" className="flex flex-wrap gap-x-5 gap-y-2">
+            {POLICIES.map((p) => (
+              <Link key={p.href} href={p.href} className="link-draw">
+                {p.label}
+              </Link>
+            ))}
+          </nav>
+          <p className="text-text-secondary">
+            © {new Date().getFullYear()} {BUSINESS.legalName}. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

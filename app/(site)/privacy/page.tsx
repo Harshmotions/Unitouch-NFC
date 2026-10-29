@@ -91,7 +91,7 @@ export default function PrivacyPage() {
         <h2 className="font-display text-h3 text-text-primary font-[600]">8. Contact us</h2>
         <p className="text-text-secondary">
           Questions about this policy or your data can be sent to{" "}
-          <a href="mailto:support@unitouch.in" className="text-accent-purple hover:underline">
+          <a href="mailto:support@unitouch.in" className="text-accent hover:underline">
             support@unitouch.in
           </a>
           .

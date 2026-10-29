@@ -1,21 +1,30 @@
-import type { Metadata } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { BUSINESS } from "@/lib/business";
 import { SHARE_IMAGE } from "@/lib/seo";
 
+/* Space Grotesk for headings, Inter for everything else. next/font
+   self-hosts both at build time, so there's no request to Google at
+   runtime. */
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  display: "swap",
 });
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
+
+export const viewport: Viewport = {
+  themeColor: "#eeecea",
+};
 
 const DESCRIPTION =
   "NFC business cards with a live digital profile. Tap once to share your contact, socials and links. No app needed. Made in India.";
@@ -53,8 +62,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}>
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Marks the page as scripted before first paint, so entrance
+            animations only hide content when they can also reveal it. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
+      <body className="no-copy antialiased">
         <SmoothScroll />
         {children}
       </body>

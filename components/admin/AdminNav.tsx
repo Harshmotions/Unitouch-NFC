@@ -24,7 +24,7 @@ export default function AdminNav({ email }: { email: string }) {
   }
 
   return (
-    <nav className="border-bg-border bg-bg-elevated/70 border-b backdrop-blur-xl">
+    <nav className="border-bg-border bg-bg-elevated border-b">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-4">
         <div className="flex flex-wrap items-center gap-6">
           <span className="font-display text-text-primary font-[600]">Unitouch Admin</span>
