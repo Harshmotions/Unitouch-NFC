@@ -97,14 +97,17 @@ overlapping so the phone turns one way only, the card swoops in, touches
 its back and flies on without stopping, and the screen scroll and saved
 note overlap the turn; progress goes negative (`PRE_ROLL`) while the
 section is still coming up the screen; the story uses the first
-`STORY_SHARE` (80%) of the section's scroll and the rest holds the final
-"contact saved" frame so it can be read; as the note drops, the camera
+`STORY_SHARE` of the section's scroll and the rest is the slow close-up on
+the "contact saved" note; as the note drops, the camera
 pushes in on the Dynamic Island over the whole last stretch, while the
 phone swings one way and flows back into its final pose (turned about 35
 degrees, tipped back about 25, screen facing up and to the left) and the
-camera banks and levels out (`swing*`, `camBank` tracks; progress runs on
-past 1 to `END` = 1/STORY_SHARE through the held stretch, so it only
-arrives as the section leaves the screen); the screen texture is the demo profile at 3x
+camera banks and levels out (`zoomAt`, `swing*`, `camBank` tracks: about
+80% of the close-up soon after the note lands, then a very slow settle;
+timing in `card3d/story.ts`: the section is 700svh, the story plays over
+its first 320svh of scroll and progress runs on past 1 to `STORY_END`
+through a long held stretch, so the note stays readable for about two
+screens of scrolling and the motion only arrives as the section leaves); the screen texture is the demo profile at 3x
 (`phone-screen.webp` 1170 x 2925, `phone-bar.webp`), the note is drawn at
 2x, and the phone canvas renders at 1.5x to 2x pixel ratio; on phones the step text is
 centred under the phone, the canvas has feathered edges

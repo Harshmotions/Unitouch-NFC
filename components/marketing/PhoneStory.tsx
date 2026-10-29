@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { PhoneScene } from "@/components/marketing/card3d/phoneScene";
+import { SECTION_SVH, STORY_SHARE } from "@/components/marketing/card3d/story";
 import { loaderShowing, markReady } from "@/lib/loader";
 
 const STEPS = [
@@ -28,9 +29,6 @@ const STEPS = [
 // How far into its turn the phone starts, in story progress, before the
 // section reaches the top of the screen.
 const PRE_ROLL = 0.3;
-// The share of the section's scroll the story takes; the rest is a hold on
-// its final frame.
-const STORY_SHARE = 0.8;
 
 /* Splits text into words, each in its own clipping mask, so a step's words
    can rise into view one after another (the mask-word rules in
@@ -91,7 +89,8 @@ export default function PhoneStory() {
         // The story itself plays over the first part of the scroll; the
         // rest holds its last moment (the contact saved) on screen, so
         // there's time to take it in before the section moves on.
-        const p = progress() / STORY_SHARE;
+        const raw = progress();
+        const p = raw > 0 ? raw / STORY_SHARE : raw;
         scene?.setProgress(p);
         setActive(Math.min(STEPS.length - 1, Math.floor(Math.max(0, p) * STEPS.length * 0.999)));
       });
@@ -174,7 +173,7 @@ export default function PhoneStory() {
       id="profile"
       aria-labelledby="profile-heading"
       className="relative"
-      style={{ height: `${STEPS.length * 100 + 100}svh` }}
+      style={{ height: `${SECTION_SVH}svh` }}
     >
       <div className="sticky top-16 h-[calc(100svh-4rem)] md:top-[4.5rem] md:h-[calc(100svh-4.5rem)]">
         <div className="container-page grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 py-3 md:grid-cols-[1.1fr_1fr] md:grid-rows-1 md:items-center md:gap-10 md:py-4">

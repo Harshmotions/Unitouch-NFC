@@ -22,6 +22,7 @@ import {
   type Texture,
 } from "three";
 import { buildCard, contactShadow, createStudio, roundedRect } from "./parts";
+import { STORY_END as END } from "./story";
 
 /* The phone is a real iPhone 14 Pro Max model (public/models, a GLB with
    meshopt compression, about 120 KB over the wire), modelled in millimetres
@@ -129,14 +130,16 @@ const savedAt = track([[0.76, 0], [0.93, 1]]);
    turned about 35 degrees and tipped back about 25 so the screen faces
    slightly up and to the left (y -0.61 and x -0.44 in total, with the
    story's own end pose), and the camera banks and levels out with it. */
-// Past 1 the story keeps going gently through the held stretch at the end
-// of the section (PhoneStory's STORY_SHARE), arriving only as the section
-// leaves the screen, so there's no frozen last frame.
-const END = 1.25;
-const swingYaw = track([[0.66, 0], [0.84, 0.32], [1.02, -0.12], [END, -0.31]]);
-const swingTilt = track([[0.66, 0], [0.84, 0.14], [1.04, -0.22], [END, -0.36]]);
-const swingRoll = track([[0.66, 0], [0.84, -0.18], [1.04, -0.08], [END, -0.04]]);
-const camBank = track([[0.66, 0], [0.84, 0.1], [1.1, 0.02], [END, 0]]);
+// Past 1 the story keeps going through the long held stretch at the end of
+// the section (story.ts): the close-up reaches about 80% soon after the
+// note lands, then settles the rest of the way very slowly, along with the
+// swing, arriving only as the section leaves the screen. Each track starts
+// with a near-flat key so nothing jolts into motion.
+const zoomAt = track([[0.6, 0], [0.68, 0.03], [0.8, 0.36], [0.95, 0.72], [1.1, 0.8], [1.45, 0.92], [END, 1]]);
+const swingYaw = track([[0.6, 0], [0.66, 0.02], [0.84, 0.32], [1.02, -0.12], [1.4, -0.26], [END, -0.31]]);
+const swingTilt = track([[0.6, 0], [0.66, 0.01], [0.84, 0.14], [1.04, -0.22], [1.4, -0.32], [END, -0.36]]);
+const swingRoll = track([[0.6, 0], [0.66, -0.01], [0.84, -0.18], [1.04, -0.08], [1.4, -0.05], [END, -0.04]]);
+const camBank = track([[0.6, 0], [0.66, 0.01], [0.84, 0.1], [1.1, 0.02], [END, 0]]);
 
 /* A rounded rectangle with separate top and bottom corner radii, for the
    Save Contact bar that sits flush with the screen's rounded bottom. */
@@ -393,7 +396,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
 
   function render() {
     // Small breathing motions on top, so even at rest nothing is frozen.
-    const zoom = soft(0.66, END, p);
+    const zoom = zoomAt(p);
     const sway = Math.sin(t * 0.5) * 0.04 * (1 - zoom * 0.7);
 
     // The card (see the tracks above).
