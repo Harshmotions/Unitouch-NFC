@@ -216,9 +216,10 @@ have no order, so they can never be claimed.
 ## Dependencies
 
 `package.json` `overrides` forces `postcss` ≥ 8.5.26 (Next 15 pins a
-vulnerable 8.4.31; the fix otherwise needs Next 16). Remaining `npm audit`
-warnings are the `braces` chain under `eslint-config-next`, which is dev-only
-and has no patched release yet.
+vulnerable 8.4.31; the fix otherwise needs Next 16). As of Oct 29, 2026
+(next 15.5.28, zod 4.6.7, follow-redirects 1.16.2) `npm audit` reports 0
+vulnerabilities. The `Dependency audit` workflow fails on critical
+advisories, so bump patches promptly when it goes red.
 
 ## Conventions / things that bit us before
 
