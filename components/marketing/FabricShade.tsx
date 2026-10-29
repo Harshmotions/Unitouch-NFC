@@ -15,6 +15,8 @@ import { useEffect, useRef, useState } from "react";
 
 // Shader time the still was rendered at, so the swap is seamless.
 const START = 40;
+// How fast the shadows drift: quick enough to notice, slow enough to calm.
+const SPEED = 2.2;
 
 const VERT = `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 
@@ -103,7 +105,7 @@ export default function FabricShade() {
       };
       const tick = (now: number) => {
         raf = requestAnimationFrame(tick);
-        t += Math.min((now - last) / 1000, 0.1);
+        t += Math.min((now - last) / 1000, 0.1) * SPEED;
         last = now;
         if (now - lastDraw < 33) return;
         lastDraw = now;

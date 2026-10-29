@@ -59,6 +59,8 @@ export default function Card3D({
         await scene.ready;
         if (cancelled) return;
         setLive(true);
+        // Lets the first-visit loader (PageLoader.tsx) open on a ready hero.
+        window.dispatchEvent(new Event("unitouch:hero-ready"));
         sync();
       } catch {
         // No 3D: the poster simply stays.

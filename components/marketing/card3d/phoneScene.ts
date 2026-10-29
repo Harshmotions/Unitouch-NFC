@@ -52,8 +52,74 @@ const settle = (x: number) => {
   const c = 1.25;
   return x <= 0 ? 0 : x >= 1 ? 1 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2);
 };
-// A quadratic Bezier, for the card's curved flight path.
-const curve = (a: number, b: number, c: number, t: number) => mix(mix(a, b, t), mix(b, c, t), t);
+
+/* A smooth path through keyframes [progress, value]: a monotone cubic
+   (Fritsch-Carlson), so it never overshoots a key, and its speed changes
+   gradually from one key to the next instead of stopping at each one. The
+   whole story is built from these, with keys that overlap, so one motion
+   is still finishing while the next has already begun. */
+function track(keys: [number, number][]) {
+  const n = keys.length;
+  const x = keys.map((k) => k[0]);
+  const y = keys.map((k) => k[1]);
+  const d = x.slice(0, -1).map((_, i) => (y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  const m = y.map((_, i) => (i === 0 ? d[0] : i === n - 1 ? d[n - 2] : d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2));
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) {
+      m[i] = m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / d[i];
+    const b = m[i + 1] / d[i];
+    const s = a * a + b * b;
+    if (s > 9) {
+      const k = 3 / Math.sqrt(s);
+      m[i] = k * a * d[i];
+      m[i + 1] = k * b * d[i];
+    }
+  }
+  return (v: number) => {
+    if (v <= x[0]) return y[0];
+    if (v >= x[n - 1]) return y[n - 1];
+    let i = 0;
+    while (v > x[i + 1]) i++;
+    const h = x[i + 1] - x[i];
+    const t = (v - x[i]) / h;
+    const t2 = t * t;
+    const t3 = t2 * t;
+    return (
+      (2 * t3 - 3 * t2 + 1) * y[i] + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * y[i + 1] + (t3 - t2) * h * m[i + 1]
+    );
+  };
+}
+
+/* The story, from -0.3 (the section still coming up the screen) to 1.
+   The phone turns one way only, all the way through: already turning as
+   it appears, its back to us while the card swoops in, touches it and
+   carries on out of frame without stopping, then round to the screen,
+   slowing gradually but never quite still until the end. The screen wakes
+   as it comes round, the profile starts scrolling before the turn has
+   finished, and the note drops in while the scroll is still easing out. */
+const PI = Math.PI;
+const phoneYaw = track([[-0.3, PI + 0.95], [0, PI + 0.3], [0.12, PI - 0.12], [0.3, PI / 2 + 0.15], [0.5, 0.12], [0.75, -0.16], [1, -0.3]]);
+const phoneTilt = track([[-0.3, 0.26], [0.1, 0.12], [0.35, -0.12], [0.7, -0.05], [1, -0.08]]);
+const phoneRoll = track([[-0.3, -0.12], [0.1, -0.05], [0.5, 0.04], [1, 0.02]]);
+const phoneRise = track([[-0.3, -0.25], [0.1, 0], [0.35, 0.1], [0.7, 0.03], [1, 0]]);
+const phoneNear = track([[-0.3, 0], [0.2, 0.1], [0.35, 0.25], [0.7, 0.06], [1, 0]]);
+const camDist = track([[-0.3, 1.16], [0.3, 1.05], [1, 0.97]]);
+const camY = track([[-0.3, -0.05], [0.2, 0.15], [1, 0.1]]);
+// The card: in from the upper right, touching the phone's back at 0.12
+// (the only key it slows for, and only towards the phone), out to the
+// upper left.
+const cardX = track([[-0.3, 3.6], [0, 1.6], [0.12, 0.1], [0.22, -1], [0.4, -3.4]]);
+const cardY = track([[-0.3, 2.1], [0, 0.85], [0.12, 0.05], [0.22, 0.5], [0.4, 2.1]]);
+const cardZ = track([[-0.3, 2.3], [0, 1.6], [0.12, 0.72], [0.22, 1.3], [0.4, 1.9]]);
+const cardRX = track([[-0.3, -0.75], [0, -0.38], [0.12, -0.12], [0.22, -0.4], [0.4, -0.75]]);
+const cardRY = track([[-0.3, -1.7], [0, -0.85], [0.12, -0.15], [0.22, -0.9], [0.4, -1.7]]);
+const cardRZ = track([[-0.3, 0.75], [0, 0.32], [0.12, 0.06], [0.22, 0.35], [0.4, 0.65]]);
+const wakeAt = track([[0.14, 0], [0.36, 1]]);
+const scrollAt = track([[0.4, 0], [0.62, 0.55], [0.86, 1]]);
+const savedAt = track([[0.72, 0], [0.92, 1]]);
 
 /* A rounded rectangle with separate top and bottom corner radii, for the
    Save Contact bar that sits flush with the screen's rounded bottom. */
@@ -298,71 +364,41 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   }
 
   function render() {
-    /* Before the story starts (p below 0, while the section is still
-       coming up the screen) the phone is already turning towards its
-       starting pose, so it's moving from the moment it appears and flows
-       straight into the story with no start. The camera also eases in a
-       little over the whole story, so the frame is never perfectly still
-       between steps. */
-    const pre = Math.min(0, p);
-    const along = clamp(p);
-    camera.position.set(0, 0.15 + pre * 0.4, baseDist * (1.06 - 0.06 * along - pre * 0.25));
-    camera.lookAt(0, pre * 0.3, 0);
-
-    // 1. The card flies in on a curve, turning on all three axes as it
-    //    comes, and taps the upper back of the phone (0 to 0.18). It rests
-    //    there a beat, then sweeps off to the upper left (0.22 to 0.42)
-    //    while the phone is already turning round.
-    const approach = soft(0, 0.18, p);
-    const leave = soft(0.22, 0.42, p);
-    const press = Math.sin(Math.PI * clamp((p - 0.16) / 0.07)) * 0.05;
-    const hover = Math.sin(t * 1.1) * 0.025 * (1 - approach + leave);
-    const ax = curve(2.5 - pre * 2, 1.5, 0.1, approach);
-    const ay = curve(1.7, 0.5, 0.05, approach);
-    const az = curve(1.8, 1.5, 0.72 - press, approach);
-    card.group.position.set(
-      curve(ax, -0.7, -2.9, leave),
-      curve(ay, 0.4, 2.1, leave) + hover,
-      curve(az, 1.2, 1.7, leave)
-    );
-    card.group.rotation.set(
-      mix(-0.55, -0.12, approach) - leave * 0.35 + Math.sin(t * 0.7) * 0.03 * (1 - approach),
-      mix(-1.25, -0.35, approach) - leave * 0.9,
-      mix(0.55, 0.06, approach) + leave * 0.4
-    );
-    card.group.visible = leave < 0.999;
-
-    // 2. The phone turns round from its back to its front as the screen
-    //    wakes (0.18 to 0.55), lifting a little on the way like it's picked
-    //    up, then settles with a slow sway.
-    const reveal = soft(0.18, 0.55, p);
-    const lift = Math.sin(Math.PI * reveal);
+    // Small breathing motions on top, so even at rest nothing is frozen.
     const sway = Math.sin(t * 0.5) * 0.04;
-    turn.rotation.y = mix(Math.PI - 0.55, -0.22, reveal) + sway + pre * 2.4 + (along - 0.5) * 0.16;
-    turn.rotation.x = mix(0.12, -0.06, reveal) - lift * 0.1 + Math.sin(t * 0.4) * 0.02 - pre * 0.35;
-    turn.rotation.z = mix(-0.05, 0.03, reveal) + lift * 0.04;
-    turn.position.y = Math.sin(t * 0.7) * 0.03 + lift * 0.08;
-    turn.position.z = lift * 0.25;
+    camera.position.set(0, camY(p), baseDist * camDist(p));
+    camera.lookAt(0, camY(p) - 0.15, 0);
 
-    const wake = soft(0.16, 0.32, p);
+    // The card (see the tracks above).
+    card.group.position.set(cardX(p), cardY(p) + Math.sin(t * 1.1) * 0.025, cardZ(p));
+    card.group.rotation.set(cardRX(p) + Math.sin(t * 0.7) * 0.03, cardRY(p), cardRZ(p));
+    card.group.visible = p < 0.4;
+
+    // The phone.
+    turn.rotation.y = phoneYaw(p) + sway;
+    turn.rotation.x = phoneTilt(p) + Math.sin(t * 0.4) * 0.02;
+    turn.rotation.z = phoneRoll(p);
+    turn.position.y = phoneRise(p) + Math.sin(t * 0.7) * 0.03;
+    turn.position.z = phoneNear(p);
+
+    const wake = wakeAt(p);
     screenMat.color.setScalar(wake);
     barMat.color.copy(screenMat.color);
 
     // The tap ripple, on the back of the phone where the card touched.
-    const r = soft(0.15, 0.32, p);
+    const r = clamp((p - 0.1) / 0.18);
     ripple.position.set(-0.1, 0.05, BACK_Z - 0.01);
     ripple.rotation.y = Math.PI;
     ripple.scale.setScalar(0.6 + r * 2.4);
-    rippleMat.opacity = r > 0 && r < 1 ? (1 - r) * 0.7 : 0;
+    rippleMat.opacity = r > 0 && r < 1 ? Math.sin(Math.PI * Math.sqrt(r)) * 0.7 : 0;
 
-    // 3. The profile scrolls down to the links (0.48 to 0.8).
-    const scroll = soft(0.48, 0.8, p);
+    // The profile scrolls down to the links.
     const shot = screenMat.map;
-    if (shot) shot.offset.y = mix(0, 1 - VIEW_H / SHOT_H, scroll);
+    if (shot) shot.offset.y = mix(0, 1 - VIEW_H / SHOT_H, scrollAt(p));
 
-    // 4. "Contact saved" grows out of the Dynamic Island and drops just
-    //    below it (0.8 to 0.95), all inside the screen, like iOS does.
-    const saved = soft(0.8, 0.95, p);
+    // "Contact saved" grows out of the Dynamic Island and drops just below
+    // it, all inside the screen, like iOS does.
+    const saved = savedAt(p);
     const drop = settle(saved);
     pillMat.opacity = clamp(saved * 25);
     toastMat.opacity = soft(0.45, 1, saved);
@@ -372,6 +408,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     toast.visible = saved > 0.001;
 
     const facing = Math.abs(Math.cos(turn.rotation.y));
+    const lift = phoneNear(p) * 4;
     shadow.mesh.scale.set((0.55 + 0.45 * facing) * (1 - lift * 0.08), 1, 1);
     shadow.mat.opacity = 0.75 - lift * 0.15;
     renderer.render(scene, camera);

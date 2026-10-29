@@ -372,3 +372,170 @@ p {
     0 10px 20px -6px rgba(20, 18, 16, 0.25),
     0 34px 60px -20px rgba(20, 18, 16, 0.35);
 }
+
+/* ── Page loader (components/marketing/PageLoader.tsx) ──────────────────
+   Shown only while the inline script holds html.loading, and through its
+   exit (loader-done until loader-gone), so it can never stick: without
+   script, with reduced motion, on a repeat visit or after client-side
+   navigation the classes are never set and it isn't displayed at all. */
+.page-loader {
+  display: none;
+}
+
+html.loading .page-loader,
+html.loader-done:not(.loader-gone) .page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-on-ink);
+  pointer-events: none;
+}
+
+html.loading {
+  overflow: hidden;
+}
+
+/* While it covers the page, the hero's entrances wait, so they play as
+   the slats open rather than unseen behind them. */
+html.loading :is(.rise-line > *, .fade-in, .hero-card) {
+  animation-play-state: paused;
+}
+
+/* The ground: 4 x 16 slats of ink, each a hair wider than its cell so no
+   seams show. */
+.page-loader-slats {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+}
+
+.page-loader-slats > span {
+  background: var(--color-bg-ink);
+  margin-right: -1px;
+}
+
+.page-loader-slats > .origin-right {
+  transform-origin: 100% 50%;
+}
+
+.page-loader-slats > .origin-left {
+  transform-origin: 0 50%;
+}
+
+/* The mark, with the wordmark sliding out from behind it. */
+.page-loader-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 2rem;
+  overflow: clip;
+  padding-bottom: 0.1em;
+}
+
+.page-loader-mark {
+  height: 1.75rem;
+  animation: loader-mark 700ms var(--ease-expo) 100ms both;
+}
+
+.page-loader-word {
+  overflow: clip;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.page-loader-word > span {
+  display: inline-block;
+  animation: loader-word 900ms var(--ease-expo) 550ms both;
+}
+
+/* A hairline progress bar under the mark. */
+.page-loader-bar {
+  position: absolute;
+  top: calc(50% + 2.5rem);
+  left: 50%;
+  width: 7rem;
+  height: 2px;
+  margin-left: -3.5rem;
+  border-radius: 2px;
+  background: rgba(238, 236, 234, 0.18);
+  overflow: hidden;
+}
+
+.page-loader-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--color-text-on-ink);
+  transform-origin: 0 50%;
+  animation: loader-fill 4s cubic-bezier(0.15, 0.6, 0.25, 1) both;
+}
+
+/* Done: the bar completes, the mark drops out of its mask, then the slats
+   thin away in a wave. */
+html.loader-done .page-loader-bar > span {
+  animation: loader-complete 300ms var(--ease-out) both;
+}
+
+html.loader-done .page-loader-bar {
+  transition: opacity 300ms var(--ease-out) 200ms;
+  opacity: 0;
+}
+
+html.loader-done :is(.page-loader-mark, .page-loader-word > span) {
+  animation: loader-drop 550ms cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+html.loader-done .page-loader-word > span {
+  animation-delay: 40ms;
+}
+
+html.loader-done .page-loader-slats > span {
+  animation: loader-slat 800ms cubic-bezier(0.65, 0, 0.35, 1) calc(var(--d) + 380ms) both;
+}
+
+@keyframes loader-mark {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+@keyframes loader-word {
+  from {
+    transform: translateX(-110%);
+  }
+}
+
+@keyframes loader-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.92);
+  }
+}
+
+@keyframes loader-complete {
+  from {
+    transform: scaleX(0.6);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes loader-drop {
+  to {
+    transform: translateY(120%);
+  }
+}
+
+@keyframes loader-slat {
+  to {
+    transform: scaleX(0);
+  }
+}

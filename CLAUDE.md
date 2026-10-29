@@ -71,7 +71,13 @@ fail or are skipped, and everything else works.
 
 ## What's built
 
-**Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card that
+**Marketing homepage** (`app/(marketing)/page.tsx`): a first-visit intro
+loader (`PageLoader.tsx`: ink ground, U mark + wordmark, hairline bar, then
+4 x 16 slats thin away in a wave; driven by an inline script + CSS, once per
+browser session, skipped with reduced motion, opens when the hero card's 3D
+fires `unitouch:hero-ready` or a second after load, capped at 5 s; while
+`html.loading` is set the hero entrances are paused and Lenis is stopped),
+Hero (3D card that
 casts a soft shadow on an invisible wall behind it; a full-bleed
 Cartier-like fabric ground from `FabricShade.tsx`: long, soft, random
 shadow streaks drifting from a tiny plain-WebGL noise shader, whose still
@@ -80,9 +86,12 @@ grain tile `public/home/fabric-grain.webp`; the hero runs up behind the
 navbar, which is see-through only at the top of the homepage; it stops
 short of the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
 equal numbered steps), PhoneStory (sticky 3D iPhone; the scene follows the
-scroll on a soft critically damped spring, starts turning while the section
-is still coming up the screen (`PRE_ROLL`, negative progress) and keeps a
-slow camera drift so it never sits still between steps, the canvas has feathered edges
+scroll on a soft critically damped spring; every property follows a
+monotone-cubic keyframe `track()` over progress -0.3 to 1, with the keys
+overlapping so the phone turns one way only, the card swoops in, touches
+its back and flies on without stopping, and the screen scroll and saved
+note overlap the turn; progress goes negative (`PRE_ROLL`) while the
+section is still coming up the screen, the canvas has feathered edges
 (`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
 step text rises word by word out of clipping masks, `.mask-word`),
 MakeItYours (live preview: the client's name on the front, a real QR code
