@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import FaqItem from "@/components/marketing/FaqItem";
 import Reveal from "@/components/motion/Reveal";
 import { BUSINESS } from "@/lib/business";
 
@@ -65,20 +65,7 @@ export default function FAQ() {
 
         <Reveal className="flex flex-col gap-2 lg:col-span-8">
           {FAQS.map((faq) => (
-            <details
-              key={faq.question}
-              className="group bg-bg-elevated rounded-[16px] px-5 transition-colors duration-[240ms] open:bg-white md:px-6"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-[1.0625rem] font-[500] md:text-[1.125rem] [&::-webkit-details-marker]:hidden">
-                {faq.question}
-                <ChevronDown
-                  aria-hidden
-                  strokeWidth={2}
-                  className="text-text-secondary size-5 shrink-0 transition-transform duration-[240ms] ease-[var(--ease-out)] group-open:rotate-180"
-                />
-              </summary>
-              <p className="text-text-secondary max-w-[60ch] pb-5 text-[0.9375rem] leading-relaxed">{faq.answer}</p>
-            </details>
+            <FaqItem key={faq.question} question={faq.question} answer={faq.answer} />
           ))}
         </Reveal>
       </div>

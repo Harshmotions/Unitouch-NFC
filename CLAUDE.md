@@ -71,9 +71,17 @@ fail or are skipped, and everything else works.
 
 ## What's built
 
-**Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card),
-HowItWorks, PhoneStory (sticky 3D iPhone, steps change on scroll),
-MakeItYours (live name preview on the card, browser-only), TapDrum (two
+**Marketing homepage** (`app/(marketing)/page.tsx`): Hero (3D card, a
+blurred leaf shadow `public/home/hero-shade.webp` swaying on the wall
+behind it, preloaded because it's the LCP element; the hero stops short of
+the fold so HowItWorks' darker rounded band peeks in), HowItWorks (three
+equal numbered steps), PhoneStory (sticky 3D iPhone; the scene follows the
+scroll on a critically damped spring, the canvas has feathered edges
+(`.feather`), the "Contact saved" note grows out of the Dynamic Island, and
+step text rises word by word out of clipping masks, `.mask-word`),
+MakeItYours (live preview: the client's name on the front, a real QR code
+to their profile link on the back via `lib/qr.ts`, small Unitouch mark in
+the back's corner, browser-only), TapDrum (two
 rolling columns of what a tap leads to), Pricing, FAQ, Footer, plus
 Organization / Product / FAQPage JSON-LD. The 3D lives in
 `components/marketing/card3d/`: `parts.ts` (studio light, the card, contact
@@ -86,7 +94,10 @@ paint stills first (`public/cards/hero-card.webp`, `public/home/phone-*.webp`)
 and load the scenes only when idle / near; reduced motion keeps the stills.
 If you change a scene's framing, re-render its still so the swap stays
 seamless. The card pictures in `public/cards/` are stills of the 3D card,
-not photographs.
+not photographs. The physical card design: front = the customer's name and
+title plus NFC waves; back = QR code plus a small Unitouch mark,
+bottom-right, nothing else. The Premium still prints in gold; confirm the
+print shop can do that before advertising it as a feature.
 `Testimonials.tsx` is intentionally NOT rendered: it held made-up
 placeholder reviews, which got flagged for Razorpay website verification.
 Only re-add it with real customer quotes. Don't advertise features that
@@ -269,4 +280,9 @@ advisories, so bump patches promptly when it goes red.
   in `lib/supabase/server.ts`). Shared constants go in import-free files
   (`lib/checkout-config.ts`, `lib/order-status.ts`).
 - **Customer-facing copy**: no em dashes.
+- **Text isn't selectable on the public site** (`body.no-copy` in
+  `app/layout.tsx`). Form fields, `mailto:`/`tel:` links, `<address>` and
+  anything inside `.copyable` still select; `/admin` and `/studio` are
+  `.copyable` throughout. Mark new copy-worthy text (IDs, links the customer
+  needs) with `.copyable`.
 - Run `npm run lint` before considering any change done.

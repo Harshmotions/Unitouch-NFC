@@ -7,10 +7,10 @@
 export const CARD_IMAGES: Record<"standard" | "premium", { src: string; alt: string }> = {
   standard: {
     src: "/cards/standard.webp",
-    alt: "The front of a Unitouch Standard NFC business card in matte black",
+    alt: "A Unitouch Standard NFC business card: matte black, the owner's name and title printed in white",
   },
   premium: {
     src: "/cards/premium.webp",
-    alt: "The back of a Unitouch Premium NFC business card, with the owner's name and title",
+    alt: "A Unitouch Premium NFC business card: matte black, the owner's name and title in gold",
   },
 };

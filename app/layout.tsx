@@ -68,7 +68,7 @@ export default function RootLayout({
             animations only hide content when they can also reveal it. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
-      <body className="antialiased">
+      <body className="no-copy antialiased">
         <SmoothScroll />
         {children}
       </body>

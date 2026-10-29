@@ -77,6 +77,21 @@
 /* scroll-behavior intentionally omitted: Lenis (components/SmoothScroll.tsx)
    owns all scroll easing, including anchor-link jumps. */
 
+/* Text isn't selectable on the public site, so it reads like a designed
+   page rather than a document (a long press on a phone doesn't pop up the
+   copy menu over a card or a heading). What people do need to copy still
+   selects: form fields, email addresses, phone numbers, the postal address,
+   anything marked .copyable, and the whole of /admin and /studio. */
+.no-copy {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.no-copy :is(input, textarea, select, [contenteditable], address, a[href^="mailto:"], a[href^="tel:"], .copyable, .copyable *) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 body {
   background-color: var(--color-bg-base);
   color: var(--color-text-primary);
@@ -185,6 +200,18 @@ p {
     transform: none;
   }
 
+  /* How it works: the rule between steps draws in from the left. */
+  html.js [data-reveal] .step-rule {
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 1200ms var(--ease-expo);
+    transition-delay: calc(var(--i, 0) * 80ms + 300ms);
+  }
+
+  html.js [data-reveal].is-in .step-rule {
+    transform: none;
+  }
+
   /* Masked line rise for headings. */
   html.js .rise-line {
     display: block;
@@ -238,6 +265,23 @@ p {
   background: radial-gradient(closest-side, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 72%);
 }
 
+/* Sunlight through a branch onto the wall behind the hero: a soft, blurred
+   leaf shadow (a still image, multiplied onto the ground) that sways
+   slowly, as if in a breeze. Transform only, so it costs nothing. */
+.hero-shade {
+  background: url("/home/hero-shade.webp") right top / auto 115% no-repeat;
+  opacity: 0.2;
+  mix-blend-mode: multiply;
+  transform-origin: 100% 0;
+}
+
+@media (max-width: 1023px) {
+  .hero-shade {
+    background-size: auto 70%;
+    opacity: 0.14;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html.js .hero-card {
     animation: card-float-in 1600ms var(--ease-expo) 150ms both;
@@ -246,6 +290,19 @@ p {
 
   html.js .hero-light {
     animation: fade 1800ms var(--ease-out) 100ms both;
+  }
+
+  .hero-shade {
+    animation: leaf-sway 11s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes leaf-sway {
+  from {
+    transform: rotate(-1.2deg) translate3d(0.6%, -0.4%, 0);
+  }
+  to {
+    transform: rotate(1deg) translate3d(-0.8%, 0.6%, 0);
   }
 }
 
@@ -257,6 +314,64 @@ p {
   }
   60% {
     filter: blur(0);
+  }
+}
+
+/* Soft edges for a 3D canvas, so whatever crosses its bounds fades out
+   instead of being cut off on a hard line. */
+.feather {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 9%, #000 91%, transparent),
+    linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 9%, #000 91%, transparent),
+    linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  mask-composite: intersect;
+}
+
+/* Words that rise into view out of a clipping mask, each a little after
+   the one before (the phone story's steps). Each word sits in an
+   overflow-clipped box padded so descenders and the tilt aren't cut. The
+   current step's words rise in; a finished step's words lift out the top. */
+.mask-word {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: bottom;
+  padding: 0.08em 0.1em 0.16em 0;
+  margin: -0.08em -0.1em -0.16em 0;
+}
+
+.mask-word > span {
+  display: inline-block;
+  transform-origin: 0 100%;
+}
+
+.mask-step:not([data-state="active"]) {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mask-step .mask-word > span {
+    transform: translateY(108%) rotate(7deg);
+    transition: transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: calc(var(--w, 0) * 70ms + 120ms);
+  }
+
+  .mask-step[data-state="active"] .mask-word > span {
+    transform: none;
+  }
+
+  .mask-step[data-state="past"] .mask-word > span {
+    transform: translateY(-140%) rotate(-3deg);
+    transition-duration: 600ms;
+    transition-delay: calc(var(--w, 0) * 25ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mask-step:not([data-state="active"]) {
+    visibility: hidden;
   }
 }
 

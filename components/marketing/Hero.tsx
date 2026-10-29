@@ -1,3 +1,4 @@
+import { preload } from "react-dom";
 import { Check } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card3D from "@/components/marketing/card3d/Card3D";
@@ -8,13 +9,20 @@ const FROM_PRICE = Math.min(...CARD_VARIANTS.map((v) => v.price)).toLocaleString
 const FACTS = [`From ₹${FROM_PRICE}, one payment`, "Free delivery in 5 to 7 days", "Works with iPhone and Android"];
 
 /* First screen: what it is and the one action on the left; the card itself
-   on the right, turning slowly under a soft studio light. On load the card
+   on the right, turning slowly under a soft studio light, with the shadow
+   of a leafy branch drifting across the wall behind it. On load the card
    floats up into place out of a blur (CSS, on its still, so it plays on the
-   first paint); the live 3D scene takes over once the page is idle. */
+   first paint); the live 3D scene takes over once the page is idle. The
+   hero stops short of the fold so the next section's band peeks in. */
 export default function Hero() {
+  // The leaf shadow is a CSS background, which the browser would otherwise
+  // find only after the stylesheet; it covers the hero, so it counts as the
+  // page's largest paint. It's 8 KB.
+  preload("/home/hero-shade.webp", { as: "image", fetchPriority: "high" });
   return (
     <section id="hero" className="relative overflow-clip">
-      <div className="container-page grid items-center gap-y-6 pt-10 pb-16 md:pt-14 lg:min-h-[calc(100svh-4.5rem)] lg:grid-cols-12 lg:gap-x-8 lg:py-12">
+      <div aria-hidden className="hero-shade pointer-events-none absolute inset-0" />
+      <div className="container-page relative grid items-center gap-y-4 pt-10 pb-12 md:pt-14 lg:min-h-[calc(100svh-4.5rem-clamp(7rem,20svh,12rem))] lg:grid-cols-12 lg:gap-x-8 lg:py-8">
         <div className="lg:col-span-6">
           <p className="fade-in text-text-secondary mb-5 text-[0.9375rem] font-[500]" style={{ "--i": 0 } as React.CSSProperties}>
             NFC business cards, made in India
@@ -54,18 +62,20 @@ export default function Hero() {
           </ul>
         </div>
 
-        <div className="relative lg:col-span-6 lg:-mr-[18%] lg:-ml-[2%]">
+        {/* The card's canvas runs out to the edge of the screen on the right,
+            so the turning card has room and is never cut off. */}
+        <div className="relative lg:col-span-6 lg:-mr-10 xl:-mr-[min(12rem,max(2.5rem,calc(50vw-35.5rem)))]">
           {/* Soft studio light behind the card: a pale pool, no colour. */}
           <div aria-hidden className="hero-light pointer-events-none absolute inset-[-10%]" />
           <div className="hero-card relative">
             <Card3D
               poster="/cards/hero-card.webp"
-              posterAlt="The Unitouch NFC business card in matte black, with the fingerprint U logo and wordmark in gloss"
-              posterWidth={1600}
-              posterHeight={1000}
+              posterAlt="A matte black Unitouch NFC business card printed with the owner's name, Priya Anand, and her title"
+              posterWidth={1500}
+              posterHeight={1200}
               priority
-              className="aspect-[16/10] w-full"
-              fill={0.72}
+              className="aspect-[5/4] w-full"
+              fill={0.7}
             />
           </div>
         </div>

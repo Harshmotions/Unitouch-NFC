@@ -86,7 +86,7 @@ export default function Footer() {
             <a href={`tel:${BUSINESS.phone}`} className="link-draw w-fit">
               {BUSINESS.phoneDisplay}
             </a>
-            <p className="text-text-secondary">{BUSINESS.addressLines.join(", ")}</p>
+            <address className="text-text-secondary not-italic">{BUSINESS.addressLines.join(", ")}</address>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { PhoneScene } from "@/components/marketing/card3d/phoneScene";
@@ -24,12 +24,27 @@ const STEPS = [
   },
 ];
 
+/* Splits text into words, each in its own clipping mask, so a step's words
+   can rise into view one after another (the mask-word rules in
+   globals.css). The masks are for looks only: the words read as one line. */
+function MaskedWords({ text, step }: { text: string; step: number }) {
+  return text.split(" ").map((word, i) => (
+    <Fragment key={i}>
+      <span className="mask-word">
+        <span style={{ "--w": i * step } as React.CSSProperties}>{word}</span>
+      </span>{" "}
+    </Fragment>
+  ));
+}
+
 /* What people see when you tap: a 3D iPhone and the card, held on the left
    while the steps scroll past on the right. The section's scroll position
-   is one continuous value that the scene eases toward, so there are no
-   jumps: the card taps the phone, the phone turns round as it wakes, the
-   profile scrolls, and the contact is saved. The 3D loads only when the
-   section comes near; until then (and with reduced motion) a still shows. */
+   is one continuous value that the scene follows on a spring, so there are
+   no jumps: the card flies in and taps the phone, the phone turns round as
+   it wakes, the profile scrolls, and the contact is saved. The 3D loads
+   only when the section comes near; until then (and with reduced motion) a
+   still shows. The canvas fades out at its edges, so the card flying in
+   never looks cut off. */
 export default function PhoneStory() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -135,13 +150,13 @@ export default function PhoneStory() {
       ref={sectionRef}
       id="profile"
       aria-labelledby="profile-heading"
-      className="bg-bg-subtle relative"
-      style={{ height: `${STEPS.length * 85 + 15}svh` }}
+      className="relative"
+      style={{ height: `${STEPS.length * 90 + 20}svh` }}
     >
       <div className="sticky top-16 h-[calc(100svh-4rem)] md:top-[4.5rem] md:h-[calc(100svh-4.5rem)]">
-        <div className="container-page grid h-full grid-rows-[minmax(0,1fr)_auto] gap-4 py-6 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-12 md:py-10">
+        <div className="container-page grid h-full grid-rows-[minmax(0,1fr)_auto] gap-2 py-3 md:grid-cols-[1.1fr_1fr] md:grid-rows-1 md:items-center md:gap-10 md:py-4">
           {/* The phone. */}
-          <div className="relative h-full min-h-0">
+          <div className="feather relative h-full min-h-0 md:-ml-[6%]">
             <Image
               src="/home/phone-poster.webp"
               alt=""
@@ -167,9 +182,9 @@ export default function PhoneStory() {
             />
           </div>
 
-          {/* The words: one step at a time, cross-fading as you scroll. */}
-          <div className="relative md:pr-4">
-            <h2 id="profile-heading" className="font-display text-text-secondary mb-4 text-[1rem] font-[500] md:mb-6">
+          {/* The words: one step at a time, rising in word by word as you scroll. */}
+          <div className="relative pb-4 md:pr-4 md:pb-0">
+            <h2 id="profile-heading" className="font-display text-text-secondary mb-4 text-[1.0625rem] font-[500] md:mb-6">
               What people see when you tap
             </h2>
             <div className="relative grid">
@@ -177,14 +192,15 @@ export default function PhoneStory() {
                 <div
                   key={step.title}
                   aria-hidden={i !== active}
-                  className={`col-start-1 row-start-1 transition-[opacity,transform] duration-700 ease-[var(--ease-out)] ${
-                    i === active ? "translate-y-0 opacity-100" : i < active ? "-translate-y-4 opacity-0" : "translate-y-4 opacity-0"
-                  }`}
+                  data-state={i === active ? "active" : i < active ? "past" : "next"}
+                  className="mask-step col-start-1 row-start-1"
                 >
-                  <p className="font-display text-[clamp(1.75rem,1.2rem+2vw,2.75rem)] leading-[1.1] font-[600]">
-                    {step.title}
+                  <p className="font-display text-[clamp(2rem,1.3rem+2.4vw,3.25rem)] leading-[1.08] font-[600]">
+                    <MaskedWords text={step.title} step={1} />
                   </p>
-                  <p className="text-text-secondary mt-4 max-w-[38ch] text-[1.0625rem] leading-relaxed">{step.text}</p>
+                  <p className="text-text-secondary mt-5 max-w-[36ch] text-[1.125rem] leading-relaxed">
+                    <MaskedWords text={step.text} step={0.25} />
+                  </p>
                 </div>
               ))}
             </div>

@@ -49,7 +49,7 @@ export default async function StudioPage({
   const analytics = isPremium && profile ? await getProfileStatsDetail(profile.username) : null;
 
   return (
-    <main className="bg-bg-base min-h-screen px-6 pt-6 pb-16">
+    <main className="copyable bg-bg-base min-h-screen px-6 pt-6 pb-16">
       <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Unitouch home">
         <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} />
         <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>

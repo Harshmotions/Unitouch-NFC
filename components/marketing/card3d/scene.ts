@@ -2,7 +2,7 @@
    page is interactive (Card3D.tsx), so none of this is in the first-load
    bundle. */
 import { Group, PerspectiveCamera } from "three";
-import { W, H, buildCard, contactShadow, createStudio } from "./parts";
+import { W, H, buildCard, contactShadow, createStudio, type CardFinish } from "./parts";
 
 export interface CardSceneOptions {
   /** Radians per second of the spin. Negative turns the other way. */
@@ -17,6 +17,7 @@ export interface CardSceneOptions {
   still?: boolean;
   name?: string;
   title?: string;
+  finish?: CardFinish;
 }
 
 export interface CardScene {
@@ -38,6 +39,7 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
     still = false,
     name = "Priya Anand",
     title = "Portrait & Brand Photographer",
+    finish = "standard",
   } = opts;
 
   const studio = createStudio(canvas);
@@ -54,7 +56,7 @@ export function createCardScene(canvas: HTMLCanvasElement, opts: CardSceneOption
   sway.add(spin);
   scene.add(sway);
 
-  const card = buildCard(renderer, name, title);
+  const card = buildCard(renderer, { name, title, finish, url: "https://www.unitouch.in/u/priya" });
   spin.add(card.group);
 
   const shadow = contactShadow(W * 1.7, H * 0.7);

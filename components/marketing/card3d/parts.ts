@@ -70,6 +70,20 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+/* The white logo mark recoloured to the print colour (or a grey, for the
+   roughness and metalness maps). */
+function tint(img: HTMLImageElement, color: string): HTMLCanvasElement {
+  const c = document.createElement("canvas");
+  c.width = img.width;
+  c.height = img.height;
+  const ctx = c.getContext("2d")!;
+  ctx.drawImage(img, 0, 0);
+  ctx.globalCompositeOperation = "source-in";
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+
 /* The NFC "waves" glyph from the printed card: a dot and two arcs. */
 function drawWaves(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
   ctx.lineCap = "round";
@@ -89,13 +103,31 @@ interface Faces {
   frontRough: CanvasTexture;
   back: CanvasTexture;
   backRough: CanvasTexture;
+  frontMetal?: CanvasTexture;
+  backMetal?: CanvasTexture;
 }
 
-/* Paints both faces. The colour maps carry the artwork; the roughness maps
-   make the logo and type a glossy spot finish against the soft-touch matte
-   card, which is what catches the light as it turns. */
-async function paintFaces(name: string, title: string, maxAniso: number): Promise<Faces> {
-  const mark = await loadImage("/brand/u-mark-white.webp");
+export type CardFinish = "standard" | "premium";
+
+export interface CardDesign {
+  name: string;
+  title: string;
+  /** The link the QR on the back opens. */
+  url: string;
+  /** Standard prints in white; Premium in gold foil. */
+  finish?: CardFinish;
+}
+
+/* Paints both faces, as the card is printed:
+   - front: the owner's name and title, with the NFC mark;
+   - back: a QR code (for phones without NFC) on a white tile, and the small
+     Unitouch mark in the bottom-right corner.
+   The colour maps carry the artwork; the roughness maps make the print a
+   glossy finish against the soft-touch matte card, which is what catches
+   the light as it turns. Premium's print is metallic gold foil. */
+async function paintFaces(design: CardDesign, maxAniso: number): Promise<Faces> {
+  const { name, title, url, finish = "standard" } = design;
+  const [mark, { qrModules }] = await Promise.all([loadImage("/brand/u-mark-white.webp"), import("@/lib/qr")]);
   // next/font gives the faces generated family names; read them from the vars.
   const css = getComputedStyle(document.documentElement);
   const display = css.getPropertyValue("--font-space-grotesk").trim() || "sans-serif";
@@ -114,44 +146,56 @@ async function paintFaces(name: string, title: string, maxAniso: number): Promis
   };
 
   const u = TEX_W / 100; // 1% of the card width
+  const PRINT = finish === "premium" ? "#ecd29a" : "#f4f2ee";
+  const modules = qrModules(url);
 
-  // Front: NFC waves top left, the U mark and the wordmark bottom left.
+  // `ink` is the print colour, `ground` the card; for the roughness and
+  // metalness maps the same artwork is drawn in greys.
   const front = (ink: string, ground: string) => {
     const [c, ctx] = make();
     ctx.fillStyle = ground;
     ctx.fillRect(0, 0, TEX_W, TEX_H);
     ctx.fillStyle = ink;
     ctx.strokeStyle = ink;
-    drawWaves(ctx, 7 * u, 13 * u, 6 * u);
-    const mh = 13 * u;
-    const mw = (mark.width / mark.height) * mh;
-    ctx.save();
-    if (ink !== "#ffffff") ctx.filter = "brightness(0.3)";
-    ctx.drawImage(mark, 7 * u, TEX_H - 9 * u - mh, mw, mh);
-    ctx.restore();
-    ctx.font = `600 ${10.5 * u}px ${display}`;
     ctx.textBaseline = "alphabetic";
-    ctx.fillText("Unitouch", 7 * u + mw + 3 * u, TEX_H - 10.4 * u);
+    ctx.font = `600 ${8.4 * u}px ${display}`;
+    ctx.fillText(name, 7 * u, TEX_H - 21 * u, 80 * u);
+    ctx.font = `400 ${3.9 * u}px ${family}`;
+    ctx.fillText(title, 7.2 * u, TEX_H - 14 * u, 80 * u);
+    drawWaves(ctx, TEX_W - 15 * u, 12 * u, 5.5 * u);
     return c;
   };
 
-  // Back: the person. Name, title and the tap hint, set small and quiet.
-  const back = (ink: string, ground: string) => {
+  const back = (ink: string, ground: string, tile: string, dot: string) => {
     const [c, ctx] = make();
     ctx.fillStyle = ground;
     ctx.fillRect(0, 0, TEX_W, TEX_H);
+    // The QR tile: white, rounded, vertically centred on the left.
+    const size = TEX_H * 0.6;
+    const x = 7 * u;
+    const y = (TEX_H - size) / 2;
+    ctx.fillStyle = tile;
+    ctx.beginPath();
+    ctx.roundRect(x, y, size, size, size * 0.08);
+    ctx.fill();
+    const pad = size * 0.09;
+    const cell = (size - pad * 2) / modules.length;
+    ctx.fillStyle = dot;
+    modules.forEach((row, r) =>
+      row.forEach((on, col) => {
+        if (on) ctx.fillRect(x + pad + col * cell, y + pad + r * cell, cell + 0.6, cell + 0.6);
+      })
+    );
+    // Small Unitouch mark, bottom right.
+    const mh = 5.2 * u;
+    const mw = (mark.width / mark.height) * mh;
+    ctx.font = `600 ${3.6 * u}px ${display}`;
+    const word = ctx.measureText("Unitouch").width;
+    const right = TEX_W - 7 * u;
+    const baseline = TEX_H - 8.6 * u;
+    ctx.drawImage(tint(mark, ink), right - word - 1.6 * u - mw, baseline - mh + 0.6 * u, mw, mh);
     ctx.fillStyle = ink;
-    ctx.strokeStyle = ink;
-    ctx.textBaseline = "alphabetic";
-    ctx.font = `600 ${7.4 * u}px ${display}`;
-    ctx.fillText(name, 7 * u, 22 * u);
-    ctx.globalAlpha = ink === "#ffffff" ? 0.72 : 1;
-    ctx.font = `400 ${4 * u}px ${family}`;
-    ctx.fillText(title, 7 * u, 29 * u);
-    ctx.globalAlpha = 1;
-    drawWaves(ctx, TEX_W - 16 * u, TEX_H - 11 * u, 5 * u);
-    ctx.font = `500 ${3.4 * u}px ${family}`;
-    ctx.fillText("Tap to connect", 7 * u, TEX_H - 9.4 * u);
+    ctx.fillText("Unitouch", right - word, baseline);
     return c;
   };
 
@@ -162,13 +206,19 @@ async function paintFaces(name: string, title: string, maxAniso: number): Promis
     return t;
   };
 
-  // Roughness: ground = matte (light grey), artwork = gloss (dark).
-  return {
-    front: tex(front("#ffffff", "#141414"), true),
+  // Roughness: ground = matte (light grey), print = gloss (dark).
+  const faces: Faces = {
+    front: tex(front(PRINT, "#141414"), true),
     frontRough: tex(front("#2e2e2e", "#9a9a9a"), false),
-    back: tex(back("#ffffff", "#141414"), true),
-    backRough: tex(back("#2e2e2e", "#9a9a9a"), false),
+    back: tex(back(PRINT, "#141414", "#f4f2ee", "#141414"), true),
+    backRough: tex(back("#2e2e2e", "#9a9a9a", "#5a5a5a", "#5a5a5a"), false),
   };
+  if (finish === "premium") {
+    // Metalness: the gold print is metal; the card and the QR tile aren't.
+    faces.frontMetal = tex(front("#8c8c8c", "#000000"), false);
+    faces.backMetal = tex(back("#8c8c8c", "#000000", "#000000", "#000000"), false);
+  }
+  return faces;
 }
 
 /* A soft contact shadow, in two layers like a real studio shot: a wide,
@@ -226,7 +276,7 @@ export function createStudio(canvas: HTMLCanvasElement) {
 
 /* The card: an extruded rounded body (its sides are the visible edge) with
    the two printed faces just in front of its caps. */
-export function buildCard(renderer: WebGLRenderer, name: string, title: string) {
+export function buildCard(renderer: WebGLRenderer, design: CardDesign) {
   const group = new Group();
   const bodyGeo = new ExtrudeGeometry(roundedRect(W, H, RADIUS), {
     depth: DEPTH,
@@ -262,11 +312,16 @@ export function buildCard(renderer: WebGLRenderer, name: string, title: string) 
   backMesh.rotation.y = Math.PI;
   group.add(frontMesh, backMesh);
 
-  const ready = paintFaces(name, title, renderer.capabilities.getMaxAnisotropy()).then((f) => {
+  const ready = paintFaces(design, renderer.capabilities.getMaxAnisotropy()).then((f) => {
     frontMat.map = f.front;
     frontMat.roughnessMap = f.frontRough;
     backMat.map = f.back;
     backMat.roughnessMap = f.backRough;
+    if (f.frontMetal && f.backMetal) {
+      frontMat.metalness = backMat.metalness = 1;
+      frontMat.metalnessMap = f.frontMetal;
+      backMat.metalnessMap = f.backMetal;
+    }
     frontMat.needsUpdate = true;
     backMat.needsUpdate = true;
   });
@@ -279,6 +334,7 @@ export function buildCard(renderer: WebGLRenderer, name: string, title: string) 
       [edgeMat, frontMat, backMat].forEach((m) => {
         m.map?.dispose();
         m.roughnessMap?.dispose();
+        m.metalnessMap?.dispose();
         m.dispose();
       });
     },

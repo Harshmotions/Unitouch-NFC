@@ -40,11 +40,20 @@ const VIEW_H = 1688;
 const BAR_H = 180;
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-const smooth = (a: number, b: number, v: number) => {
-  const x = clamp((v - a) / (b - a));
-  return x * x * (3 - 2 * x);
-};
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+// Smootherstep: starts and ends with zero speed and zero acceleration, so
+// nothing ever lurches into or out of a move.
+const soft = (a: number, b: number, v: number) => {
+  const x = clamp((v - a) / (b - a));
+  return x * x * x * (x * (x * 6 - 15) + 10);
+};
+// A small overshoot at the end, for things that drop into place.
+const settle = (x: number) => {
+  const c = 1.25;
+  return x <= 0 ? 0 : x >= 1 ? 1 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2);
+};
+// A quadratic Bezier, for the card's curved flight path.
+const curve = (a: number, b: number, c: number, t: number) => mix(mix(a, b, t), mix(b, c, t), t);
 
 /* A rounded rectangle with separate top and bottom corner radii, for the
    Save Contact bar that sits flush with the screen's rounded bottom. */
@@ -69,7 +78,7 @@ function fitUVs(geo: BufferGeometry, w: number, h: number) {
   uv.needsUpdate = true;
 }
 
-/* The note that drops in from the top of the screen at the end. */
+/* The note that drops out of the Dynamic Island at the end. */
 function toastTexture(): CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 720;
@@ -213,15 +222,32 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   bar.position.set(0, -SH / 2 + barH / 2, FRONT_Z + 0.002);
   phone.add(bar);
 
+  /* The note is two layers: a dark pill that grows out of the island, and
+     the words and tick, which fade in once it has room for them. */
   const toastW = SW * 0.92;
+  const toastH = (toastW * 150) / 720;
+  const toastGeo = track(new ShapeGeometry(roundedRect(toastW, toastH, 0.06), 16));
+  fitUVs(toastGeo, toastW, toastH);
+  const pillMat = track(new MeshBasicMaterial({ color: 0x1c1c1e, transparent: true, opacity: 0, toneMapped: false }));
   const toastMat = track(new MeshBasicMaterial({ map: toastTexture(), transparent: true, opacity: 0, toneMapped: false }));
-  const toast = new Mesh(track(new ShapeGeometry(roundedRect(toastW, (toastW * 150) / 720, 0.06), 16)), toastMat);
-  fitUVs(toast.geometry, toastW, (toastW * 150) / 720);
+  const toast = new Group();
+  const pill = new Mesh(toastGeo, pillMat);
+  const words = new Mesh(toastGeo, toastMat);
+  words.position.z = 0.001;
+  toast.add(pill, words);
   toast.position.z = FRONT_Z + 0.004;
   phone.add(toast);
+  // The island sits about 12 mm below the top of the display; the note
+  // settles just under it.
+  const ISLAND_Y = SH / 2 - 0.3;
+  const TOAST_Y = SH / 2 - 0.66;
 
   // ── The card, which taps the back of the phone ──────────────────────────
-  const card = buildCard(renderer, "Priya Anand", "Portrait & Brand Photographer");
+  const card = buildCard(renderer, {
+    name: "Priya Anand",
+    title: "Portrait & Brand Photographer",
+    url: "https://www.unitouch.in/u/priya",
+  });
   scene.add(card.group);
   disposables.push(card);
 
@@ -248,6 +274,7 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   // ── Motion ──────────────────────────────────────────────────────────────
   let target = opts.still ?? 0;
   let p = target;
+  let v = 0; // how fast p is moving
   let t = 0;
   let running = false;
   let last = 0;
@@ -261,8 +288,8 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     camera.aspect = w / h;
     // Fit the phone's height (plus room for the card) in view.
     const half = Math.tan((camera.fov * Math.PI) / 360);
-    const byHeight = (PH * 1.32) / (2 * half);
-    const byWidth = (PH * 0.9) / (2 * half * camera.aspect);
+    const byHeight = (PH * 1.14) / (2 * half);
+    const byWidth = (PH * 0.82) / (2 * half * camera.aspect);
     camera.position.set(0, 0.15, Math.max(byHeight, byWidth));
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
@@ -270,52 +297,71 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
   }
 
   function render() {
-    // 1. The card comes in and taps the back of the phone (0 to 0.24).
-    const approach = smooth(0.02, 0.18, p);
-    const leave = smooth(0.2, 0.36, p);
-    // The phone starts turned with its back to us, so the tap happens on
-    // our side of it: the card glides in and touches the upper back.
-    const cardX = mix(mix(2.6, 0.1, approach), -3.4, leave);
-    const cardY = mix(mix(1.3, 0.05, approach), 2.2, leave);
-    const cardZ = mix(mix(1.4, 0.72, approach), 1.5, leave);
-    card.group.position.set(cardX, cardY, cardZ);
-    card.group.rotation.set(mix(-0.35, -0.12, approach), mix(-0.9, -0.35, approach) - leave * 0.6, mix(0.35, 0.06, approach));
+    // 1. The card flies in on a curve, turning on all three axes as it
+    //    comes, and taps the upper back of the phone (0 to 0.18). It rests
+    //    there a beat, then sweeps off to the upper left (0.22 to 0.42)
+    //    while the phone is already turning round.
+    const approach = soft(0, 0.18, p);
+    const leave = soft(0.22, 0.42, p);
+    const press = Math.sin(Math.PI * clamp((p - 0.16) / 0.07)) * 0.05;
+    const hover = Math.sin(t * 1.1) * 0.025 * (1 - approach + leave);
+    const ax = curve(2.5, 1.5, 0.1, approach);
+    const ay = curve(1.7, 0.5, 0.05, approach);
+    const az = curve(1.8, 1.5, 0.72 - press, approach);
+    card.group.position.set(
+      curve(ax, -0.7, -2.9, leave),
+      curve(ay, 0.4, 2.1, leave) + hover,
+      curve(az, 1.2, 1.7, leave)
+    );
+    card.group.rotation.set(
+      mix(-0.55, -0.12, approach) - leave * 0.35 + Math.sin(t * 0.7) * 0.03 * (1 - approach),
+      mix(-1.25, -0.35, approach) - leave * 0.9,
+      mix(0.55, 0.06, approach) + leave * 0.4
+    );
     card.group.visible = leave < 0.999;
 
     // 2. The phone turns round from its back to its front as the screen
-    //    wakes (0.16 to 0.44), then settles with a slow sway.
-    const reveal = smooth(0.16, 0.44, p);
-    const sway = Math.sin(t * 0.6) * 0.05;
+    //    wakes (0.2 to 0.5), lifting a little on the way like it's picked
+    //    up, then settles with a slow sway.
+    const reveal = soft(0.2, 0.5, p);
+    const lift = Math.sin(Math.PI * reveal);
+    const sway = Math.sin(t * 0.5) * 0.04;
     turn.rotation.y = mix(Math.PI - 0.55, -0.22, reveal) + sway;
-    turn.rotation.x = mix(0.12, -0.06, reveal) + Math.sin(t * 0.45) * 0.025;
-    turn.rotation.z = mix(-0.05, 0.03, reveal);
-    turn.position.y = Math.sin(t * 0.8) * 0.03;
+    turn.rotation.x = mix(0.12, -0.06, reveal) - lift * 0.1 + Math.sin(t * 0.4) * 0.02;
+    turn.rotation.z = mix(-0.05, 0.03, reveal) + lift * 0.04;
+    turn.position.y = Math.sin(t * 0.7) * 0.03 + lift * 0.08;
+    turn.position.z = lift * 0.25;
 
-    const wake = smooth(0.14, 0.3, p);
+    const wake = soft(0.16, 0.32, p);
     screenMat.color.setScalar(wake);
     barMat.color.copy(screenMat.color);
 
     // The tap ripple, on the back of the phone where the card touched.
-    const r = smooth(0.13, 0.26, p);
+    const r = soft(0.15, 0.32, p);
     ripple.position.set(-0.1, 0.05, BACK_Z - 0.01);
     ripple.rotation.y = Math.PI;
     ripple.scale.setScalar(0.6 + r * 2.4);
-    rippleMat.opacity = r > 0 && r < 1 ? (1 - r) * 0.8 : 0;
+    rippleMat.opacity = r > 0 && r < 1 ? (1 - r) * 0.7 : 0;
 
-    // 3. The profile scrolls down to the links (0.5 to 0.72).
-    const scroll = smooth(0.5, 0.72, p);
+    // 3. The profile scrolls down to the links (0.52 to 0.74).
+    const scroll = soft(0.52, 0.74, p);
     const shot = screenMat.map;
     if (shot) shot.offset.y = mix(0, 1 - VIEW_H / SHOT_H, scroll);
 
-    // 4. "Contact saved" drops in from the top (0.78 to 0.9).
-    const saved = smooth(0.78, 0.9, p);
-    toastMat.opacity = saved;
-    toast.position.y = mix(SH / 2 + 0.1, SH / 2 - 0.62, saved);
+    // 4. "Contact saved" grows out of the Dynamic Island and drops just
+    //    below it (0.78 to 0.92), all inside the screen, like iOS does.
+    const saved = soft(0.78, 0.92, p);
+    const drop = settle(saved);
+    pillMat.opacity = clamp(saved * 25);
+    toastMat.opacity = soft(0.45, 1, saved);
+    // It starts the size of the island itself (about 31 x 9 mm), on top of it.
+    toast.scale.set(mix(0.47, 1, drop), mix(0.66, 1, drop), 1);
+    toast.position.y = mix(ISLAND_Y, TOAST_Y, Math.min(drop, soft(0, 0.7, saved) * 1.03));
     toast.visible = saved > 0.001;
 
     const facing = Math.abs(Math.cos(turn.rotation.y));
-    shadow.mesh.scale.set(0.55 + 0.45 * facing, 1, 1);
-    shadow.mat.opacity = 0.75;
+    shadow.mesh.scale.set((0.55 + 0.45 * facing) * (1 - lift * 0.08), 1, 1);
+    shadow.mat.opacity = 0.75 - lift * 0.15;
     renderer.render(scene, camera);
   }
 
@@ -324,8 +370,15 @@ export function createPhoneScene(canvas: HTMLCanvasElement, opts: { still?: numb
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     t += dt;
-    // Ease toward the scroll position, so fast scrolling still glides.
-    p += (target - p) * (1 - Math.pow(0.0008, dt));
+    /* Follow the scroll position on a critically damped spring: the story
+       picks up speed gently, glides, and comes to rest without a bump, even
+       when the page is scrolled in jumps (a mouse wheel's notches). */
+    const W0 = 5.2;
+    for (let i = 0; i < 2; i++) {
+      const h = dt / 2;
+      v += (W0 * W0 * (target - p) - 2 * W0 * v) * h;
+      p += v * h;
+    }
     render();
     frame = requestAnimationFrame(tick);
   }

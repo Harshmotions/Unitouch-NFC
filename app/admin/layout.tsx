@@ -12,5 +12,6 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  // Admins copy order details, addresses and emails all day: text selects as usual here.
+  return <div className="copyable">{children}</div>;
 }

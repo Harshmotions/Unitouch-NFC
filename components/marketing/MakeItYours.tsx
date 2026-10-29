@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Reveal from "@/components/motion/Reveal";
@@ -21,6 +21,30 @@ function toSlug(name: string) {
 
 const SAMPLE_NAME = "Priya Anand";
 const SAMPLE_TITLE = "Portrait & Brand Photographer";
+// Shorter, so the placeholder fits the field at every width.
+const TITLE_PLACEHOLDER = "Photographer";
+
+/* The QR code on the back, for phones without NFC: drawn as one SVG path,
+   one square per dark module. The generator is loaded only when needed. */
+function QR({ text }: { text: string }) {
+  const [modules, setModules] = useState<boolean[][] | null>(null);
+  useEffect(() => {
+    let live = true;
+    import("@/lib/qr").then(({ qrModules }) => live && setModules(qrModules(text)));
+    return () => {
+      live = false;
+    };
+  }, [text]);
+  const n = modules?.length ?? 25;
+  const d = modules
+    ? modules.flatMap((row, y) => row.map((dark, x) => (dark ? `M${x} ${y}h1v1h-1z` : ""))).join("")
+    : "";
+  return (
+    <svg viewBox={`0 0 ${n} ${n}`} aria-hidden className="h-full w-full" shapeRendering="crispEdges">
+      <path d={d} fill="#161616" />
+    </svg>
+  );
+}
 
 /* The NFC waves printed on the card. */
 function Waves({ className }: { className?: string }) {
@@ -37,12 +61,13 @@ const inputClass =
   "bg-bg-base placeholder:text-text-muted h-12 w-full rounded-[12px] px-4 text-[1rem] outline-none transition-shadow focus-visible:shadow-[0_0_0_2px_var(--color-accent)]";
 
 /* The page's one live thing: type a name and a title and see them on the
-   card, flip it to see the front, and see the profile link it would open.
+   card's front, flip it to see the QR code on the back, and see the profile
+   link both open.
    Purely in the browser; nothing is saved or sent. */
 export default function MakeItYours() {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
-  const [side, setSide] = useState<"back" | "front">("back");
+  const [side, setSide] = useState<"front" | "back">("front");
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const stageRef = useRef<HTMLDivElement>(null);
   const nameId = useId();
@@ -82,7 +107,7 @@ export default function MakeItYours() {
                   value={name}
                   onChange={(e) => {
                     setName(e.target.value.slice(0, 32));
-                    setSide("back");
+                    setSide("front");
                   }}
                   placeholder={SAMPLE_NAME}
                   autoComplete="name"
@@ -98,9 +123,9 @@ export default function MakeItYours() {
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value.slice(0, 44));
-                    setSide("back");
+                    setSide("front");
                   }}
-                  placeholder={SAMPLE_TITLE}
+                  placeholder={TITLE_PLACEHOLDER}
                   autoComplete="organization-title"
                   className={inputClass}
                 />
@@ -128,28 +153,34 @@ export default function MakeItYours() {
             >
               <div
                 role="img"
-                aria-label={`Card preview, ${side}: ${shownName}, ${shownTitle}`}
+                aria-label={
+                  side === "front"
+                    ? `Card preview, front: ${shownName}, ${shownTitle}`
+                    : `Card preview, back: a QR code for unitouch.in/u/${slug}`
+                }
                 className="relative aspect-[85.6/54] w-full transition-transform duration-700 ease-[var(--ease-out)] [transform-style:preserve-3d]"
                 style={{
-                  transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y + (side === "front" ? 180 : 0)}deg)`,
+                  transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y + (side === "back" ? 180 : 0)}deg)`,
                 }}
               >
-                {/* Back: the person. */}
-                <div className="card-face absolute inset-0 overflow-hidden rounded-[5.5%/8.7%] p-[7%] [backface-visibility:hidden]">
-                  <p className="font-display truncate text-[clamp(1.375rem,0.8rem+2vw,2.125rem)] leading-tight font-[600]">
-                    {shownName}
-                  </p>
-                  <p className="mt-1 truncate text-[clamp(0.8125rem,0.65rem+0.6vw,1rem)] opacity-70">{shownTitle}</p>
-                  <p className="absolute bottom-[11%] left-[7%] text-[clamp(0.75rem,0.6rem+0.5vw,0.9375rem)] font-[500]">
-                    Tap to connect
-                  </p>
-                  <Waves className="absolute right-[7%] bottom-[9%] h-[17%] w-auto" />
+                {/* Front: the owner's name and what they do, and the NFC mark. */}
+                <div className="card-face absolute inset-0 overflow-hidden rounded-[5.5%/8.7%] [backface-visibility:hidden]">
+                  <Waves className="absolute top-[9%] right-[7%] h-[17%] w-auto" />
+                  <div className="absolute right-[7%] bottom-[13%] left-[7%]">
+                    <p className="font-display truncate text-[clamp(1.375rem,0.8rem+2vw,2.125rem)] leading-tight font-[600]">
+                      {shownName}
+                    </p>
+                    <p className="mt-1 truncate text-[clamp(0.8125rem,0.65rem+0.6vw,1rem)] opacity-75">{shownTitle}</p>
+                  </div>
                 </div>
-                {/* Front: the Unitouch mark. */}
-                <div className="card-face absolute inset-0 overflow-hidden rounded-[5.5%/8.7%] p-[7%] [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <Waves className="h-[15%] w-auto -scale-x-100" />
-                  <div className="absolute bottom-[12%] left-[7%] flex items-center gap-[0.6em] text-[clamp(1.5rem,0.9rem+2.2vw,2.375rem)]">
-                    <Image src="/brand/u-mark-white.webp" alt="" width={512} height={582} className="h-[1.2em] w-auto" />
+                {/* Back: a QR code to the profile, for phones without NFC, and a
+                    small Unitouch mark in the corner. Nothing else. */}
+                <div className="card-face absolute inset-0 overflow-hidden rounded-[5.5%/8.7%] [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                  <div className="absolute top-1/2 left-[7%] aspect-square h-[60%] -translate-y-1/2 rounded-[10%] bg-white p-[3.5%]">
+                    <QR text={`https://www.unitouch.in/u/${slug}`} />
+                  </div>
+                  <div className="absolute right-[7%] bottom-[11%] flex items-center gap-[0.4em] text-[clamp(0.6875rem,0.55rem+0.4vw,0.875rem)] opacity-80">
+                    <Image src="/brand/u-mark-white.webp" alt="" width={512} height={582} className="h-[1.25em] w-auto" />
                     <span className="font-display font-[600]">Unitouch</span>
                   </div>
                 </div>
@@ -157,7 +188,7 @@ export default function MakeItYours() {
             </div>
 
             <div className="bg-bg-base inline-flex rounded-full p-1 text-[0.875rem]" role="group" aria-label="Card side">
-              {(["back", "front"] as const).map((s) => (
+              {(["front", "back"] as const).map((s) => (
                 <button
                   key={s}
                   type="button"

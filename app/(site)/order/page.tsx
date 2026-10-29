@@ -16,9 +16,9 @@ export default async function OrderPage({
 
   return (
     <main className="bg-bg-base min-h-screen px-6 py-16">
-      <div className="mx-auto w-full max-w-2xl">
-        <h1 className="font-display text-h2 text-text-primary mb-2 font-[600]">Order your card</h1>
-        <p className="text-text-secondary mb-10">
+      <div className="mx-auto w-full max-w-xl">
+        <h1 className="font-display text-h2 text-text-primary mb-2 text-center font-[600]">Order your card</h1>
+        <p className="text-text-secondary mb-10 text-center">
           Set up your card, your profile page, and pay in two quick steps.
         </p>
         <OrderWizard defaultCardType={card} />
