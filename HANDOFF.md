@@ -228,7 +228,7 @@ tracking, notes), Profiles (status, filters, send reminder, delete).
 | 20 | [ ] | **Later: Next.js 16 upgrade** | Removes the `postcss` override in `package.json`. Do it on its own branch with a full test of checkout and admin. Not urgent. |
 
 | 21 | [ ] | **Fix name typo in the hero mockup** | `public/Card Hero Page Mockup.png` (also used in `public/og-image.jpg`): the card says "Priya Aanand", the phone says "Priya Anand". Fix the source design, then regenerate the share image. |
-| 22 | [~] | **Shrink the demo profile photo** | Oct 29: `public/profile-user.jpg` added (same 1122×1402 image, 120 KB JPEG; PNG couldn't get under ~680 KB without visible banding), code and seed point to it. **Still to do:** Harsh runs `update profiles set avatar_url = '/profile-user.jpg' where username = 'priya';` in the Supabase SQL editor (the live row still points at the PNG), then delete `public/profile-user.png` and its duplicate `public/Profile Image.png`. `public/profile-user.png` (Priya) is 1.9 MB, too big for WhatsApp to preview when her profile is shared. Re-export it around 200 KB. |
+| 22 | [x] | **Shrink the demo profile photo** | Done Oct 29: `public/profile-user.jpg` (same 1122×1402 image, 120 KB JPEG; PNG couldn't get under ~680 KB without visible banding). Live `priya` row updated in Supabase; the old PNG and its duplicate `public/Profile Image.png` deleted. `public/profile-user.png` (Priya) is 1.9 MB, too big for WhatsApp to preview when her profile is shared. Re-export it around 200 KB. |
 
 Ideas welcome; add them as new rows rather than starting them silently.
 
