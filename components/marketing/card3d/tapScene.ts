@@ -19,9 +19,13 @@ const soft = (a: number, b: number, v: number) => {
   return x * x * x * (x * (x * 6 - 15) + 10);
 };
 
-// When the card strikes, and how long the fall and the bounce take.
+// When the card strikes, and how long the fall and the bounce take. The
+// fall starts with a wind-up: for the first WIND_UP of it the card draws
+// back (toward us and up a little, tipping back like a hand about to tap),
+// then it snaps in over the rest, about 0.4 s.
 const HIT = 1.7;
-const FALL = 1.3;
+const FALL = 1.5;
+const WIND_UP = 0.72;
 const BOUNCE = 2.4;
 
 // Where the card rests (world units; the phone's back faces us at the
@@ -29,6 +33,8 @@ const BOUNCE = 2.4;
 // full turn, never reach the card, whatever its angle (checked by sampling
 // the loop with a box-overlap test).
 const FAR = { x: 2.0, y: 1.05, z: 1.55, rx: -0.5, ry: -0.75, rz: 0.38 };
+// The wind-up: how far back from FAR the card draws, and how it tips.
+const WIND = { x: -0.4, y: -0.12, z: 1.0, rx: -0.2, ry: -0.15, rz: 0.1 };
 
 // The phone's pose (before the strike's nudge) at time k in the loop.
 const SPIN_1 = [HIT + 0.55, HIT + 2.1] as const;
@@ -121,20 +127,26 @@ export function createTapScene(canvas: HTMLCanvasElement, opts: { still?: boolea
   function render() {
     const k = ((t % TAP_CYCLE) + TAP_CYCLE) % TAP_CYCLE;
 
-    // The card. Falling in: the gap closes faster and faster (a cubic ease
-    // in), so it meets the phone at full speed, while its angle settles
-    // early (a cubic ease out), so it's already flat to the back before it
-    // gets close and no edge can cut into the phone. Bouncing off: it leaves
-    // at full speed and glides to rest on a quartic ease out (no speed left
-    // at rest, so it never stops dead); its angle stays flat at first and
-    // turns away once it's clear.
+    // The card. Winding up: it eases back from its rest to the wind-up pose
+    // and comes to a stop there (anticipation). Striking: from that stop the
+    // gap closes faster and faster (a cubic ease in), so it meets the phone
+    // at full speed, while its angle settles early (a cubic ease out), so
+    // it's already flat to the back before it gets close and no edge can cut
+    // into the phone. Each phase starts and ends at zero speed where they
+    // join, so nothing jolts. Bouncing off: it leaves at full speed and
+    // glides to rest on a quartic ease out (no speed left at rest, so it
+    // never stops dead); its angle stays flat at first and turns away once
+    // it's clear.
     const fall = clamp((k - (HIT - FALL)) / FALL);
     const bounce = clamp((k - HIT) / BOUNCE);
     let near: number;
     let turnT: number;
+    let wind = 0;
     if (k < HIT) {
-      near = fall * fall * fall;
-      turnT = 1 - Math.pow(1 - fall, 3);
+      wind = soft(0, WIND_UP, fall);
+      const strike = clamp((fall - WIND_UP) / (1 - WIND_UP));
+      near = strike * strike * strike;
+      turnT = 1 - Math.pow(1 - strike, 3);
     } else {
       near = Math.pow(1 - bounce, 4);
       turnT = 1 - bounce * bounce * (3 - 2 * bounce);
@@ -149,11 +161,15 @@ export function createTapScene(canvas: HTMLCanvasElement, opts: { still?: boolea
     const knock = k >= HIT ? Math.sin(Math.PI * bounce) * Math.pow(1 - bounce, 2) * 1.6 * soft(0.03, 0.2, bounce) : 0;
     // While it rests at the far point it hovers, just perceptibly.
     const hover = Math.sin((k / TAP_CYCLE) * Math.PI * 4) * 0.04 * (1 - near);
-    card.group.position.set(mix(FAR.x, TOUCH.x, near), mix(FAR.y, TOUCH.y, near) + arc + hover, mix(FAR.z, TOUCH.z, near));
+    card.group.position.set(
+      mix(FAR.x + WIND.x * wind, TOUCH.x, near),
+      mix(FAR.y + WIND.y * wind, TOUCH.y, near) + arc + hover,
+      mix(FAR.z + WIND.z * wind, TOUCH.z, near)
+    );
     card.group.rotation.set(
-      mix(FAR.rx, TOUCH.rx, turnT) - knock * 0.7,
-      mix(FAR.ry, TOUCH.ry, turnT) + knock * 0.9,
-      mix(FAR.rz, TOUCH.rz, turnT) + knock * 0.5
+      mix(FAR.rx + WIND.rx * wind, TOUCH.rx, turnT) - knock * 0.7,
+      mix(FAR.ry + WIND.ry * wind, TOUCH.ry, turnT) + knock * 0.9,
+      mix(FAR.rz + WIND.rz * wind, TOUCH.rz, turnT) + knock * 0.5
     );
 
     const r = clamp((k - HIT) / 1.1);

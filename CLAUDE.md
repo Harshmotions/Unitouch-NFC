@@ -96,8 +96,9 @@ snap row on phones; each tile is a looping demo from
 and erasing them; the card printing the name once the form's Continue is
 pressed (a clip-path wipe behind a moving print line, `.print-area`); and
 the real 3D iPhone in its own small scene (`card3d/tapScene.ts`, still
-`public/home/tap-demo.webp` is its first frame): the card falls in on a
-cubic ease-in (its angle settles flat early, so no edge reaches the phone
+`public/home/tap-demo.webp` is its first frame): the card first winds up
+(anticipation: it eases back toward the viewer, tipping back, and stops),
+then snaps in on a cubic ease-in in about 0.4 s (its angle settles flat early, so no edge reaches the phone
 first), strikes the phone's back at full speed and bounces off, gliding to
 rest on a quartic ease-out over 2.4 s with an xyz knock (it starts only once
 the card is clear) and a little arc, both reaching rest with zero speed,
