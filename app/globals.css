@@ -147,19 +147,112 @@ p {
 
 /* Formerly frosted glass. The light theme has no glass: these are flat
    tone-step surfaces, so every page that used them stays consistent. */
-.glass,
-.glass-icon-btn,
-.glass-pill {
-  position: relative;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-primary);
-  transition: background-color var(--t-hover) ease;
-}
+/* In the components layer, so a utility class on the same element (a
+   position, a background) still wins. */
+@layer components {
+  /* Liquid glass, after Apple's: a light, translucent tint that blurs and
+     lifts the colour of whatever is behind it, a bright rim along the top
+     edge where the light catches, a faint specular sheen inside, and a soft
+     shadow so it floats. Used for secondary buttons, the scrolled header,
+     the mobile menu, pills, toggles and the FAQ. (No refraction filter: it
+     only works well in Chromium and costs a repaint per frame.) Browsers
+     without backdrop-filter get a solid, readable tone instead. The older
+     .glass classes share it, so profile, studio and admin pills match. */
+  .liquid-glass,
+  .glass,
+  .glass-icon-btn,
+  .glass-pill {
+    position: relative;
+    isolation: isolate;
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.46);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 1px rgba(255, 255, 255, 0.3),
+      0 1px 2px rgba(31, 27, 22, 0.06),
+      0 10px 28px -14px rgba(31, 27, 22, 0.28);
+    transition:
+      background-color var(--t-hover) ease,
+      box-shadow var(--t-hover) ease;
+  }
 
-.glass:hover,
-.glass-icon-btn:hover,
-.glass-pill:hover {
-  background: #ffffff;
+  .liquid-glass::before,
+  .glass::before,
+  .glass-icon-btn::before,
+  .glass-pill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%);
+    opacity: 0.55;
+  }
+
+  .liquid-glass:hover,
+  .glass:hover,
+  .glass-icon-btn:hover,
+  .glass-pill:hover {
+    background: rgba(255, 255, 255, 0.64);
+  }
+
+  /* On dark ground (a photo, the ink loader): a smoky version. */
+  .liquid-glass-dark {
+    position: relative;
+    isolation: isolate;
+    color: #fff;
+    background: rgba(28, 26, 24, 0.42);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 10px 28px -14px rgba(0, 0, 0, 0.45);
+  }
+
+  /* The header once the page has scrolled, and the mobile menu: a full-width
+     pane of the same glass, a little more opaque so text over busy content
+     stays readable. */
+  .liquid-glass-bar {
+    background: rgba(238, 236, 234, 0.62);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      inset 0 -1px 0 rgba(255, 255, 255, 0.55),
+      0 1px 0 rgba(31, 27, 22, 0.05);
+  }
+
+  /* The mobile menu covers the page, so it's the most opaque of the panes. */
+  .liquid-glass-sheet {
+    background: rgba(238, 236, 234, 0.86);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+  }
+
+  /* A raised, nearly solid state of the glass (an open FAQ answer). */
+  .liquid-glass.is-solid {
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .liquid-glass,
+    .glass,
+    .glass-icon-btn,
+    .glass-pill {
+      background: var(--color-bg-elevated);
+    }
+    .liquid-glass-dark {
+      background: rgba(28, 26, 24, 0.9);
+    }
+    .liquid-glass-bar,
+    .liquid-glass-sheet {
+      background: var(--color-bg-base);
+    }
+  }
 }
 
 .glass-border,
@@ -538,5 +631,82 @@ html.loader-done .page-loader-slats > span {
 @keyframes loader-slat {
   to {
     transform: scaleX(0);
+  }
+}
+
+/* ── How it works demos (components/marketing/how/Demos.tsx) ─────────── */
+
+/* A letter printing onto the card: it stamps in like hot foil, gold and
+   glowing, slightly large and raised, then cools to the card's white and
+   settles; erased, it lifts off and fades. */
+.print-char {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(5px);
+  transform: translateY(-0.2em) scale(1.35);
+  transition:
+    opacity 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 550ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.print-char.is-on {
+  opacity: 1;
+  filter: none;
+  transform: none;
+  animation: foil 1100ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes foil {
+  0% {
+    color: #ecd29a;
+    text-shadow: 0 0 10px rgba(236, 210, 154, 0.85);
+  }
+  100% {
+    color: inherit;
+    text-shadow: 0 0 0 rgba(236, 210, 154, 0);
+  }
+}
+
+/* The print head, just ahead of the last letter. */
+.print-head {
+  position: absolute;
+  top: 6%;
+  bottom: 6%;
+  width: 2px;
+  margin-left: 2px;
+  border-radius: 2px;
+  background: #ecd29a;
+  box-shadow: 0 0 8px rgba(236, 210, 154, 0.8);
+  transition: left 140ms linear;
+}
+
+.type-caret {
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The printing card drifts and turns a little, back and forth forever. */
+.card-float > .card-face {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card-float > .card-face {
+    animation: card-drift 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes card-drift {
+  from {
+    transform: rotateX(8deg) rotateY(-12deg) translateY(2%);
+  }
+  to {
+    transform: rotateX(-2deg) rotateY(8deg) translateY(-3%);
   }
 }

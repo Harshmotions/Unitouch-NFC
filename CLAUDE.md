@@ -90,7 +90,14 @@ navbar, which is see-through only at the top of the homepage; it stops
 short of the fold so HowItWorks' darker rounded band peeks in; its words,
 card and actions are three grid blocks, so on a phone the card sits between
 the headline and the buttons and the whole pitch fits the first screen),
-HowItWorks (three equal numbered steps; a swipeable snap row on phones), PhoneStory (sticky 3D iPhone; the scene follows the
+HowItWorks (three equal numbered steps on liquid-glass tiles; a swipeable
+snap row on phones; each tile is a looping demo from
+`components/marketing/how/Demos.tsx`: a mini form typing sample details in
+and erasing them, the same name printing onto a card letter by letter with
+a gold hot-foil flash (`.print-char`), and a CSS-3D phone that a card taps
+before it turns a full 360 to the profile and back; all driven by one
+shared clock, every loop ending where it began, sized in container units,
+paused off screen, a still frame under reduced motion), PhoneStory (sticky 3D iPhone; the scene follows the
 scroll on a soft critically damped spring; every property follows a
 monotone-cubic keyframe `track()` over progress -0.3 to 1, with the keys
 overlapping so the phone turns one way only, the card swoops in, touches
@@ -313,10 +320,14 @@ advisories, so bump patches promptly when it goes red.
   content never depends on script to appear. Animate transform and opacity
   only.
 - **Design rules (light theme)**: one ground, one ink, one accent
-  (`--color-accent`, the main action only). No gradients, glows, glass,
-  shadows at rest, eyebrow labels, violet, or icon-topped card grids on the
-  public pages. `.glass*` and `.surface-card` still exist for older markup but
-  are flat tone-step surfaces now. Headlines stay at two lines or fewer at
+  (`--color-accent`, the main action only). Secondary surfaces are Apple-style
+  liquid glass (Oct 30, 2026, Harsh's call): `.liquid-glass` (secondary
+  buttons, pills, toggles, FAQ, the How it works tiles), `.liquid-glass-bar`
+  (the scrolled header), `.liquid-glass-sheet` (mobile menu),
+  `.liquid-glass-dark` (on photos), in `@layer components` so utilities still
+  win; the older `.glass*` classes share the recipe. No violet, eyebrow
+  labels or icon-topped card grids on the public pages. `.surface-card` is a
+  flat tone-step surface for app screens. Headlines stay at two lines or fewer at
   390, 768 and 1440 px.
 - **`img { max-width: 100% }` global reset** can override a fixed Tailwind
   width on an `<img>` in an auto-sized container; add `max-w-none` and

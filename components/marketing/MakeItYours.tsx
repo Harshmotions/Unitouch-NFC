@@ -145,7 +145,7 @@ export default function MakeItYours() {
               </div>
             </div>
 
-            <div className="bg-bg-base inline-flex rounded-full p-1 text-[0.875rem]" role="group" aria-label="Card side">
+            <div className="liquid-glass inline-flex rounded-full p-1 text-[0.875rem]" role="group" aria-label="Card side">
               {(["front", "back"] as const).map((s) => (
                 <button
                   key={s}
