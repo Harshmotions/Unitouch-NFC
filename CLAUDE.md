@@ -331,8 +331,8 @@ advisories, so bump patches promptly when it goes red.
   (`--color-accent`, the main action only). Secondary surfaces are Apple
   iOS 26-style liquid glass (Oct 30, 2026, Harsh's call: nearly clear tint,
   backdrop blur + saturate + brightness, a masked gradient rim brightest at
-  top-left and bottom-right, inner edge highlights and glow, a sheen; no
-  refraction filter): `.liquid-glass` (secondary
+  top-left and bottom-right, inner edge highlights and glow, a sheen; plus a
+  refracting lens on a few controls, below): `.liquid-glass` (secondary
   buttons, pills, toggles, FAQ, the How it works tiles), `.liquid-glass-bar`
   (the scrolled header), `.liquid-glass-sheet` (mobile menu),
   `.liquid-glass-dark` (on photos), in `@layer components` so utilities still
