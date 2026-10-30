@@ -63,12 +63,7 @@ export default function Pricing() {
                   ))}
                 </ul>
 
-                <Button
-                  variant={dark ? "glass-dark" : "primary"}
-                  size="lg"
-                  href={`/order?card=${variant.id}`}
-                  className="mt-8 w-full"
-                >
+                <Button variant={dark ? "glass-dark" : "primary"} size="lg" href={`/order?card=${variant.id}`} className="mt-8 w-full">
                   Order {variant.name}
                 </Button>
               </div>

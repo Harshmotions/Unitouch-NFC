@@ -6,12 +6,12 @@ import type { TapScene } from "@/components/marketing/card3d/tapScene";
 import { loaderShowing } from "@/lib/loader";
 
 /* The three looping demos in "How it works": a form typing itself in, the
-   card printing the name once the form is sent, and the real 3D iPhone
+   card retyping its name once the form is sent, and the real 3D iPhone
    being tapped by the card (card3d/tapScene.ts). Each is a pure function
    of a clock and every loop ends exactly where it began (the typing erases
    back to empty, the phone turns a full 360), so nothing ever jumps back
    to a first frame. The form and the card share one clock, so the card
-   prints what the form sent. Each demo runs only while on screen; with
+   shows what the form sent. Each demo runs only while on screen; with
    reduced motion it shows one still moment. */
 
 // ── The clock ─────────────────────────────────────────────────────────────
@@ -114,7 +114,11 @@ function plan(p: (typeof PEOPLE)[number]) {
 const TURNS = PEOPLE.map(plan);
 const CYCLE = TURNS.reduce((s, x) => s + x.length, 0);
 
-type Print = "blank" | "printed" | "clearing";
+// The card's typewriter: seconds per character erasing the old name and
+// title (together), then typing the new name, then the new title.
+const CARD_ERASE = 0.03;
+const CARD_NAME = 0.065;
+const CARD_TITLE = 0.04;
 
 /* Where the typing is at time t: whose turn, how many characters of each
    field are showing, which field has the caret, and when the button is
@@ -139,12 +143,26 @@ function typingAt(t: number) {
     if ((local >= b.start && local < b.typed + GAP) || (local >= b.eraseStart && local < b.erased)) caret = b.field;
   }
   const pressed = local >= turn.pressAt && local < turn.pressAt + 0.35;
-  // The card: blank, printed once the form is sent, cleared as the form
-  // starts erasing (the email goes first).
-  const clearAt = turn.beats[2].eraseStart;
-  const print: Print =
-    local < turn.pressAt + 0.25 ? "blank" : local < clearAt ? "printed" : local < clearAt + 0.6 ? "clearing" : "blank";
-  return { person: i, shown, caret, pressed, print };
+  return { person: i, shown, caret, pressed, card: cardAt(i, local - turn.pressAt - 0.2) };
+}
+
+/* The card never goes blank: it shows the last name sent until the form is
+   sent again (`d` is the time since), then backspaces it and types the new
+   one in. */
+function cardAt(i: number, d: number) {
+  const prev = PEOPLE[(i + PEOPLE.length - 1) % PEOPLE.length];
+  const cur = PEOPLE[i];
+  if (d < 0) return { name: prev.name, title: prev.title };
+  const eraseFor = Math.max(prev.name.length, prev.title.length) * CARD_ERASE;
+  if (d < eraseFor) {
+    const left = 1 - d / eraseFor;
+    return { name: prev.name.slice(0, Math.ceil(prev.name.length * left)), title: prev.title.slice(0, Math.ceil(prev.title.length * left)) };
+  }
+  d -= eraseFor;
+  const nameFor = cur.name.length * CARD_NAME;
+  if (d < nameFor) return { name: cur.name.slice(0, Math.floor(d / CARD_NAME)), title: "" };
+  d -= nameFor;
+  return { name: cur.name, title: cur.title.slice(0, Math.floor(d / CARD_TITLE)) };
 }
 
 /* Re-renders only when something visible changes (a character, the caret,
@@ -152,13 +170,14 @@ function typingAt(t: number) {
 function useTyping(ref: React.RefObject<HTMLElement | null>) {
   const [state, setState] = useState(() => typingAt(0));
   const keyRef = useRef("");
-  // A still moment for reduced motion: the first person, fully typed in.
-  const stillAt = TURNS[0].pressAt + 0.5;
+  // A still moment for reduced motion: the first person, fully typed in on
+  // the form and on the card.
+  const stillAt = TURNS[0].pressAt + 2.05;
   useFrames(
     ref,
     (t) => {
       const s = typingAt(t);
-      const key = `${s.person}|${s.shown.name}|${s.shown.title}|${s.shown.email}|${s.caret}|${s.pressed}|${s.print}`;
+      const key = `${s.person}|${s.shown.name}|${s.shown.title}|${s.shown.email}|${s.caret}|${s.pressed}|${s.card.name}|${s.card.title}`;
       if (key !== keyRef.current) {
         keyRef.current = key;
         setState(s);
@@ -205,17 +224,13 @@ export function FormDemo() {
   );
 }
 
-// ── 2. The card, printed once the form is sent ────────────────────────────
+// ── 2. The card, retyped once the form is sent ────────────────────────────
 
-/* A plain, light print: when the form is sent, a print head wipes across
-   the card once and leaves the name and title behind it (a clip-path
-   reveal and one moving line, both CSS transitions, so it costs three
-   state changes a loop). When the form starts erasing, the print fades
-   away, and the card is blank again for the next name. */
+/* The card always carries a name. When the form is sent, the old name and
+   title backspace away and the new ones type in, without a caret. */
 export function CardDemo() {
   const ref = useRef<HTMLDivElement>(null);
-  const { person, print } = useTyping(ref);
-  const p = PEOPLE[person];
+  const { card } = useTyping(ref);
   return (
     <div ref={ref} aria-hidden className="card-float w-[84%] [perspective:900px]">
       <div className="card-face relative aspect-[85.6/54] w-full rounded-[5.5%/8.7%] text-left">
@@ -224,12 +239,10 @@ export function CardDemo() {
           <path d="M11.2 6.6a7 7 0 0 0 0 10.8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
           <path d="M7.6 3.4a11.6 11.6 0 0 0 0 17.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
         </svg>
-        <div className={`print-area absolute right-[7%] bottom-[14%] left-[7%] is-${print}`}>
-          <div className="print-ink">
-            <p className="font-display text-[7cqw] leading-tight font-[600]">{p.name}</p>
-            <p className="mt-[0.3em] text-[3.6cqw] opacity-75">{p.title}</p>
-          </div>
-          <span className="print-sweep" />
+        {/* A non-breaking space keeps each line's height while it's empty. */}
+        <div className="absolute right-[7%] bottom-[14%] left-[7%] whitespace-pre">
+          <p className="font-display text-[7cqw] leading-tight font-[600]">{card.name || "\u00a0"}</p>
+          <p className="mt-[0.3em] text-[3.6cqw] opacity-75">{card.title || "\u00a0"}</p>
         </div>
       </div>
     </div>

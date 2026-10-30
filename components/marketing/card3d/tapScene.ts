@@ -6,7 +6,7 @@
    round to the profile and on round to its back, a full turn. Everything
    is a function of one looping clock and the loop ends where it began.
    Loaded with a dynamic import when the tile comes near (Demos.tsx). */
-import { Group, Mesh, MeshBasicMaterial, PerspectiveCamera, RingGeometry } from "three";
+import { Euler, Group, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, Quaternion, RingGeometry, Vector3 } from "three";
 import { buildCard, contactShadow, createStudio } from "./parts";
 import { BACK_Z, PH, PW, SHOT_H, VIEW_H, createPhoneModel } from "./phoneModel";
 
@@ -24,10 +24,37 @@ const HIT = 1.7;
 const FALL = 1.3;
 const BOUNCE = 1.6;
 
-// Where the card rests, and where it meets the phone (world units; the
-// phone's back faces us at the start).
+// Where the card rests (world units; the phone's back faces us at the
+// start).
 const FAR = { x: 1.55, y: 0.95, z: 1.25, rx: -0.55, ry: -0.95, rz: 0.42 };
-const TOUCH = { x: 0.06, y: 0.3, z: -BACK_Z + 0.06, rx: -0.04, ry: -0.08, rz: 0.04 };
+
+// The phone's pose (before the strike's nudge) at time k in the loop.
+const SPIN_1 = [HIT + 0.55, HIT + 2.1] as const;
+const SPIN_2 = [5.6, 7.2] as const;
+function phonePose(k: number) {
+  const spin = Math.PI * soft(SPIN_1[0], SPIN_1[1], k) + Math.PI * soft(SPIN_2[0], SPIN_2[1], k);
+  const sway = Math.sin((k / TAP_CYCLE) * Math.PI * 2) * 0.05;
+  return { x: 0.1, y: Math.PI - 0.35 + spin + sway, z: -0.04 };
+}
+
+// Where the card meets the phone, worked out in the phone's own frame so it
+// lies flat on the back whatever angle the phone is at: over the upper back
+// (where the NFC antenna is), standing just proud of the camera bump so it
+// never cuts into the body, with its front to us.
+const ON_BACK = { x: -0.15, y: 0.32, z: BACK_Z - 0.16, tilt: 0.07 };
+const TOUCH = (() => {
+  const p = phonePose(HIT);
+  const phone = new Object3D();
+  phone.rotation.set(p.x, p.y, p.z);
+  const spot = new Object3D();
+  spot.position.set(ON_BACK.x, ON_BACK.y, ON_BACK.z);
+  spot.rotation.set(0, Math.PI, ON_BACK.tilt);
+  phone.add(spot);
+  phone.updateMatrixWorld(true);
+  const pos = spot.getWorldPosition(new Vector3());
+  const rot = new Euler().setFromQuaternion(spot.getWorldQuaternion(new Quaternion()));
+  return { x: pos.x, y: pos.y, z: pos.z, rx: rot.x, ry: rot.y, rz: rot.z };
+})();
 
 export interface TapScene {
   start(): void;
@@ -57,7 +84,7 @@ export function createTapScene(canvas: HTMLCanvasElement, opts: { still?: boolea
   const rippleGeo = new RingGeometry(0.3, 0.33, 64);
   const rippleMat = new MeshBasicMaterial({ color: 0x4f5e48, transparent: true, opacity: 0, depthWrite: false });
   const ripple = new Mesh(rippleGeo, rippleMat);
-  ripple.position.set(-0.06, 0.3, BACK_Z - 0.01);
+  ripple.position.set(ON_BACK.x, ON_BACK.y, BACK_Z - 0.01);
   ripple.rotation.y = Math.PI;
   turn.add(ripple);
 
@@ -123,9 +150,8 @@ export function createTapScene(canvas: HTMLCanvasElement, opts: { still?: boolea
     // The phone: its back to us, nudged by the strike, then a full turn in
     // two halves with a rest on the profile between (3 pi is pi again).
     const nudge = k >= HIT ? Math.sin(Math.PI * clamp((k - HIT) / 0.5)) * 0.06 : 0;
-    const spin = Math.PI * soft(HIT + 0.3, HIT + 1.9, k) + Math.PI * soft(5.6, 7.2, k);
-    const sway = Math.sin((k / TAP_CYCLE) * Math.PI * 2) * 0.05;
-    turn.rotation.set(0.1 + nudge, Math.PI - 0.35 + spin + sway, -0.04);
+    const pose = phonePose(k);
+    turn.rotation.set(pose.x + nudge, pose.y, pose.z);
     turn.position.z = -nudge * 0.6;
 
     // The profile scrolls a little while it faces us, and back.

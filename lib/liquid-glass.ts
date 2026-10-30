@@ -108,13 +108,14 @@ export function buildGlassMaps(width: number, height: number, radius: number): G
   const displacement = canvas.toDataURL("image/png");
 
   // Specular: white where the rim faces the light (60 degrees, from the
-  // upper left and, mirrored, the lower right), fading inward.
+  // upper left and, mirrored, the lower right), a 0.5 px line to match the
+  // CSS rim.
   const spec = ctx.createImageData(w, h);
   const lx = Math.cos(Math.PI / 3);
   const ly = Math.sin(Math.PI / 3);
   forEachBevelPixel(w, h, r, bezel, (idx, cos, sin, fromSide, opacity) => {
     const facing = Math.abs(cos * lx - sin * ly);
-    const edge = Math.sqrt(Math.max(0, 1 - (1 - fromSide / dpr) ** 2));
+    const edge = Math.sqrt(Math.max(0, 1 - (1 - fromSide / (dpr * 0.5)) ** 2));
     const c = facing * edge;
     const v = 255 * c;
     spec.data[idx] = v;
