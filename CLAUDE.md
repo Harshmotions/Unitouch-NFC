@@ -315,7 +315,10 @@ advisories, so bump patches promptly when it goes red.
   `handleHashLinkClick` from `lib/scroll.ts` (the footer switches to plain
   `/#…` links off the homepage). Arriving on the homepage with a hash, the
   Navbar calls `settleArrivalHash()`, which scrolls there and strips the
-  hash from the address bar. Sections carry `scroll-mt-16` and Lenis honours
+  hash from the address bar. The mobile menu sheet is rendered as a
+  sibling AFTER `</header>`, not inside it: the header's backdrop-filter
+  makes it the containing block for fixed children, which clipped the
+  sheet mid-open. Sections carry `scroll-mt-16` and Lenis honours
   it, so `NAV_OFFSET` is only the gap under the header. Mobile menu links
   unlock the page before scrolling (Lenis `force: true`), since the open
   menu locks scrolling.
@@ -328,12 +331,20 @@ advisories, so bump patches promptly when it goes red.
   (`--color-accent`, the main action only). Secondary surfaces are Apple
   iOS 26-style liquid glass (Oct 30, 2026, Harsh's call: nearly clear tint,
   backdrop blur + saturate + brightness, a masked gradient rim brightest at
-  top-left and bottom-right, inner edge highlights and glow, a sheen; no
-  refraction filter): `.liquid-glass` (secondary
+  top-left and bottom-right, inner edge highlights and glow, a sheen; plus a
+  refracting lens on a few controls, below): `.liquid-glass` (secondary
   buttons, pills, toggles, FAQ, the How it works tiles), `.liquid-glass-bar`
   (the scrolled header), `.liquid-glass-sheet` (mobile menu),
   `.liquid-glass-dark` (on photos), in `@layer components` so utilities still
-  win; the older `.glass*` classes share the recipe. No violet, eyebrow
+  win; the older `.glass*` classes share the recipe. On Chromium a few
+  controls also refract like a lens: `<GlassLens />` (`components/ui/GlassLens.tsx`,
+  maths in `lib/liquid-glass.ts`, ported from github.com/mkj0kjay/vue-web-liquid-glass)
+  sets an SVG-filter `backdrop-filter` with a displacement and specular map
+  sized to its parent. Used on `Button` `secondary` and `glass-dark` (the
+  dark pricing card's Premium button), the card front/back toggle and the
+  demo profile pill; keep it to a handful of small controls. On flat grounds
+  (FAQ cards, How it works tiles) use `.liquid-glass.is-flat`, which drops
+  the backdrop blur so scrolling never repaints it. No violet, eyebrow
   labels or icon-topped card grids on the public pages. `.surface-card` is a
   flat tone-step surface for app screens. Headlines stay at two lines or fewer at
   390, 768 and 1440 px.

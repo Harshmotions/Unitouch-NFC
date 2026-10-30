@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import GlassLens from "@/components/ui/GlassLens";
 
 export interface ButtonProps {
-  variant: "primary" | "secondary" | "ghost" | "danger" | "ink";
+  variant: "primary" | "secondary" | "glass-dark" | "ghost" | "danger" | "ink";
   size: "sm" | "md" | "lg";
   type?: "button" | "submit";
   loading?: boolean;
@@ -19,8 +20,10 @@ export interface ButtonProps {
 const variantClasses: Record<ButtonProps["variant"], string> = {
   primary: "bg-accent text-accent-ink hover:bg-accent-hover",
   ink: "bg-bg-ink text-text-on-ink hover:bg-black",
-  // Liquid glass (globals.css): translucent, blurring what's behind it.
+  // Liquid glass (globals.css), with a refracting lens where supported.
   secondary: "liquid-glass",
+  // The same glass for dark grounds (the Premium card): light rim, white text.
+  "glass-dark": "liquid-glass-dark text-white",
   ghost: "bg-transparent text-text-secondary hover:text-text-primary",
   danger: "bg-error/10 text-error hover:bg-error/15",
 };
@@ -53,6 +56,7 @@ export default function Button({
 
   const content = (
     <>
+      {(variant === "secondary" || variant === "glass-dark") && <GlassLens />}
       {loading && <Loader2 className="size-4 animate-spin" />}
       {children}
     </>

@@ -51,7 +51,7 @@ export default function PageLoader() {
         </div>
         <div className="page-loader-brand">
           <span className="page-loader-mark">
-            <Image src="/brand/u-mark-white.webp" alt="" width={512} height={582} priority className="h-full w-auto" />
+            <Image src="/brand/u-mark-white.webp" alt="" width={56} height={64} priority className="h-full w-auto" />
           </span>
           <span className="page-loader-word">
             <span className="font-display">Unitouch</span>

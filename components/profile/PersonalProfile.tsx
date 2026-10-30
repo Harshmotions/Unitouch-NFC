@@ -11,6 +11,7 @@ import { track } from "@/lib/track";
 import { shareProfile } from "@/lib/share";
 import { withProtocol } from "@/lib/url";
 import { PlatformGrid, type PlatformKey } from "./PlatformIcons";
+import GlassLens from "@/components/ui/GlassLens";
 
 const PLATFORM_EVENTS: Partial<Record<PlatformKey, EventType>> = {
   whatsapp: "whatsapp_click",
@@ -109,6 +110,7 @@ export default function PersonalProfile({
           href="/order"
           className="liquid-glass-dark fixed top-3 left-1/2 z-40 -translate-x-1/2 rounded-full px-4 py-2 text-[0.8125rem] font-[500] whitespace-nowrap"
         >
+          <GlassLens />
           Example profile · Get your own card
         </Link>
       )}

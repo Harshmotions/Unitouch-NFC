@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import GlassLens from "@/components/ui/GlassLens";
 import Reveal from "@/components/motion/Reveal";
 
 /* Same rule the checkout uses for profile links (lowercase letters, digits
@@ -138,7 +139,7 @@ export default function MakeItYours() {
                     <QR text={`https://www.unitouch.in/u/${slug}`} />
                   </div>
                   <div className="absolute right-[7%] bottom-[11%] flex items-center gap-[0.4em] text-[clamp(0.6875rem,0.55rem+0.4vw,0.875rem)] opacity-80">
-                    <Image src="/brand/u-mark-white.webp" alt="" width={512} height={582} className="h-[1.25em] w-auto" />
+                    <Image src="/brand/u-mark-white.webp" alt="" width={56} height={64} className="h-[1.25em] w-auto" />
                     <span className="font-display font-[600]">Unitouch</span>
                   </div>
                 </div>
@@ -146,6 +147,7 @@ export default function MakeItYours() {
             </div>
 
             <div className="liquid-glass inline-flex rounded-full p-1 text-[0.875rem]" role="group" aria-label="Card side">
+              <GlassLens />
               {(["front", "back"] as const).map((s) => (
                 <button
                   key={s}

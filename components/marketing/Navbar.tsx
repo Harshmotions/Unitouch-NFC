@@ -94,6 +94,7 @@ export default function Navbar() {
     );
 
   return (
+    <>
     <header
       className={`sticky top-0 z-50 transition-colors duration-500 ${
         onHome && atTop && !menuOpen ? "bg-transparent" : menuOpen ? "liquid-glass-sheet" : "liquid-glass-bar"
@@ -135,11 +136,18 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Phone and tablet: a full-screen sheet of large links. */}
+    </header>
+
+      {/* Phone and tablet: a full-screen sheet of large links. It sits
+          outside the header on purpose: the header's glass blur makes it a
+          containing block for fixed children, which clipped the sheet to
+          the header's height. Fades and drops in, and is inert when shut. */}
       <div
         id="mobile-menu"
-        hidden={!menuOpen}
-        className="liquid-glass-sheet fixed inset-x-0 top-16 bottom-0 overflow-y-auto px-[var(--margin)] pt-8 pb-12 md:top-[4.5rem] lg:hidden"
+        inert={!menuOpen}
+        className={`liquid-glass-sheet fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto px-[var(--margin)] pt-8 pb-12 transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-out)] md:top-[4.5rem] lg:hidden ${
+          menuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"
+        }`}
       >
         <nav aria-label="Main" className="flex flex-col gap-5">
           {NAV_LINKS.map((link) => {
@@ -155,6 +163,6 @@ export default function Navbar() {
           </span>
         </nav>
       </div>
-    </header>
+    </>
   );
 }

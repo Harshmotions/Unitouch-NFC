@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { TapScene } from "@/components/marketing/card3d/tapScene";
+import { loaderShowing } from "@/lib/loader";
 
 /* The three looping demos in "How it works": a form typing itself in, the
    card printing the name once the form is sent, and the real 3D iPhone
@@ -274,8 +275,10 @@ export function TapDemo() {
     };
     const whenIdle = () => {
       const go = () => (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(() => void boot(), { timeout: 3000 });
-      if (document.readyState === "complete") go();
-      else window.addEventListener("load", go, { once: true });
+      // Never while the first-visit loader is up: its reveal must stay smooth.
+      const afterLoad = () => (loaderShowing() ? window.addEventListener("unitouch:loaded", go, { once: true }) : go());
+      if (document.readyState === "complete") afterLoad();
+      else window.addEventListener("load", afterLoad, { once: true });
     };
     const near = new IntersectionObserver(
       ([e]) => {
@@ -286,7 +289,10 @@ export function TapDemo() {
       },
       { rootMargin: "100% 0px" }
     );
-    near.observe(wrap);
+    // Watch the whole section, not this tile: on a phone the tile sits off
+    // to the side in a swipe row, which would otherwise delay loading the
+    // scene until it's swiped into view.
+    near.observe(wrap.closest("section") ?? wrap);
     const onScreen = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
       sync();
