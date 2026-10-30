@@ -134,6 +134,8 @@ export function buildGlassMaps(width: number, height: number, radius: number): G
    Android). Safari, every iPhone browser and Firefox keep the CSS glass. */
 export function supportsGlassLens(): boolean {
   if (typeof navigator === "undefined") return false;
+  // Reduce Transparency / Increase Contrast get solid controls instead.
+  if (window.matchMedia("(prefers-reduced-transparency: reduce), (prefers-contrast: more)").matches) return false;
   const brands = (navigator as Navigator & { userAgentData?: { brands?: { brand: string }[] } }).userAgentData?.brands;
   return !!brands?.some((b) => /Chromium/i.test(b.brand));
 }

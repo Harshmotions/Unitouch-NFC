@@ -54,7 +54,7 @@ export default function HowItWorks() {
                 {/* The rule that leads on to the next step (drawn in as the row appears). */}
                 <span aria-hidden className={`step-rule bg-bg-border h-px flex-1 ${i === STEPS.length - 1 ? "invisible" : ""}`} />
               </div>
-              <div className="liquid-glass is-flat @container mt-5 flex aspect-[5/4] items-center justify-center overflow-hidden rounded-[20px] md:mt-6">
+              <div className="bg-bg-elevated/60 @container mt-5 flex aspect-[5/4] items-center justify-center overflow-hidden rounded-[20px] md:mt-6">
                 {step.demo}
               </div>
               <h3 className="font-display mt-5 text-[1.25rem] font-[600] md:mt-6 md:text-[1.375rem]">{step.name}</h3>

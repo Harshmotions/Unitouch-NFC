@@ -325,6 +325,50 @@ p {
     background: rgba(255, 255, 255, 0.66);
   }
 
+  /* Apple's "regular" glass, for the floating navigation layer: the header
+     capsule once the page scrolls, and the phone menu. Content scrolls
+     under these, so they blur harder and lift the luminosity a little more
+     than a button does, to keep their text readable over anything. */
+  .liquid-glass-float {
+    background: rgba(246, 245, 243, 0.5);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.04);
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.04);
+  }
+
+  /* A menu holds a list of text, so it's the most opaque glass (Apple:
+     regular glass for popovers and anything with a lot of text). No
+     refracting lens here: the lens swaps the heavy blur for a light one,
+     and the page's words read through the menu's. */
+  .liquid-glass-menu {
+    background: rgba(248, 247, 245, 0.72);
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
+  }
+
+  /* Panes, not buttons: no hover lift. */
+  .liquid-glass-float:hover {
+    background: rgba(246, 245, 243, 0.5);
+  }
+  .liquid-glass-menu:hover {
+    background: rgba(248, 247, 245, 0.72);
+  }
+
+  /* The header at the very top of the homepage: no glass at all, so the
+     hero runs up behind it. Fades into glass once the page scrolls. */
+  .liquid-glass::after {
+    transition: opacity var(--t-ui) ease;
+  }
+  .liquid-glass.is-clear {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+  .liquid-glass.is-clear::before,
+  .liquid-glass.is-clear::after {
+    opacity: 0;
+  }
+
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .liquid-glass,
     .glass,
@@ -338,6 +382,40 @@ p {
     .liquid-glass-bar,
     .liquid-glass-sheet {
       background: var(--color-bg-base);
+    }
+  }
+
+  /* Reduce Transparency / Increase Contrast (Apple: these settings remove
+     or modify the glass): a solid, readable tone with no backdrop, and with
+     more contrast a visible edge. !important beats the lens's inline
+     backdrop-filter. The clear header (.is-clear) stays clear. */
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .liquid-glass,
+    .glass,
+    .glass-icon-btn,
+    .glass-pill,
+    .liquid-glass-float,
+    .liquid-glass-menu,
+    .liquid-glass-bar,
+    .liquid-glass-sheet {
+      background: var(--color-bg-elevated);
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    .liquid-glass-dark {
+      background: rgba(28, 26, 24, 0.92);
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+  }
+  @media (prefers-contrast: more) {
+    .liquid-glass::after,
+    .glass::after,
+    .glass-icon-btn::after,
+    .glass-pill::after,
+    .liquid-glass-dark::after {
+      padding: 1px;
+      background: var(--color-text-secondary);
     }
   }
 }

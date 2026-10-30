@@ -19,7 +19,7 @@ const NAV_LINKS = [
 /* One navigation for every public page: the wordmark, four plain links, the
    sign-in link and the one action. On the homepage the section links scroll
    (Lenis); anywhere else they go to "/#section". On a phone the links open
-   in a full-screen sheet from a "Menu" button. */
+   in a small glass menu from a "Menu" button. */
 export default function Navbar() {
   const pathname = usePathname();
   const onHome = pathname === "/";
@@ -57,6 +57,12 @@ export default function Navbar() {
     document.documentElement.style.overflow = menuOpen ? "hidden" : "";
     if (menuOpen) window.lenisInstance?.stop();
     else window.lenisInstance?.start();
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
   function handleLogoClick(e: MouseEvent) {
@@ -95,12 +101,18 @@ export default function Navbar() {
 
   return (
     <>
-    <header
-      className={`sticky top-0 z-50 transition-colors duration-500 ${
-        onHome && atTop && !menuOpen ? "bg-transparent" : menuOpen ? "liquid-glass-sheet" : "liquid-glass-bar"
-      }`}
-    >
-      <div className="container-page flex h-16 items-center justify-between gap-6 md:h-[4.5rem]">
+    {/* The header is Apple's floating navigation layer: a glass capsule
+        inset from the edges, over the scrolling page. At the very top of
+        the homepage it's clear, so the hero runs up behind it. The capsule
+        sticks out of the content column by its own padding, so the logo
+        and links still line up with the page. */}
+    <header className="sticky top-0 z-50 pt-2">
+      <div className="container-page">
+      <div
+        className={`liquid-glass liquid-glass-float -mx-3 flex h-14 items-center justify-between gap-6 rounded-full px-3 md:h-16 lg:-mx-5 lg:px-5 ${
+          onHome && atTop && !menuOpen ? "is-clear" : ""
+        }`}
+      >
         <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2.5" aria-label="Unitouch home">
           <Image src="/brand/u-mark-ink.png" alt="" width={22} height={25} priority />
           <span className="font-display text-[1.25rem] font-[600]">Unitouch</span>
@@ -135,30 +147,41 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-
+      </div>
     </header>
 
-      {/* Phone and tablet: a full-screen sheet of large links. It sits
-          outside the header on purpose: the header's glass blur makes it a
-          containing block for fixed children, which clipped the sheet to
-          the header's height. Fades and drops in, and is inert when shut. */}
+      {/* Phone and tablet: a glass menu that grows out of the Menu button
+          (Apple: menus originate from the control that opens them) and is
+          only as big as its links. Corners are concentric: 28px outside,
+          8px padding, 20px rows. A tap anywhere else, or Escape, closes it.
+          It sits outside the header on purpose: the header's glass blur
+          makes it a containing block for fixed children. Inert when shut. */}
+      {menuOpen && (
+        <div aria-hidden className="fixed inset-0 z-40 lg:hidden" onClick={() => setMenuOpen(false)} />
+      )}
       <div
         id="mobile-menu"
         inert={!menuOpen}
-        className={`liquid-glass-sheet fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto px-[var(--margin)] pt-8 pb-12 transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-out)] md:top-[4.5rem] lg:hidden ${
-          menuOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"
+        className={`liquid-glass liquid-glass-menu fixed top-[4.5rem] right-[calc(clamp(1.25rem,4vw,2.5rem)-0.75rem)] z-50 w-[min(17rem,calc(100vw-1rem))] origin-top-right rounded-[28px] p-2 transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none md:top-20 lg:hidden ${
+          menuOpen ? "visible scale-100 opacity-100" : "invisible scale-90 opacity-0"
         }`}
       >
-        <nav aria-label="Main" className="flex flex-col gap-5">
+        <nav aria-label="Main" className="flex flex-col">
           {NAV_LINKS.map((link) => {
             const { href, onClick } = linkProps(link.href);
             return (
-              <a key={link.label} href={href} onClick={onClick} className="font-display text-[1.75rem] font-[600]">
+              <a
+                key={link.label}
+                href={href}
+                onClick={onClick}
+                className="font-display rounded-[20px] px-4 py-3 text-[1.1875rem] font-[600] transition-colors hover:bg-white/45 active:bg-white/60"
+              >
                 {link.label}
               </a>
             );
           })}
-          <span className="font-display text-text-secondary text-[1.75rem] font-[600]">
+          <span aria-hidden className="bg-text-primary/10 mx-4 my-1.5 h-px" />
+          <span className="font-display text-text-secondary [&>a]:block [&>a]:rounded-[20px] [&>a]:px-4 [&>a]:py-3 [&>a]:transition-colors [&>a:hover]:bg-white/45 text-[1.1875rem] font-[600]">
             {account ?? <Link href="/login">Log in</Link>}
           </span>
         </nav>

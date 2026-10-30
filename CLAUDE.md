@@ -90,7 +90,7 @@ navbar, which is see-through only at the top of the homepage; it stops
 short of the fold so HowItWorks' darker rounded band peeks in; its words,
 card and actions are three grid blocks, so on a phone the card sits between
 the headline and the buttons and the whole pitch fits the first screen),
-HowItWorks (three equal numbered steps on liquid-glass tiles; a swipeable
+HowItWorks (three equal numbered steps on plain tone-step tiles; a swipeable
 snap row on phones; each tile is a looping demo from
 `components/marketing/how/Demos.tsx`: a mini form typing sample details in
 and erasing them; the card printing the name once the form's Continue is
@@ -332,9 +332,17 @@ advisories, so bump patches promptly when it goes red.
   iOS 26-style liquid glass (Oct 30, 2026, Harsh's call: nearly clear tint,
   backdrop blur + saturate + brightness, a masked gradient rim brightest at
   top-left and bottom-right, 0.5 px strokes at no more than 25% opacity, inner edge highlights and glow, a sheen; plus a
-  refracting lens on a few controls, below): `.liquid-glass` (secondary
-  buttons, pills, toggles, FAQ, the How it works tiles), `.liquid-glass-bar`
-  (the scrolled header), `.liquid-glass-sheet` (mobile menu),
+  refracting lens on a few controls, below). Placement follows Apple's
+  "Adopting Liquid Glass": glass is only the floating navigation and
+  controls layer, never content (FAQ cards and the How it works tiles are
+  plain `bg-bg-elevated` tone steps), used sparingly, no glass on glass.
+  `.liquid-glass` (secondary buttons, pills, toggles), `.liquid-glass-float`
+  (Apple's "regular" glass: the header, a capsule inset from the edges that
+  sticks out of the content column by its own padding; `.is-clear` at the
+  very top of the homepage), `.liquid-glass-menu` (the phone menu: a compact
+  popover sized to its links, growing from the Menu button, concentric
+  corners 28 / 8 / 20 px, closes on an outside tap or Escape; the most
+  opaque glass and no lens, since it holds text),
   `.liquid-glass-dark` (on photos), in `@layer components` so utilities still
   win; the older `.glass*` classes share the recipe. On Chromium a few
   controls also refract like a lens: `<GlassLens />` (`components/ui/GlassLens.tsx`,
@@ -342,9 +350,9 @@ advisories, so bump patches promptly when it goes red.
   sets an SVG-filter `backdrop-filter` with a displacement and specular map
   sized to its parent. Used on `Button` `secondary` and `glass-dark` (the
   dark pricing card's Premium button), the card front/back toggle and the
-  demo profile pill; keep it to a handful of small controls. On flat grounds
-  (FAQ cards, How it works tiles) use `.liquid-glass.is-flat`, which drops
-  the backdrop blur so scrolling never repaints it. No violet, eyebrow
+  demo profile pill; keep it to a handful of small controls. Reduce
+  Transparency and Increase Contrast get solid controls (no backdrop, no
+  lens; a visible edge with more contrast). No violet, eyebrow
   labels or icon-topped card grids on the public pages. `.surface-card` is a
   flat tone-step surface for app screens. Headlines stay at two lines or fewer at
   390, 768 and 1440 px.
