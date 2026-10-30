@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Button from "@/components/ui/Button";
+import GlassLens from "@/components/ui/GlassLens";
 import { handleHashLinkClick, settleArrivalHash, smoothScrollToTop } from "@/lib/scroll";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -152,7 +153,8 @@ export default function Navbar() {
 
       {/* Phone and tablet: a glass menu that grows out of the Menu button
           (Apple: menus originate from the control that opens them) and is
-          only as big as its links. Corners are concentric: 28px outside,
+          only as big as its links. Opens on a soft spring with the links
+          cascading in; shuts quickly. Corners are concentric: 28px outside,
           8px padding, 20px rows. A tap anywhere else, or Escape, closes it.
           It sits outside the header on purpose: the header's glass blur
           makes it a containing block for fixed children. Inert when shut. */}
@@ -162,26 +164,37 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         inert={!menuOpen}
-        className={`liquid-glass liquid-glass-menu fixed top-[4.5rem] right-[calc(clamp(1.25rem,4vw,2.5rem)-0.75rem)] z-50 w-[min(17rem,calc(100vw-1rem))] origin-top-right rounded-[28px] p-2 transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-out)] motion-reduce:transition-none md:top-20 lg:hidden ${
-          menuOpen ? "visible scale-100 opacity-100" : "invisible scale-90 opacity-0"
+        className={`liquid-glass liquid-glass-menu fixed top-[4.5rem] right-[calc(clamp(1.25rem,4vw,2.5rem)-0.75rem)] z-50 w-[min(17rem,calc(100vw-1rem))] origin-[calc(100%-1.75rem)_-1.5rem] rounded-[28px] p-2 transition-[opacity,scale,translate,visibility] will-change-[scale,translate,opacity] motion-reduce:transition-none md:top-20 lg:hidden ${
+          menuOpen
+            ? "visible translate-y-0 scale-100 opacity-100 duration-[520ms] ease-[var(--ease-spring)]"
+            : "invisible -translate-y-3 scale-[0.6] opacity-0 duration-[220ms] ease-[var(--ease-out)]"
         }`}
       >
+        <GlassLens blur={18} saturation={1.8} specular={0.3} />
         <nav aria-label="Main" className="flex flex-col">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.map((link, i) => {
             const { href, onClick } = linkProps(link.href);
             return (
               <a
                 key={link.label}
                 href={href}
                 onClick={onClick}
-                className="font-display rounded-[20px] px-4 py-3 text-[1.1875rem] font-[600] transition-colors hover:bg-white/45 active:bg-white/60"
+                style={{ transitionDelay: menuOpen ? `${70 + i * 35}ms` : "0ms" }}
+                className={`font-display rounded-[20px] px-4 py-3 text-[1.1875rem] font-[600] transition-[opacity,translate,background-color] duration-[380ms] ease-[var(--ease-out)] hover:bg-white/45 active:bg-white/60 motion-reduce:transition-none ${
+                  menuOpen ? "translate-y-0 opacity-100" : "-translate-y-1.5 opacity-0"
+                }`}
               >
                 {link.label}
               </a>
             );
           })}
           <span aria-hidden className="bg-text-primary/10 mx-4 my-1.5 h-px" />
-          <span className="font-display text-text-secondary [&>a]:block [&>a]:rounded-[20px] [&>a]:px-4 [&>a]:py-3 [&>a]:transition-colors [&>a:hover]:bg-white/45 text-[1.1875rem] font-[600]">
+          <span
+            style={{ transitionDelay: menuOpen ? `${70 + NAV_LINKS.length * 35}ms` : "0ms" }}
+            className={`font-display text-text-secondary text-[1.1875rem] font-[600] transition-[opacity,translate] duration-[380ms] ease-[var(--ease-out)] motion-reduce:transition-none [&>a]:block [&>a]:rounded-[20px] [&>a]:px-4 [&>a]:py-3 [&>a]:transition-colors [&>a:hover]:bg-white/45 ${
+              menuOpen ? "translate-y-0 opacity-100" : "-translate-y-1.5 opacity-0"
+            }`}
+          >
             {account ?? <Link href="/login">Log in</Link>}
           </span>
         </nav>

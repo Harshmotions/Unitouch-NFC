@@ -340,9 +340,13 @@ advisories, so bump patches promptly when it goes red.
   (Apple's "regular" glass: the header, a capsule inset from the edges that
   sticks out of the content column by its own padding; `.is-clear` at the
   very top of the homepage), `.liquid-glass-menu` (the phone menu: a compact
-  popover sized to its links, growing from the Menu button, concentric
-  corners 28 / 8 / 20 px, closes on an outside tap or Escape; the most
-  opaque glass and no lens, since it holds text),
+  popover sized to its links, growing from the Menu button on a soft spring
+  (`--ease-spring`, a CSS `linear()` curve) with the links cascading in,
+  concentric corners 28 / 8 / 20 px, closes on an outside tap or Escape;
+  light tint over a heavy frost plus a heavy-blur lens, so the page shows
+  through as colour but never as readable words). Tailwind v4's `scale-*` /
+  `translate-*` set the `scale` / `translate` properties, not `transform`:
+  list those in `transition-[...]`, or the element jumps instead of moving,
   `.liquid-glass-dark` (on photos), in `@layer components` so utilities still
   win; the older `.glass*` classes share the recipe. On Chromium a few
   controls also refract like a lens: `<GlassLens />` (`components/ui/GlassLens.tsx`,
