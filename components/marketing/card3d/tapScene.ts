@@ -22,11 +22,13 @@ const soft = (a: number, b: number, v: number) => {
 // When the card strikes, and how long the fall and the bounce take.
 const HIT = 1.7;
 const FALL = 1.3;
-const BOUNCE = 1.6;
+const BOUNCE = 2.4;
 
 // Where the card rests (world units; the phone's back faces us at the
-// start).
-const FAR = { x: 1.55, y: 0.95, z: 1.25, rx: -0.55, ry: -0.95, rz: 0.42 };
+// start). Far enough out that the phone's corners, sweeping round in its
+// full turn, never reach the card, whatever its angle (checked by sampling
+// the loop with a box-overlap test).
+const FAR = { x: 2.0, y: 1.05, z: 1.55, rx: -0.5, ry: -0.75, rz: 0.38 };
 
 // The phone's pose (before the strike's nudge) at time k in the loop.
 const SPIN_1 = [HIT + 0.55, HIT + 2.1] as const;
@@ -120,27 +122,38 @@ export function createTapScene(canvas: HTMLCanvasElement, opts: { still?: boolea
     const k = ((t % TAP_CYCLE) + TAP_CYCLE) % TAP_CYCLE;
 
     // The card. Falling in: the gap closes faster and faster (a cubic ease
-    // in), so it meets the phone at full speed. Bouncing off: it leaves at
-    // full speed and slows to rest (a cubic ease out). Together that's the
-    // cusp curve: slow at both far points, fastest at the strike.
+    // in), so it meets the phone at full speed, while its angle settles
+    // early (a cubic ease out), so it's already flat to the back before it
+    // gets close and no edge can cut into the phone. Bouncing off: it leaves
+    // at full speed and glides to rest on a quartic ease out (no speed left
+    // at rest, so it never stops dead); its angle stays flat at first and
+    // turns away once it's clear.
     const fall = clamp((k - (HIT - FALL)) / FALL);
     const bounce = clamp((k - HIT) / BOUNCE);
     let near: number;
-    if (k < HIT) near = fall * fall * fall;
-    else near = 1 - (1 - Math.pow(1 - bounce, 3));
-    // A little arc on the way back up, like a bounce under gravity.
-    const arc = k >= HIT ? Math.sin(Math.PI * bounce) * 0.35 : 0;
-    // The knock: the strike sets it spinning a little about every axis,
-    // dying away as it comes to rest (zero at the strike and at rest, so
-    // the loop joins up).
-    const knock = k >= HIT ? Math.sin(Math.PI * bounce) * Math.pow(1 - bounce, 0.6) : 0;
+    let turnT: number;
+    if (k < HIT) {
+      near = fall * fall * fall;
+      turnT = 1 - Math.pow(1 - fall, 3);
+    } else {
+      near = Math.pow(1 - bounce, 4);
+      turnT = 1 - bounce * bounce * (3 - 2 * bounce);
+    }
+    // A little arc on the way back up, like a bounce under gravity, flat
+    // again as it comes to rest.
+    const arc = k >= HIT ? Math.sin(Math.PI * bounce) * (1 - bounce) * 0.55 : 0;
+    // The knock: the strike sets it spinning a little about every axis once
+    // it has pulled clear of the phone, dying away smoothly as it comes to
+    // rest (zero, with no speed, at the strike and at rest, so the loop
+    // joins up).
+    const knock = k >= HIT ? Math.sin(Math.PI * bounce) * Math.pow(1 - bounce, 2) * 1.6 * soft(0.03, 0.2, bounce) : 0;
     // While it rests at the far point it hovers, just perceptibly.
     const hover = Math.sin((k / TAP_CYCLE) * Math.PI * 4) * 0.04 * (1 - near);
     card.group.position.set(mix(FAR.x, TOUCH.x, near), mix(FAR.y, TOUCH.y, near) + arc + hover, mix(FAR.z, TOUCH.z, near));
     card.group.rotation.set(
-      mix(FAR.rx, TOUCH.rx, near) - knock * 0.7,
-      mix(FAR.ry, TOUCH.ry, near) + knock * 0.9,
-      mix(FAR.rz, TOUCH.rz, near) + knock * 0.5
+      mix(FAR.rx, TOUCH.rx, turnT) - knock * 0.7,
+      mix(FAR.ry, TOUCH.ry, turnT) + knock * 0.9,
+      mix(FAR.rz, TOUCH.rz, turnT) + knock * 0.5
     );
 
     const r = clamp((k - HIT) / 1.1);

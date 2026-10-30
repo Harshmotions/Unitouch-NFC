@@ -97,9 +97,14 @@ and erasing them; the card printing the name once the form's Continue is
 pressed (a clip-path wipe behind a moving print line, `.print-area`); and
 the real 3D iPhone in its own small scene (`card3d/tapScene.ts`, still
 `public/home/tap-demo.webp` is its first frame): the card falls in on a
-cubic ease-in, strikes the phone's back at full speed and bounces off on a
-cubic ease-out with an xyz knock and a little arc, while the phone turns a
-full 360 to the profile and back. Form and card share one clock; every loop
+cubic ease-in (its angle settles flat early, so no edge reaches the phone
+first), strikes the phone's back at full speed and bounces off, gliding to
+rest on a quartic ease-out over 2.4 s with an xyz knock (it starts only once
+the card is clear) and a little arc, both reaching rest with zero speed,
+while the phone turns a full 360 to the profile and back. The card's rest
+point is far enough out that the turning phone's corners never reach it;
+any change to the card's path or rest point needs re-checking for overlap
+(sample the loop, test the two boxes) and the still re-rendered. Form and card share one clock; every loop
 ends where it began; sized in container units; paused off screen; a still
 under reduced motion. The phone model (GLB, materials, screen, bar) is
 shared by both scenes via `card3d/phoneModel.ts`), PhoneStory (sticky 3D iPhone; the scene follows the
@@ -109,17 +114,18 @@ overlapping so the phone turns one way only, the card swoops in, touches
 its back and flies on without stopping, and the screen scroll and saved
 note overlap the turn; progress goes negative (`PRE_ROLL`) while the
 section is still coming up the screen; the story uses the first
-`STORY_SHARE` of the section's scroll and the rest is the slow close-up on
+`STORY_SHARE` of the section's scroll and the rest is the close-up on
 the "contact saved" note; as the note drops, the camera
 pushes in on the Dynamic Island over the whole last stretch, while the
 phone swings one way and flows back into its final pose (turned about 35
 degrees, tipped back about 25, screen facing up and to the left) and the
 camera banks and levels out (`zoomAt`, `swing*`, `camBank` tracks: about
-80% of the close-up soon after the note lands, then a very slow settle;
-timing in `card3d/story.ts`: the section is 700svh, the story plays over
-its first 320svh of scroll and progress runs on past 1 to `STORY_END`
-through a long held stretch, so the note stays readable for about two
-screens of scrolling and the motion only arrives as the section leaves); the screen texture is the demo profile at 3x
+95% of the close-up soon after the note lands, moving briskly, then only
+the last 5% settles slowly; timing in `card3d/story.ts`: the section is
+540svh, the story plays over its first 320svh of scroll and progress runs
+on past 1 to `STORY_END` through a short held stretch (Harsh: the old
+700svh took too many scrolls after the note), and the motion arrives as
+the section leaves); the screen texture is the demo profile at 3x
 (`phone-screen.webp` 1170 x 2925, `phone-bar.webp`), the note is drawn at
 2x, and the phone canvas renders at 1.5x to 2x pixel ratio; on phones the step text is
 centred under the phone, the canvas has feathered edges
