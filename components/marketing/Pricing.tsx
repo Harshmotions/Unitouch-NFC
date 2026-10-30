@@ -64,7 +64,7 @@ export default function Pricing() {
                 </ul>
 
                 <Button
-                  variant={dark ? "secondary" : "primary"}
+                  variant={dark ? "glass-dark" : "primary"}
                   size="lg"
                   href={`/order?card=${variant.id}`}
                   className="mt-8 w-full"

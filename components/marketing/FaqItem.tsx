@@ -13,7 +13,7 @@ export default function FaqItem({ question, answer }: { question: string; answer
 
   return (
     <div
-      className={`liquid-glass rounded-[16px] px-5 md:px-6 ${
+      className={`liquid-glass is-flat rounded-[16px] px-5 md:px-6 ${
         open ? "is-solid" : ""
       }`}
     >

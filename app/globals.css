@@ -245,22 +245,51 @@ p {
     opacity: 0.8;
   }
 
-  /* On dark ground (a photo): smoky glass with a softer rim. */
+  /* On dark ground (the Premium card, a photo): Apple's glass in dark
+     mode, a faint white fill so it reads as a lens rather than a hole,
+     the same light-catching rim, white text. */
   .liquid-glass-dark {
     position: relative;
     isolation: isolate;
     color: #fff;
-    background: rgba(28, 26, 24, 0.32);
-    -webkit-backdrop-filter: blur(16px) saturate(170%);
-    backdrop-filter: blur(16px) saturate(170%);
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(16px) saturate(170%) brightness(1.1);
+    backdrop-filter: blur(16px) saturate(170%) brightness(1.1);
     box-shadow:
-      inset 1.5px 1.5px 1px -0.5px rgba(255, 255, 255, 0.35),
+      inset 1.5px 1.5px 1px -0.5px rgba(255, 255, 255, 0.45),
+      inset -1px -1px 1px -0.5px rgba(255, 255, 255, 0.25),
       inset 0 0 16px rgba(255, 255, 255, 0.08),
-      0 14px 32px -16px rgba(0, 0, 0, 0.5);
+      0 14px 32px -16px rgba(0, 0, 0, 0.55);
+    transition:
+      background-color var(--t-hover) ease,
+      box-shadow var(--t-hover) ease;
+  }
+
+  .liquid-glass-dark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(130% 90% at 18% 0%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 58%);
   }
 
   .liquid-glass-dark::after {
-    opacity: 0.5;
+    opacity: 0.75;
+  }
+
+  .liquid-glass-dark:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  /* Glass resting on a flat ground (FAQ cards, How it works tiles, the
+     toggle): a backdrop blur of a flat colour looks the same as none, but
+     costs a repaint on every scroll frame, so these skip it. */
+  .liquid-glass.is-flat {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.3);
   }
 
   /* The header once the page has scrolled, and the mobile menu: a full-width
