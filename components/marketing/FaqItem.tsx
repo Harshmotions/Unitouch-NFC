@@ -13,8 +13,8 @@ export default function FaqItem({ question, answer }: { question: string; answer
 
   return (
     <div
-      className={`rounded-[16px] px-5 transition-colors duration-500 ease-[var(--ease-out)] md:px-6 ${
-        open ? "bg-white" : "bg-bg-elevated"
+      className={`liquid-glass rounded-[16px] px-5 md:px-6 ${
+        open ? "is-solid" : ""
       }`}
     >
       <h3>

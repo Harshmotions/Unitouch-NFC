@@ -96,7 +96,7 @@ export default function Navbar() {
   return (
     <header
       className={`sticky top-0 z-50 transition-colors duration-500 ${
-        onHome && atTop && !menuOpen ? "bg-transparent" : "bg-bg-base"
+        onHome && atTop && !menuOpen ? "bg-transparent" : menuOpen ? "liquid-glass-sheet" : "liquid-glass-bar"
       }`}
     >
       <div className="container-page flex h-16 items-center justify-between gap-6 md:h-[4.5rem]">
@@ -139,7 +139,7 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         hidden={!menuOpen}
-        className="bg-bg-base fixed inset-x-0 top-16 bottom-0 overflow-y-auto px-[var(--margin)] pt-8 pb-12 md:top-[4.5rem] lg:hidden"
+        className="liquid-glass-sheet fixed inset-x-0 top-16 bottom-0 overflow-y-auto px-[var(--margin)] pt-8 pb-12 md:top-[4.5rem] lg:hidden"
       >
         <nav aria-label="Main" className="flex flex-col gap-5">
           {NAV_LINKS.map((link) => {

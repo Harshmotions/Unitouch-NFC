@@ -107,7 +107,7 @@ export default function PersonalProfile({
       {!preview && DEMO_USERNAMES.includes(profile.username) && (
         <Link
           href="/order"
-          className="bg-bg-ink text-text-on-ink fixed top-3 left-1/2 z-40 -translate-x-1/2 rounded-full px-4 py-2 text-[0.8125rem] font-[500] whitespace-nowrap"
+          className="liquid-glass-dark fixed top-3 left-1/2 z-40 -translate-x-1/2 rounded-full px-4 py-2 text-[0.8125rem] font-[500] whitespace-nowrap"
         >
           Example profile · Get your own card
         </Link>

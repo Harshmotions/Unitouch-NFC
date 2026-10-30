@@ -14,12 +14,13 @@ export interface ButtonProps {
   onClick?: (e: React.MouseEvent) => void;
 }
 
-/* Flat fills, one pill shape everywhere. Feedback is a tone step on hover
-   and a small press, never a glow. */
+/* One pill shape everywhere. The main action is a flat fill; the secondary
+   is liquid glass. Feedback is a tone step on hover and a small press. */
 const variantClasses: Record<ButtonProps["variant"], string> = {
   primary: "bg-accent text-accent-ink hover:bg-accent-hover",
   ink: "bg-bg-ink text-text-on-ink hover:bg-black",
-  secondary: "bg-bg-subtle text-text-primary hover:bg-bg-field",
+  // Liquid glass (globals.css): translucent, blurring what's behind it.
+  secondary: "liquid-glass",
   ghost: "bg-transparent text-text-secondary hover:text-text-primary",
   danger: "bg-error/10 text-error hover:bg-error/15",
 };

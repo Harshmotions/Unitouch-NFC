@@ -147,19 +147,161 @@ p {
 
 /* Formerly frosted glass. The light theme has no glass: these are flat
    tone-step surfaces, so every page that used them stays consistent. */
-.glass,
-.glass-icon-btn,
-.glass-pill {
-  position: relative;
-  background: var(--color-bg-elevated);
-  color: var(--color-text-primary);
-  transition: background-color var(--t-hover) ease;
-}
+/* In the components layer, so a utility class on the same element (a
+   position, a background) still wins. */
+@layer components {
+  /* Liquid glass, after Apple's iOS 26 material. Three things make it read
+     as glass rather than frosted plastic:
+     1. Almost no tint: what you see is the blur and the lifted colour of
+        whatever is behind it (backdrop blur, saturate, a touch of
+        brightness).
+     2. A rim that catches the light unevenly: bright at the top-left,
+        fading along the sides, catching again at the bottom-right. It's a
+        1.25px gradient ring (::after, masked to just the edge).
+     3. Thickness: soft inner highlights hugging the top-left and
+        bottom-right edges, a faint inner glow, and a specular sheen
+        falling from the top-left (::before), over a soft lifted shadow.
+     No refraction filter: it only works well in Chromium and costs a
+     repaint per frame. Browsers without backdrop-filter get a solid,
+     readable tone instead. The older .glass classes share it, so profile,
+     studio and admin pills match. */
+  .liquid-glass,
+  .glass,
+  .glass-icon-btn,
+  .glass-pill {
+    position: relative;
+    isolation: isolate;
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.06);
+    backdrop-filter: blur(14px) saturate(190%) brightness(1.06);
+    box-shadow:
+      inset 1.5px 1.5px 1px -0.5px rgba(255, 255, 255, 0.8),
+      inset -1px -1px 1px -0.5px rgba(255, 255, 255, 0.5),
+      inset 0 0 18px rgba(255, 255, 255, 0.22),
+      0 2px 6px rgba(31, 27, 22, 0.06),
+      0 16px 36px -18px rgba(31, 27, 22, 0.32);
+    transition:
+      background-color var(--t-hover) ease,
+      box-shadow var(--t-hover) ease;
+  }
 
-.glass:hover,
-.glass-icon-btn:hover,
-.glass-pill:hover {
-  background: #ffffff;
+  /* The specular sheen. */
+  .liquid-glass::before,
+  .glass::before,
+  .glass-icon-btn::before,
+  .glass-pill::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(130% 90% at 18% 0%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 58%);
+    opacity: 0.55;
+    transition: opacity var(--t-hover) ease;
+  }
+
+  /* The rim: a gradient ring, cut down to the edge with a mask. */
+  .liquid-glass::after,
+  .glass::after,
+  .glass-icon-btn::after,
+  .glass-pill::after,
+  .liquid-glass-dark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.25px;
+    pointer-events: none;
+    background: linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.35) 22%,
+      rgba(255, 255, 255, 0.08) 48%,
+      rgba(255, 255, 255, 0.3) 76%,
+      rgba(255, 255, 255, 0.85) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+
+  .liquid-glass:hover,
+  .glass:hover,
+  .glass-icon-btn:hover,
+  .glass-pill:hover {
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  .liquid-glass:hover::before,
+  .glass:hover::before,
+  .glass-icon-btn:hover::before,
+  .glass-pill:hover::before {
+    opacity: 0.8;
+  }
+
+  /* On dark ground (a photo): smoky glass with a softer rim. */
+  .liquid-glass-dark {
+    position: relative;
+    isolation: isolate;
+    color: #fff;
+    background: rgba(28, 26, 24, 0.32);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+    box-shadow:
+      inset 1.5px 1.5px 1px -0.5px rgba(255, 255, 255, 0.35),
+      inset 0 0 16px rgba(255, 255, 255, 0.08),
+      0 14px 32px -16px rgba(0, 0, 0, 0.5);
+  }
+
+  .liquid-glass-dark::after {
+    opacity: 0.5;
+  }
+
+  /* The header once the page has scrolled, and the mobile menu: a full-width
+     pane of the same glass, a little more opaque so text over busy content
+     stays readable. */
+  .liquid-glass-bar {
+    background: rgba(238, 236, 234, 0.62);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow:
+      inset 0 -1px 0 rgba(255, 255, 255, 0.55),
+      0 1px 0 rgba(31, 27, 22, 0.05);
+  }
+
+  /* The mobile menu covers the page, so it's the most opaque of the panes. */
+  .liquid-glass-sheet {
+    background: rgba(238, 236, 234, 0.86);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+  }
+
+  /* A raised, nearly solid state of the glass (an open FAQ answer). */
+  .liquid-glass.is-solid {
+    background: rgba(255, 255, 255, 0.66);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .liquid-glass,
+    .glass,
+    .glass-icon-btn,
+    .glass-pill {
+      background: var(--color-bg-elevated);
+    }
+    .liquid-glass-dark {
+      background: rgba(28, 26, 24, 0.9);
+    }
+    .liquid-glass-bar,
+    .liquid-glass-sheet {
+      background: var(--color-bg-base);
+    }
+  }
 }
 
 .glass-border,
@@ -538,5 +680,82 @@ html.loader-done .page-loader-slats > span {
 @keyframes loader-slat {
   to {
     transform: scaleX(0);
+  }
+}
+
+/* ── How it works demos (components/marketing/how/Demos.tsx) ─────────── */
+
+/* The card printing: the ink is clipped away and wiped in from the left
+   behind a moving print line once the form is sent; it fades when cleared,
+   and resets instantly while invisible. */
+.print-ink {
+  clip-path: inset(0 100% 0 0);
+}
+
+.print-area.is-printed .print-ink {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1400ms cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
+.print-area.is-clearing .print-ink {
+  clip-path: inset(0 0 0 0);
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.print-sweep {
+  position: absolute;
+  inset: -10% 0;
+  border-left: 2px solid rgba(244, 242, 238, 0.85);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.print-area.is-printed .print-sweep {
+  animation: print-sweep 1400ms cubic-bezier(0.45, 0.05, 0.55, 0.95) both;
+}
+
+@keyframes print-sweep {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.type-caret {
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The printing card drifts and turns a little, back and forth forever. */
+.card-float > .card-face {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card-float > .card-face {
+    animation: card-drift 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes card-drift {
+  from {
+    transform: rotateX(8deg) rotateY(-12deg) translateY(2%);
+  }
+  to {
+    transform: rotateX(-2deg) rotateY(8deg) translateY(-3%);
   }
 }

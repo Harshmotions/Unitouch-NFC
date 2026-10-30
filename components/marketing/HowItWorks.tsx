@@ -1,29 +1,28 @@
-import Image from "next/image";
 import Reveal from "@/components/motion/Reveal";
+import { CardDemo, FormDemo, TapDemo } from "@/components/marketing/how/Demos";
 
 const STEPS = [
   {
     name: "You order",
     text: "Pick Standard or Premium, choose your profile link and pay. About five minutes, no account needed.",
-    image: { src: "/home/order-form.webp", alt: "The first step of the Unitouch order form: account type, name and email", w: 732, h: 980 },
-    img: "w-[52%]",
+    demo: <FormDemo />,
   },
   {
     name: "We make it",
     text: "We design your card with you, print it and program its chip. It reaches you in 5 to 7 days.",
-    image: { src: "/cards/card-front.webp", alt: "A Unitouch card printed with its owner's name and title", w: 1200, h: 900 },
-    img: "w-[96%]",
+    demo: <CardDemo />,
   },
   {
     name: "You tap",
     text: "Hold it to the back of any phone. Your profile opens, and your contact is one tap from saved.",
-    image: { src: "/home/phone-tap.webp", alt: "A Unitouch card tapped on the back of an iPhone", w: 900, h: 1000 },
-    img: "w-[78%]",
+    demo: <TapDemo />,
   },
 ];
 
 /* Three equal steps on one line, read left to right: a numbered marker with
-   a rule running on to the next step, a picture of the step, then a few
+   a rule running on to the next step, a small looping demo of the step on
+   a glass tile (the form typing itself in, the same name printing onto the
+   card, the card tapping a phone that turns to the profile), then a few
    words. The section sits on its own darker band with rounded top corners,
    which peeks up under the hero on the first screen. */
 export default function HowItWorks() {
@@ -55,15 +54,8 @@ export default function HowItWorks() {
                 {/* The rule that leads on to the next step (drawn in as the row appears). */}
                 <span aria-hidden className={`step-rule bg-bg-border h-px flex-1 ${i === STEPS.length - 1 ? "invisible" : ""}`} />
               </div>
-              <div className="bg-bg-elevated mt-5 flex aspect-[5/4] md:mt-6 items-center justify-center overflow-hidden rounded-[20px]">
-                <Image
-                  src={step.image.src}
-                  alt={step.image.alt}
-                  width={step.image.w}
-                  height={step.image.h}
-                  sizes="(min-width: 768px) 30vw, 90vw"
-                  className={`h-auto max-h-[86%] max-w-none object-contain ${step.img}`}
-                />
+              <div className="liquid-glass @container mt-5 flex aspect-[5/4] items-center justify-center overflow-hidden rounded-[20px] md:mt-6">
+                {step.demo}
               </div>
               <h3 className="font-display mt-5 text-[1.25rem] font-[600] md:mt-6 md:text-[1.375rem]">{step.name}</h3>
               <p className="text-text-secondary mt-2 max-w-[34ch] text-[1rem] leading-relaxed">{step.text}</p>
