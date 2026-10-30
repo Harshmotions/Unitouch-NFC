@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import type { TapScene } from "@/components/marketing/card3d/tapScene";
 
 /* The three looping demos in "How it works": a form typing itself in, the
-   same name printing onto a card, and a card tapping a phone that spins
-   round to the profile. Everything is a pure function of one clock, and
-   every loop ends exactly where it began (the typing erases back to empty,
-   the phone turns a full 360), so nothing ever jumps back to a first
-   frame. The form and the card share the clock, so the card prints what
-   the form types. Each demo runs only while on screen; with reduced motion
-   it shows one still moment. HTML and CSS only, no 3D library. */
+   card printing the name once the form is sent, and the real 3D iPhone
+   being tapped by the card (card3d/tapScene.ts). Each is a pure function
+   of a clock and every loop ends exactly where it began (the typing erases
+   back to empty, the phone turns a full 360), so nothing ever jumps back
+   to a first frame. The form and the card share one clock, so the card
+   prints what the form sent. Each demo runs only while on screen; with
+   reduced motion it shows one still moment. */
 
 // ── The clock ─────────────────────────────────────────────────────────────
 
@@ -23,14 +24,6 @@ const now = () => {
   return (t - clockStart) / 1000;
 };
 
-const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-// Smootherstep: zero speed and acceleration at both ends, so every move
-// eases out of rest and settles slowly back into it.
-const ease = (a: number, b: number, v: number) => {
-  const x = clamp((v - a) / (b - a));
-  return x * x * x * (x * (x * 6 - 15) + 10);
-};
 
 /* Runs `frame` on every animation frame while `ref` is on screen. Under
    reduced motion it calls it once, with `still`, and stops. */
@@ -120,6 +113,8 @@ function plan(p: (typeof PEOPLE)[number]) {
 const TURNS = PEOPLE.map(plan);
 const CYCLE = TURNS.reduce((s, x) => s + x.length, 0);
 
+type Print = "blank" | "printed" | "clearing";
+
 /* Where the typing is at time t: whose turn, how many characters of each
    field are showing, which field has the caret, and when the button is
    pressed. */
@@ -143,7 +138,12 @@ function typingAt(t: number) {
     if ((local >= b.start && local < b.typed + GAP) || (local >= b.eraseStart && local < b.erased)) caret = b.field;
   }
   const pressed = local >= turn.pressAt && local < turn.pressAt + 0.35;
-  return { person: i, shown, caret, pressed };
+  // The card: blank, printed once the form is sent, cleared as the form
+  // starts erasing (the email goes first).
+  const clearAt = turn.beats[2].eraseStart;
+  const print: Print =
+    local < turn.pressAt + 0.25 ? "blank" : local < clearAt ? "printed" : local < clearAt + 0.6 ? "clearing" : "blank";
+  return { person: i, shown, caret, pressed, print };
 }
 
 /* Re-renders only when something visible changes (a character, the caret,
@@ -157,7 +157,7 @@ function useTyping(ref: React.RefObject<HTMLElement | null>) {
     ref,
     (t) => {
       const s = typingAt(t);
-      const key = `${s.person}|${s.shown.name}|${s.shown.title}|${s.shown.email}|${s.caret}|${s.pressed}`;
+      const key = `${s.person}|${s.shown.name}|${s.shown.title}|${s.shown.email}|${s.caret}|${s.pressed}|${s.print}`;
       if (key !== keyRef.current) {
         keyRef.current = key;
         setState(s);
@@ -204,33 +204,16 @@ export function FormDemo() {
   );
 }
 
-// ── 2. The card, printing what the form types ─────────────────────────────
+// ── 2. The card, printed once the form is sent ────────────────────────────
 
-/* Each character sits in its own span, all of the person's name always
-   rendered (so nothing reflows), switched on as it's typed: it inks in
-   from a soft blur, a touch large and raised, and settles; a thin print
-   head runs just ahead of the last letter. Erased letters lift off. */
-function Printed({ text, count, head, className }: { text: string; count: number; head: boolean; className: string }) {
-  return (
-    <p className={`relative whitespace-pre ${className}`}>
-      {text.split("").map((ch, i) => (
-        <span key={i} className={`print-char ${i < count ? "is-on" : ""}`}>
-          {ch}
-        </span>
-      ))}
-      {head && (
-        <span
-          className="print-head"
-          style={{ left: `${(count / Math.max(1, text.length)) * 100}%` }}
-        />
-      )}
-    </p>
-  );
-}
-
+/* A plain, light print: when the form is sent, a print head wipes across
+   the card once and leaves the name and title behind it (a clip-path
+   reveal and one moving line, both CSS transitions, so it costs three
+   state changes a loop). When the form starts erasing, the print fades
+   away, and the card is blank again for the next name. */
 export function CardDemo() {
   const ref = useRef<HTMLDivElement>(null);
-  const { person, shown, caret } = useTyping(ref);
+  const { person, print } = useTyping(ref);
   const p = PEOPLE[person];
   return (
     <div ref={ref} aria-hidden className="card-float w-[84%] [perspective:900px]">
@@ -240,124 +223,98 @@ export function CardDemo() {
           <path d="M11.2 6.6a7 7 0 0 0 0 10.8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
           <path d="M7.6 3.4a11.6 11.6 0 0 0 0 17.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
         </svg>
-        <div className="absolute right-[7%] bottom-[14%] left-[7%]" key={person}>
-          <Printed
-            text={p.name}
-            count={shown.name}
-            head={caret === "name"}
-            className="font-display w-fit text-[7cqw] leading-tight font-[600]"
-          />
-          <Printed
-            text={p.title}
-            count={shown.title}
-            head={caret === "title"}
-            className="mt-[0.3em] w-fit text-[3.6cqw] opacity-75"
-          />
+        <div className={`print-area absolute right-[7%] bottom-[14%] left-[7%] is-${print}`}>
+          <div className="print-ink">
+            <p className="font-display text-[7cqw] leading-tight font-[600]">{p.name}</p>
+            <p className="mt-[0.3em] text-[3.6cqw] opacity-75">{p.title}</p>
+          </div>
+          <span className="print-sweep" />
         </div>
       </div>
     </div>
   );
 }
 
-// ── 3. The tap ────────────────────────────────────────────────────────────
+// ── 3. The tap, on the real 3D iPhone ─────────────────────────────────────
 
-const TAP_CYCLE = 7.6;
-
+/* The still is the scene's own first frame, so the live scene replaces it
+   in one frame with no crossfade. The scene loads once the page has gone
+   idle and the tile is near, and only renders while it's on screen. */
 export function TapDemo() {
   const ref = useRef<HTMLDivElement>(null);
-  const phoneRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const rippleRef = useRef<HTMLSpanElement>(null);
-  const screenRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [live, setLive] = useState(false);
 
-  useFrames(
-    ref,
-    (t) => {
-      const k = ((t % TAP_CYCLE) + TAP_CYCLE) % TAP_CYCLE;
-      // The card glides in, touches the phone's back, and drifts away while
-      // the phone is already turning; it fades back in, at its starting
-      // spot, only once the phone has turned all the way round again.
-      const come = ease(0.2, 1.3, k);
-      const press = Math.sin(Math.PI * clamp((k - 1.3) / 0.45));
-      const go = ease(1.75, 3.0, k);
-      const back = ease(6.6, 7.5, k);
-      const x = mix(mix(58, 8, come), 62, go);
-      const y = mix(mix(-18, 6, come), -30, go);
-      const rot = mix(mix(-16, -6, come), -22, go);
-      const opacity = clamp(1 - go + back);
-      const cx = go >= 1 ? mix(62, 58, back) : x;
-      const cy = go >= 1 ? mix(-30, -18, back) : y;
-      const cr = go >= 1 ? mix(-22, -16, back) : rot;
-      if (cardRef.current) {
-        cardRef.current.style.transform = `translate(${cx}%, ${cy}%) translateZ(${40 - press * 14}px) rotate(${cr}deg)`;
-        cardRef.current.style.opacity = String(opacity);
+  useEffect(() => {
+    const wrap = ref.current;
+    const canvas = canvasRef.current;
+    if (!wrap || !canvas) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let scene: TapScene | undefined;
+    let cancelled = false;
+    let visible = false;
+    const sync = () => {
+      if (!scene) return;
+      if (visible && !document.hidden) scene.start();
+      else scene.stop();
+    };
+    const boot = async () => {
+      if (scene || cancelled) return;
+      try {
+        const { createTapScene } = await import("@/components/marketing/card3d/tapScene");
+        if (cancelled) return;
+        scene = createTapScene(canvas);
+        await scene.ready;
+        if (cancelled) return;
+        setLive(true);
+        sync();
+      } catch {
+        // No 3D: the still stays.
       }
-      // The tap: a ring spreading over the phone's back.
-      const r = clamp((k - 1.4) / 1.0);
-      if (rippleRef.current) {
-        rippleRef.current.style.transform = `translate(-50%, -50%) scale(${0.3 + r * 1.6})`;
-        rippleRef.current.style.opacity = String(r > 0 && r < 1 ? (1 - r) * 0.8 : 0);
-      }
-      // The phone turns once round, in two half turns with a rest between:
-      // to the profile, then on round to its back again (360 = 0).
-      const turn = 180 * ease(2.0, 3.4, k) + 180 * ease(5.4, 6.8, k);
-      const sway = Math.sin((k / TAP_CYCLE) * Math.PI * 2) * 4;
-      if (phoneRef.current) {
-        phoneRef.current.style.transform = `rotateX(8deg) rotateY(${-turn + sway - 14}deg)`;
-      }
-      // The profile scrolls a little while it's facing us, and back.
-      const scroll = ease(3.6, 4.6, k) - ease(5.4, 6.4, k);
-      if (screenRef.current) screenRef.current.style.transform = `translateY(${-scroll * 18}%)`;
-    },
-    3.9
-  );
+    };
+    const whenIdle = () => {
+      const go = () => (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(() => void boot(), { timeout: 3000 });
+      if (document.readyState === "complete") go();
+      else window.addEventListener("load", go, { once: true });
+    };
+    const near = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          near.disconnect();
+          whenIdle();
+        }
+      },
+      { rootMargin: "100% 0px" }
+    );
+    near.observe(wrap);
+    const onScreen = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      sync();
+    });
+    onScreen.observe(wrap);
+    const ro = new ResizeObserver(() => scene?.resize());
+    ro.observe(canvas);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      cancelled = true;
+      near.disconnect();
+      onScreen.disconnect();
+      ro.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+      scene?.dispose();
+    };
+  }, []);
 
   return (
-    <div ref={ref} aria-hidden className="relative flex h-full w-full items-center justify-center [perspective:1100px]">
-      <div ref={phoneRef} className="tap-phone relative aspect-[78.5/161.2] h-[84%] [transform-style:preserve-3d]">
-        {/* Thickness: a few stacked layers of the frame between the faces. */}
-        {[-4, -2, 0, 2, 4].map((z) => (
-          <div key={z} className="absolute inset-0 rounded-[17%/8.3%] bg-[#2d2c2e]" style={{ transform: `translateZ(${z}px)` }} />
-        ))}
-        {/* Back: matte glass, the camera block, and the tap ring. */}
-        <div className="absolute inset-0 overflow-hidden rounded-[17%/8.3%] bg-[#3a3838] [backface-visibility:hidden] [transform:translateZ(6px)]">
-          <div className="absolute top-[3.5%] left-[7%] grid aspect-square w-[46%] grid-cols-2 gap-[6%] rounded-[24%] bg-[#333132] p-[7%] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className={`aspect-square rounded-full bg-[#0c0c0e] shadow-[inset_0_0_0_2px_#5c5b5f] ${i === 2 ? "col-start-1" : ""}`}
-              />
-            ))}
-            <span className="m-auto aspect-square w-[34%] rounded-full bg-[#efe7d2]" />
-          </div>
-          <span
-            ref={rippleRef}
-            className="border-accent absolute top-[46%] left-1/2 aspect-square w-[70%] rounded-full border-2 opacity-0"
-          />
-        </div>
-        {/* Front: the bezel, the screen with the profile, the island. */}
-        <div className="absolute inset-0 rounded-[17%/8.3%] bg-[#0b0b0c] p-[4.5%] [backface-visibility:hidden] [transform:rotateY(180deg)_translateZ(6px)]">
-          <div className="relative h-full w-full overflow-hidden rounded-[13%/6.2%] bg-white">
-            <div ref={screenRef} className="absolute inset-x-0 top-0">
-              <Image src="/home/phone-screen.webp" alt="" width={1170} height={2925} sizes="160px" className="w-full max-w-none" />
-            </div>
-            <span className="absolute top-[2.4%] left-1/2 h-[3.6%] w-[33%] -translate-x-1/2 rounded-full bg-black" />
-          </div>
-        </div>
-      </div>
-      {/* The card, in front of the phone (closer to us). */}
-      <div
-        ref={cardRef}
-        className="card-face absolute top-[40%] left-[24%] aspect-[85.6/54] w-[46%] rounded-[5.5%/8.7%]"
-        style={{ transform: "translate(58%, -18%) translateZ(40px) rotate(-16deg)" }}
-      >
-        <svg viewBox="0 0 24 24" fill="none" className="absolute top-[12%] right-[8%] h-[18%] w-auto text-[#f4f2ee]">
-          <circle cx="15" cy="12" r="1.6" fill="currentColor" />
-          <path d="M11.2 6.6a7 7 0 0 0 0 10.8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-          <path d="M7.6 3.4a11.6 11.6 0 0 0 0 17.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-        </svg>
-        <p className="font-display absolute bottom-[16%] left-[8%] text-[3.4cqw] font-[600] text-[#f4f2ee]">Your Name</p>
-      </div>
+    <div ref={ref} aria-hidden className="relative h-full w-full">
+      <Image
+        src="/home/tap-demo.webp"
+        alt=""
+        fill
+        sizes="(min-width: 768px) 30vw, 80vw"
+        className={`object-contain ${live ? "opacity-0" : "opacity-100"}`}
+      />
+      <canvas ref={canvasRef} className={`absolute inset-0 h-full w-full ${live ? "opacity-100" : "opacity-0"}`} />
     </div>
   );
 }
