@@ -96,13 +96,16 @@ snap row on phones; each tile is a looping demo from
 and erasing them; the card printing the name once the form's Continue is
 pressed (a clip-path wipe behind a moving print line, `.print-area`); and
 the real 3D iPhone in its own small scene (`card3d/tapScene.ts`, still
-`public/home/tap-demo.webp` is its first frame): the card first winds up
-(anticipation: it eases back toward the viewer, tipping back, and stops),
-then snaps in on a cubic ease-in in about 0.4 s (its angle settles flat early, so no edge reaches the phone
-first), strikes the phone's back at full speed and bounces off, gliding to
-rest on a quartic ease-out over 2.4 s with an xyz knock (it starts only once
-the card is clear) and a little arc, both reaching rest with zero speed,
-while the phone turns a full 360 to the profile and back. The card's rest
+`public/home/tap-demo.webp` is its first frame): the card's motion is keyed
+from Harsh's After Effects animation (24 fps, read from the open project
+with a read-only ExtendScript run via `AfterFX.exe -r`), its curves
+reproduced by `aeEase` (an AE temporal ease with zero speed = CSS
+cubic-bezier(influence out, 0, 1 - influence in, 1)): a pull back away from
+the phone over 0.583 s on an easy ease, hinging on the card's right edge,
+overlapping a strike that starts slow (61% out) and lands at full speed
+(0.1% in), then a bounce that leaves at full speed and settles over 1.167 s
+on an 87.5% ease in; the card stays flat to the back until it's clear, and
+the knock waits until then too, while the phone turns a full 360 to the profile and back. The card's rest
 point is far enough out that the turning phone's corners never reach it;
 any change to the card's path or rest point needs re-checking for overlap
 (sample the loop, test the two boxes) and the still re-rendered. Form and card share one clock; every loop
