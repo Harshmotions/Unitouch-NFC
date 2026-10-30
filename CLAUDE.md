@@ -90,16 +90,25 @@ navbar, which is see-through only at the top of the homepage; it stops
 short of the fold so HowItWorks' darker rounded band peeks in; its words,
 card and actions are three grid blocks, so on a phone the card sits between
 the headline and the buttons and the whole pitch fits the first screen),
-HowItWorks (three equal numbered steps on liquid-glass tiles; a swipeable
+HowItWorks (three equal numbered steps on plain tone-step tiles; a swipeable
 snap row on phones; each tile is a looping demo from
 `components/marketing/how/Demos.tsx`: a mini form typing sample details in
 and erasing them; the card printing the name once the form's Continue is
 pressed (a clip-path wipe behind a moving print line, `.print-area`); and
 the real 3D iPhone in its own small scene (`card3d/tapScene.ts`, still
-`public/home/tap-demo.webp` is its first frame): the card falls in on a
-cubic ease-in, strikes the phone's back at full speed and bounces off on a
-cubic ease-out with an xyz knock and a little arc, while the phone turns a
-full 360 to the profile and back. Form and card share one clock; every loop
+`public/home/tap-demo.webp` is its first frame): the card's motion is keyed
+from Harsh's After Effects animation (24 fps, read from the open project
+with a read-only ExtendScript run via `AfterFX.exe -r`), its curves
+reproduced by `aeEase` (an AE temporal ease with zero speed = CSS
+cubic-bezier(influence out, 0, 1 - influence in, 1)): a pull back away from
+the phone over 0.583 s on an easy ease, hinging on the card's right edge,
+overlapping a strike that starts slow (61% out) and lands at full speed
+(0.1% in), then a bounce that leaves at full speed and settles over 1.167 s
+on an 87.5% ease in; the card stays flat to the back until it's clear, and
+the knock waits until then too, while the phone turns a full 360 to the profile and back. The card's rest
+point is far enough out that the turning phone's corners never reach it;
+any change to the card's path or rest point needs re-checking for overlap
+(sample the loop, test the two boxes) and the still re-rendered. Form and card share one clock; every loop
 ends where it began; sized in container units; paused off screen; a still
 under reduced motion. The phone model (GLB, materials, screen, bar) is
 shared by both scenes via `card3d/phoneModel.ts`), PhoneStory (sticky 3D iPhone; the scene follows the
@@ -109,17 +118,18 @@ overlapping so the phone turns one way only, the card swoops in, touches
 its back and flies on without stopping, and the screen scroll and saved
 note overlap the turn; progress goes negative (`PRE_ROLL`) while the
 section is still coming up the screen; the story uses the first
-`STORY_SHARE` of the section's scroll and the rest is the slow close-up on
+`STORY_SHARE` of the section's scroll and the rest is the close-up on
 the "contact saved" note; as the note drops, the camera
 pushes in on the Dynamic Island over the whole last stretch, while the
 phone swings one way and flows back into its final pose (turned about 35
 degrees, tipped back about 25, screen facing up and to the left) and the
 camera banks and levels out (`zoomAt`, `swing*`, `camBank` tracks: about
-80% of the close-up soon after the note lands, then a very slow settle;
-timing in `card3d/story.ts`: the section is 700svh, the story plays over
-its first 320svh of scroll and progress runs on past 1 to `STORY_END`
-through a long held stretch, so the note stays readable for about two
-screens of scrolling and the motion only arrives as the section leaves); the screen texture is the demo profile at 3x
+95% of the close-up soon after the note lands, moving briskly, then only
+the last 5% settles slowly; timing in `card3d/story.ts`: the section is
+540svh, the story plays over its first 320svh of scroll and progress runs
+on past 1 to `STORY_END` through a short held stretch (Harsh: the old
+700svh took too many scrolls after the note), and the motion arrives as
+the section leaves); the screen texture is the demo profile at 3x
 (`phone-screen.webp` 1170 x 2925, `phone-bar.webp`), the note is drawn at
 2x, and the phone canvas renders at 1.5x to 2x pixel ratio; on phones the step text is
 centred under the phone, the canvas has feathered edges
@@ -331,10 +341,22 @@ advisories, so bump patches promptly when it goes red.
   (`--color-accent`, the main action only). Secondary surfaces are Apple
   iOS 26-style liquid glass (Oct 30, 2026, Harsh's call: nearly clear tint,
   backdrop blur + saturate + brightness, a masked gradient rim brightest at
-  top-left and bottom-right, inner edge highlights and glow, a sheen; plus a
-  refracting lens on a few controls, below): `.liquid-glass` (secondary
-  buttons, pills, toggles, FAQ, the How it works tiles), `.liquid-glass-bar`
-  (the scrolled header), `.liquid-glass-sheet` (mobile menu),
+  top-left and bottom-right, 0.5 px strokes at no more than 25% opacity, inner edge highlights and glow, a sheen; plus a
+  refracting lens on a few controls, below). Placement follows Apple's
+  "Adopting Liquid Glass": glass is only the floating navigation and
+  controls layer, never content (FAQ cards and the How it works tiles are
+  plain `bg-bg-elevated` tone steps), used sparingly, no glass on glass.
+  `.liquid-glass` (secondary buttons, pills, toggles), `.liquid-glass-float`
+  (Apple's "regular" glass: the header, a capsule inset from the edges that
+  sticks out of the content column by its own padding; `.is-clear` at the
+  very top of the homepage), `.liquid-glass-menu` (the phone menu: a compact
+  popover sized to its links, growing from the Menu button on a soft spring
+  (`--ease-spring`, a CSS `linear()` curve) with the links cascading in,
+  concentric corners 28 / 8 / 20 px, closes on an outside tap or Escape;
+  light tint over a heavy frost plus a heavy-blur lens, so the page shows
+  through as colour but never as readable words). Tailwind v4's `scale-*` /
+  `translate-*` set the `scale` / `translate` properties, not `transform`:
+  list those in `transition-[...]`, or the element jumps instead of moving,
   `.liquid-glass-dark` (on photos), in `@layer components` so utilities still
   win; the older `.glass*` classes share the recipe. On Chromium a few
   controls also refract like a lens: `<GlassLens />` (`components/ui/GlassLens.tsx`,
@@ -342,9 +364,9 @@ advisories, so bump patches promptly when it goes red.
   sets an SVG-filter `backdrop-filter` with a displacement and specular map
   sized to its parent. Used on `Button` `secondary` and `glass-dark` (the
   dark pricing card's Premium button), the card front/back toggle and the
-  demo profile pill; keep it to a handful of small controls. On flat grounds
-  (FAQ cards, How it works tiles) use `.liquid-glass.is-flat`, which drops
-  the backdrop blur so scrolling never repaints it. No violet, eyebrow
+  demo profile pill; keep it to a handful of small controls. Reduce
+  Transparency and Increase Contrast get solid controls (no backdrop, no
+  lens; a visible edge with more contrast). No violet, eyebrow
   labels or icon-topped card grids on the public pages. `.surface-card` is a
   flat tone-step surface for app screens. Headlines stay at two lines or fewer at
   390, 768 and 1440 px.

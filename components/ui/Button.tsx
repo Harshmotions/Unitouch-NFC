@@ -56,7 +56,9 @@ export default function Button({
 
   const content = (
     <>
-      {(variant === "secondary" || variant === "glass-dark") && <GlassLens />}
+      {variant === "secondary" && <GlassLens />}
+      {/* Frosted more on dark, where there's a light behind it to soften. */}
+      {variant === "glass-dark" && <GlassLens blur={5} saturation={2.2} />}
       {loading && <Loader2 className="size-4 animate-spin" />}
       {children}
     </>

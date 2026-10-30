@@ -118,16 +118,17 @@ const savedAt = track([[0.76, 0], [0.93, 1]]);
    turned about 35 degrees and tipped back about 25 so the screen faces
    slightly up and to the left (y -0.61 and x -0.44 in total, with the
    story's own end pose), and the camera banks and levels out with it. */
-// Past 1 the story keeps going through the long held stretch at the end of
-// the section (story.ts): the close-up reaches about 80% soon after the
-// note lands, then settles the rest of the way very slowly, along with the
-// swing, arriving only as the section leaves the screen. Each track starts
-// with a near-flat key so nothing jolts into motion.
-const zoomAt = track([[0.6, 0], [0.68, 0.03], [0.8, 0.36], [0.95, 0.72], [1.1, 0.8], [1.45, 0.92], [END, 1]]);
-const swingYaw = track([[0.6, 0], [0.66, 0.02], [0.84, 0.32], [1.02, -0.12], [1.4, -0.26], [END, -0.31]]);
-const swingTilt = track([[0.6, 0], [0.66, 0.01], [0.84, 0.14], [1.04, -0.22], [1.4, -0.32], [END, -0.36]]);
-const swingRoll = track([[0.6, 0], [0.66, -0.01], [0.84, -0.18], [1.04, -0.08], [1.4, -0.05], [END, -0.04]]);
-const camBank = track([[0.6, 0], [0.66, 0.01], [0.84, 0.1], [1.1, 0.02], [END, 0]]);
+// Past 1 the story keeps going through the short held stretch at the end
+// of the section (story.ts): the close-up moves briskly once the note has
+// landed and reaches about 95% soon after, then only the last 5% settles,
+// slowly and smoothly, along with the swing, as the section leaves the
+// screen. Each track starts with a near-flat key so nothing jolts into
+// motion.
+const zoomAt = track([[0.6, 0], [0.68, 0.04], [0.84, 0.5], [0.98, 0.88], [1.08, 0.95], [END, 1]]);
+const swingYaw = track([[0.6, 0], [0.66, 0.02], [0.84, 0.3], [1.0, -0.14], [1.12, -0.27], [END, -0.31]]);
+const swingTilt = track([[0.6, 0], [0.66, 0.01], [0.84, 0.14], [1.0, -0.22], [1.12, -0.33], [END, -0.36]]);
+const swingRoll = track([[0.6, 0], [0.66, -0.01], [0.84, -0.18], [1.0, -0.08], [1.12, -0.05], [END, -0.04]]);
+const camBank = track([[0.6, 0], [0.66, 0.01], [0.84, 0.1], [1.04, 0.02], [END, 0]]);
 
 
 /* The note that drops out of the Dynamic Island at the end. */

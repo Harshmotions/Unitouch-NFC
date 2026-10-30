@@ -28,7 +28,7 @@ function filterHost() {
    Chromium only (the only engine that renders an SVG backdrop-filter);
    elsewhere it does nothing and the element keeps its CSS liquid glass.
    Drop <GlassLens /> inside any .liquid-glass / .liquid-glass-dark element. */
-export default function GlassLens({ blur = 1, saturation = 6, specular = 0.45 }: { blur?: number; saturation?: number; specular?: number }) {
+export default function GlassLens({ blur = 1, saturation = 6, specular = 0.25 }: { blur?: number; saturation?: number; specular?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
