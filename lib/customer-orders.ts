@@ -1,5 +1,6 @@
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { CARD_VARIANTS } from "@/lib/pricing";
+import { cardColorLabel } from "@/lib/card-colors";
 import type { OrderStatus } from "@/lib/order-status";
 
 /* Read-only order status for the signed-in customer ("where's my card?" in
@@ -32,18 +33,24 @@ export async function getOrdersForCustomer(userId: string): Promise<CustomerOrde
     .limit(50);
   if (error || !data?.length) return [];
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("order_id, username")
-    .eq("user_id", userId)
-    .in("order_id", data.map((o) => o.id as string));
+  const ids = data.map((o) => o.id as string);
+  const [{ data: profiles }, colorRes] = await Promise.all([
+    supabase.from("profiles").select("order_id, username").eq("user_id", userId).in("order_id", ids),
+    // Separate query: card_color is a later column; missing = no colour shown.
+    supabase.from("orders").select("id, card_color").in("id", ids),
+  ]);
   const usernames = new Map((profiles ?? []).map((p) => [p.order_id as string, p.username as string]));
+  const colors = new Map(
+    (colorRes.error ? [] : (colorRes.data ?? [])).map((c) => [c.id as string, c.card_color as string | null]),
+  );
 
   return data.map((o) => ({
     orderNumber: o.order_number as string,
     createdAt: o.created_at as string,
     cardType: o.card_type as string,
-    cardName: CARD_VARIANTS.find((v) => v.id === o.card_type)?.name ?? (o.card_type as string),
+    cardName:
+      (CARD_VARIANTS.find((v) => v.id === o.card_type)?.name ?? (o.card_type as string)) +
+      (colors.get(o.id as string) ? `, ${cardColorLabel(colors.get(o.id as string)).toLowerCase()}` : ""),
     quantity: o.quantity as number,
     status: o.order_status as OrderStatus,
     // Only meaningful once it's on its way.

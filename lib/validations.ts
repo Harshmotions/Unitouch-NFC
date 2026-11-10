@@ -25,6 +25,9 @@ export type IdentityValues = z.input<typeof identitySchema>;
 export const shippingPaymentSchema = z.object({
   phone: z.string().min(8, "Enter a valid phone number"),
   cardType: z.enum(["standard", "premium"]),
+  // Card colour (lib/card-colors.ts). Defaults to black so a checkout that
+  // was open before this field existed still goes through.
+  cardColor: z.enum(["black", "white"]).default("black"),
   quantity: z.coerce.number().int().min(1).max(50),
   line1: z.string().min(3, "Enter your address"),
   line2: z.string().optional(),

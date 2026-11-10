@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { formatRupees, getOrderForAdmin } from "@/lib/orders";
+import { cardColorLabel } from "@/lib/card-colors";
 import { PaymentBadge, StatusBadge } from "@/components/admin/OrderBadges";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
 import ResendConfirmationButton from "@/components/admin/ResendConfirmationButton";
@@ -66,6 +67,21 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <Row label="Placed">{created}</Row>
             <Row label="Card">
               {order.cardName} &times; {order.quantity}
+            </Row>
+            <Row label="Card colour">
+              {order.cardColor ? (
+                <span className="inline-flex items-center gap-2 font-[600]">
+                  <span
+                    aria-hidden
+                    className={`inline-block h-3.5 w-5 rounded-[3px] ${
+                      order.cardColor === "white" ? "bg-[#f7f5f1] shadow-[inset_0_0_0_1px_rgba(20,18,16,0.25)]" : "bg-[#161616]"
+                    }`}
+                  />
+                  {cardColorLabel(order.cardColor)}
+                </span>
+              ) : (
+                <span className="text-text-muted">See internal notes</span>
+              )}
             </Row>
             <Row label="Amount">{formatRupees(order.amountPaise)}</Row>
             <Row label="Customer">{order.fullName}</Row>

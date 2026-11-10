@@ -232,6 +232,10 @@ tracking, notes), Profiles (status, filters, send reminder, delete).
 
 | 23 | [~] | **Light-theme rebrand (Oct 29, 2026)** | Built on branch `claude/relaxed-wright-iasfch`, not yet on `main`: new light "three stones" palette, TikTok Sans, a 3D spinning card hero, new homepage sections, and every page (checkout, login, studio, profile, policies, admin) moved to the light theme. Payment, checkout and auth logic untouched. Next: Harsh reviews the Vercel preview, then merge. Demo photo of Priya still has a purple backdrop; swap it if it clashes. |
 
+| 24 | [~] | **Card colour: black or white** | Built Nov 10, 2026: colour choice + live 2D preview at checkout step 2 (`components/card/CardArt.tsx`, `lib/card-colors.ts`), saved on `orders.card_color`, shown in admin, emails (as "Premium, white") and the studio. **Harsh must run** the `card_color` line in `supabase/schema.sql` (until then create-order writes "Card colour: …" into the order's admin notes). Confirm the print shop can do white cards and gold on white. |
+| 25 | [ ] | **Card design templates from Figma** | 4 Standard + 10 Premium physical card designs; spec agreed Nov 10 (frames 916x600 px incl. 3 mm bleed, named layers Artwork/Name/Title/Company/Logo/QR/NFC/Brand/Gold, SVG + PNG exports, CMYK notes, fonts). Then: checkout template picker + admin print-ready PDF per order. |
+| 26 | [ ] | **Self-host the two Google fonts** | Turbopack intermittently fails builds with "Can't resolve @vercel/turbopack-next/internal/font/google/font" (seen Oct 23 on Vercel and Nov 10 locally; a retry passes). Switching `app/layout.tsx` to `next/font/local` with bundled .woff2 files removes the build-time fetch. |
+
 Ideas welcome; add them as new rows rather than starting them silently.
 
 ---

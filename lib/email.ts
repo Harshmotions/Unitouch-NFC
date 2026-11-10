@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { BUSINESS } from "@/lib/business";
 import { CARD_VARIANTS } from "@/lib/pricing";
+import { cardColorLabel } from "@/lib/card-colors";
 import { renderOrderConfirmation } from "@/lib/emails/order-confirmation";
 import {
   renderDraftReminder,
@@ -99,11 +100,14 @@ async function loadOrder(orderId: string): Promise<{ order: OrderRow; summary: O
     console.error("Email: order not found", orderId, error);
     return null;
   }
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, profile_style")
-    .eq("order_id", orderId)
-    .maybeSingle();
+  const [{ data: profile }, colorRes] = await Promise.all([
+    supabase.from("profiles").select("username, profile_style").eq("order_id", orderId).maybeSingle(),
+    // Separate query: card_color is a later column; if it's missing the
+    // emails just leave the colour out.
+    supabase.from("orders").select("card_color").eq("id", orderId).maybeSingle(),
+  ]);
+  const color = colorRes.error ? null : ((colorRes.data?.card_color as string | null | undefined) ?? null);
+  const variantName = CARD_VARIANTS.find((v) => v.id === order.card_type)?.name ?? order.card_type;
 
   const summary: OrderSummary = {
     id: order.id,
@@ -111,7 +115,8 @@ async function loadOrder(orderId: string): Promise<{ order: OrderRow; summary: O
     fullName: order.full_name,
     email: order.email,
     phone: order.phone,
-    cardName: CARD_VARIANTS.find((v) => v.id === order.card_type)?.name ?? order.card_type,
+    // "Premium, white": every email that shows the card shows its colour.
+    cardName: color ? `${variantName}, ${cardColorLabel(color).toLowerCase()}` : variantName,
     quantity: order.quantity,
     amountPaise: order.amount,
     shippingAddress: order.shipping_address,

@@ -8,6 +8,7 @@ import { checkoutLimiter, clientIp, rateLimitOrResponse } from "@/lib/rate-limit
 import { getRazorpayClient } from "@/lib/razorpay/client";
 import { releaseOwnReservation, releaseStaleReservations } from "@/lib/reservations";
 import { checkEmailDomain } from "@/lib/email-domain";
+import { cardColorLabel } from "@/lib/card-colors";
 import { DISPOSABLE_EMAIL_ERROR, isDisposableEmail } from "@/lib/disposable-email";
 
 function generateOrderNumber(): string {
@@ -217,6 +218,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "That username was just taken. Please pick another." }, { status: 409 });
     }
     return NextResponse.json({ error: "Could not complete your order. Please try again." }, { status: 500 });
+  }
+
+  // Card colour (lib/card-colors.ts). Set after the RPC so its signature
+  // stays as is. Never fails the checkout: if orders.card_color doesn't
+  // exist yet (schema.sql upgrade not run), the colour goes into the admin
+  // notes instead so the print team still sees it.
+  const { error: colorError } = await supabase
+    .from("orders")
+    .update({ card_color: sp.cardColor })
+    .eq("order_number", orderNumber);
+  if (colorError) {
+    console.error("create-order: could not save card_color", colorError.message);
+    await supabase
+      .from("orders")
+      .update({ admin_notes: `Card colour: ${cardColorLabel(sp.cardColor)}` })
+      .eq("order_number", orderNumber);
   }
 
   // Everything checkout.js needs to open the modal. keyId is the public key id

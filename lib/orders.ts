@@ -31,6 +31,9 @@ export interface AdminOrder {
   // Set when an email to this order's address bounced (Resend webhook).
   emailBouncedAt: string | null;
   emailBounceReason: string | null;
+  // "black" / "white"; null only if orders.card_color doesn't exist yet
+  // (then create-order wrote the colour into adminNotes instead).
+  cardColor: string | null;
 }
 
 const ORDER_COLUMNS =
@@ -42,15 +45,21 @@ async function attachProfiles(rows: Row[]): Promise<AdminOrder[]> {
   const ids = rows.map((r) => r.id as string);
   const profiles = new Map<string, AdminOrder["profile"]>();
   const bounces = new Map<string, { at: string; reason: string | null }>();
+  const colors = new Map<string, string>();
   if (ids.length) {
     const supabase = createServiceRoleClient();
-    const [{ data }, bounceRes] = await Promise.all([
+    const [{ data }, bounceRes, colorRes] = await Promise.all([
       supabase.from("profiles").select("id, username, is_published, order_id").in("order_id", ids),
       /* Separate from ORDER_COLUMNS on purpose: until the schema.sql upgrade
          adds these columns this query errors, and the admin must keep working
          (just without bounce flags). */
       supabase.from("orders").select("id, email_bounced_at, email_bounce_reason").in("id", ids).not("email_bounced_at", "is", null),
+      // Same reason: card_color is a later column.
+      supabase.from("orders").select("id, card_color").in("id", ids),
     ]);
+    for (const c of colorRes.error ? [] : (colorRes.data ?? [])) {
+      if (c.card_color) colors.set(c.id as string, c.card_color as string);
+    }
     for (const p of data ?? []) {
       profiles.set(p.order_id as string, { id: p.id, username: p.username, isPublished: p.is_published });
     }
@@ -80,6 +89,7 @@ async function attachProfiles(rows: Row[]): Promise<AdminOrder[]> {
     profile: profiles.get(r.id as string) ?? null,
     emailBouncedAt: bounces.get(r.id as string)?.at ?? null,
     emailBounceReason: bounces.get(r.id as string)?.reason ?? null,
+    cardColor: colors.get(r.id as string) ?? null,
   }));
 }
 

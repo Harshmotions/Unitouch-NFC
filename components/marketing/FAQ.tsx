@@ -36,6 +36,11 @@ export const FAQS = [
       "Yes. For groups we put together a custom package with bulk pricing and centralized setup. Reach out and we'll scope it, or place multiple individual orders yourself.",
   },
   {
+    question: "What colours do the cards come in?",
+    answer:
+      "Black or white, at the same price. You pick the colour when you order and see a live preview with your name on it. Standard prints white on black or black on white; Premium prints in gold on either.",
+  },
+  {
     question: "What's the difference between plans?",
     answer:
       "Standard covers the essentials. Premium adds a premium matte finish and priority design turnaround, plus a profile analytics dashboard showing your views, contact saves and link taps. Ordering for a whole team? We'll set up a custom package for you.",

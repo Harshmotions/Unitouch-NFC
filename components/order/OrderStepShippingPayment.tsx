@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { shippingPaymentSchema, type ShippingPaymentValues } from "@/lib/validations";
 import { CARD_VARIANTS } from "@/lib/pricing";
-import { CARD_IMAGES } from "@/lib/card-images";
+import { CARD_COLORS, DEFAULT_CARD_COLOR, cardColorLabel, isCardColor, type CardColor } from "@/lib/card-colors";
+import { CardPreview } from "@/components/card/CardArt";
 import { CHECKOUT_TIMEOUT_SECONDS } from "@/lib/checkout-config";
 import { loadRazorpayCheckout, openRazorpayCheckout } from "@/lib/razorpay/checkout";
 import Input from "@/components/ui/Input";
@@ -87,8 +87,14 @@ export default function OrderStepShippingPayment({
     formState: { errors },
   } = useForm<ShippingPaymentValues>({
     resolver: zodResolver(shippingPaymentSchema),
-    defaultValues: { ...defaultValues, cardType: initialCardType, quantity: defaultValues?.quantity ?? 1 },
+    defaultValues: {
+      ...defaultValues,
+      cardType: initialCardType,
+      cardColor: isCardColor(defaultValues?.cardColor) ? defaultValues.cardColor : DEFAULT_CARD_COLOR,
+      quantity: defaultValues?.quantity ?? 1,
+    },
   });
+  const [previewSide, setPreviewSide] = useState<"front" | "back">("front");
 
   // Keep the wizard's draft in sync so a refresh mid-step doesn't lose input.
   useEffect(() => {
@@ -98,6 +104,7 @@ export default function OrderStepShippingPayment({
   }, [watch, onDraftChange]);
 
   const selectedCardType = watch("cardType");
+  const selectedColor = (isCardColor(watch("cardColor")) ? watch("cardColor") : DEFAULT_CARD_COLOR) as CardColor;
   const quantity = Number(watch("quantity")) || 1;
   const variant = CARD_VARIANTS.find((v) => v.id === selectedCardType) ?? CARD_VARIANTS[0];
   const total = variant.price * quantity;
@@ -143,7 +150,7 @@ export default function OrderStepShippingPayment({
         currency: data.currency,
         order_id: data.razorpayOrderId,
         name: "Unitouch",
-        description: `${variant.name} NFC card × ${quantity}`,
+        description: `${variant.name} NFC card, ${cardColorLabel(selectedColor).toLowerCase()} × ${quantity}`,
         prefill: data.prefill,
         theme: { color: "#8b5cff" },
         // Close the window well before the unpaid reservation is released
@@ -202,16 +209,66 @@ export default function OrderStepShippingPayment({
       {/* Card selection */}
       <div>
         <Label>Choose your card</Label>
-        <div className="relative mx-auto mb-3 aspect-[3.5/2] w-full max-w-md overflow-hidden rounded-xl border border-bg-border bg-bg-base">
-          <Image
-            key={variant.id}
-            src={CARD_IMAGES[variant.id].src}
-            alt={CARD_IMAGES[variant.id].alt}
-            fill
-            priority
-            sizes="(min-width: 640px) 448px, calc(100vw - 48px)"
-            className="object-cover"
+        {/* Live preview: their name on the chosen colour and finish, and the
+            real QR code to their profile link on the back. */}
+        <div className="mx-auto mb-3 flex w-full max-w-md flex-col items-center gap-3 px-2 pt-2 pb-4">
+          <CardPreview
+            name={identity.displayName}
+            title="What you do"
+            link={`https://www.unitouch.in/u/${identity.username}`}
+            color={selectedColor}
+            finish={variant.id}
+            side={previewSide}
           />
+          <div className="bg-bg-elevated inline-flex rounded-full p-1 text-[0.8125rem]" role="group" aria-label="Card side">
+            {(["front", "back"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={previewSide === s}
+                onClick={() => setPreviewSide(s)}
+                className={`rounded-full px-3.5 py-1 font-[500] capitalize transition-colors ${
+                  previewSide === s ? "bg-bg-ink text-text-on-ink" : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <p className="text-text-muted text-center text-xs">
+            A preview. Our team finishes your design with you before anything is printed.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-text-primary mb-2 text-sm font-[600]">Card colour</p>
+          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Card colour">
+            {CARD_COLORS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                role="radio"
+                aria-checked={selectedColor === c.id}
+                onClick={() => setValue("cardColor", c.id)}
+                className={`flex items-center gap-3 rounded-xl p-3 text-left transition-colors ${
+                  selectedColor === c.id ? "surface-card-accent" : "surface-card"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className={`h-7 w-11 shrink-0 rounded-[5px] ${
+                    c.id === "white"
+                      ? "bg-[#f7f5f1] shadow-[inset_0_0_0_1px_rgba(20,18,16,0.18)]"
+                      : "bg-[#161616]"
+                  }`}
+                />
+                <span>
+                  <span className="text-text-primary block text-sm font-[600]">{c.label}</span>
+                  <span className="text-text-muted block text-xs">{c.description}</span>
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {CARD_VARIANTS.map((v) => (

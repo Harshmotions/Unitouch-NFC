@@ -8,6 +8,7 @@ export const CARD_VARIANTS: CardVariant[] = [
     priceInPaise: 99900,
     features: [
       "NFC-enabled card",
+      "Black or white card",
       "Live digital profile",
       "vCard download",
       "Standard shipping",

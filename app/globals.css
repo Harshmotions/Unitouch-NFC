@@ -636,6 +636,45 @@ p {
     0 34px 60px -20px rgba(20, 18, 16, 0.35);
 }
 
+/* The white card (checkout colour choice, components/card/CardArt.tsx):
+   same light and shadow, on a warm white with a hairline edge so it still
+   reads against the light page. */
+.card-face.card-white {
+  color: #161616;
+  background-color: #f7f5f1;
+  background-image: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 60%);
+  box-shadow:
+    inset 0 0 0 1px rgba(20, 18, 16, 0.08),
+    0 1px 1px rgba(20, 18, 16, 0.1),
+    0 10px 20px -6px rgba(20, 18, 16, 0.18),
+    0 34px 60px -20px rgba(20, 18, 16, 0.26);
+}
+
+/* Premium gold print: a metallic gradient, lighter on black, deeper on white
+   so it keeps its contrast. The glare variable moves it as the card tilts. */
+.card-gold {
+  color: #ecd29a;
+  background-image: linear-gradient(
+    105deg,
+    #c9a45c calc(var(--glare, 50%) - 40%),
+    #f6e2b0 var(--glare, 50%),
+    #c9a45c calc(var(--glare, 50%) + 40%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-white .card-gold {
+  color: #a8823d;
+  background-image: linear-gradient(
+    105deg,
+    #9a7533 calc(var(--glare, 50%) - 40%),
+    #d4b06a var(--glare, 50%),
+    #9a7533 calc(var(--glare, 50%) + 40%)
+  );
+}
+
 /* ── Page loader (components/marketing/PageLoader.tsx) ──────────────────
    Shown only while the inline script holds html.loading, and through its
    exit (loader-done until loader-gone), so it can never stick: without

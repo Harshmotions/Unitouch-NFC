@@ -162,13 +162,17 @@ create table public.orders (
   -- Set by the Resend webhook (app/api/webhook/resend) when an email to this
   -- order's address bounces permanently: admin shows "contact by phone".
   email_bounced_at timestamptz,
-  email_bounce_reason text
+  email_bounce_reason text,
+  -- Physical card colour chosen at checkout (lib/card-colors.ts).
+  card_color text not null default 'black' check (card_color in ('black', 'white'))
 );
 
 -- Upgrade for the existing live database (added Oct 2026). Additive and safe
 -- to re-run; a fresh install gets these from the create table above.
 alter table public.orders add column if not exists email_bounced_at timestamptz;
 alter table public.orders add column if not exists email_bounce_reason text;
+-- Card colour choice (added Nov 10, 2026). Existing orders become 'black'.
+alter table public.orders add column if not exists card_color text not null default 'black' check (card_color in ('black', 'white'));
 
 create index if not exists orders_user_id_idx on public.orders(user_id);
 

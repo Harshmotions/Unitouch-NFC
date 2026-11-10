@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import GlassLens from "@/components/ui/GlassLens";
 import Reveal from "@/components/motion/Reveal";
+import { QR, Waves } from "@/components/card/CardArt";
 
 /* Same rule the checkout uses for profile links (lowercase letters, digits
    and hyphens, 3 to 30 characters), so the preview shows a link that could
@@ -24,39 +25,6 @@ const SAMPLE_NAME = "Your Name";
 const SAMPLE_TITLE = "What you do";
 // Shorter, so the placeholder fits the field at every width.
 const TITLE_PLACEHOLDER = "Photographer";
-
-/* The QR code on the back, for phones without NFC: drawn as one SVG path,
-   one square per dark module. The generator is loaded only when needed. */
-function QR({ text }: { text: string }) {
-  const [modules, setModules] = useState<boolean[][] | null>(null);
-  useEffect(() => {
-    let live = true;
-    import("@/lib/qr").then(({ qrModules }) => live && setModules(qrModules(text)));
-    return () => {
-      live = false;
-    };
-  }, [text]);
-  const n = modules?.length ?? 25;
-  const d = modules
-    ? modules.flatMap((row, y) => row.map((dark, x) => (dark ? `M${x} ${y}h1v1h-1z` : ""))).join("")
-    : "";
-  return (
-    <svg viewBox={`0 0 ${n} ${n}`} aria-hidden className="h-full w-full" shapeRendering="crispEdges">
-      <path d={d} fill="#161616" />
-    </svg>
-  );
-}
-
-/* The NFC waves printed on the card. */
-function Waves({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={className}>
-      <circle cx="15" cy="12" r="1.6" fill="currentColor" />
-      <path d="M11.2 6.6a7 7 0 0 0 0 10.8" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-      <path d="M7.6 3.4a11.6 11.6 0 0 0 0 17.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 const inputClass =
   "bg-bg-base placeholder:text-text-muted h-12 w-full rounded-[12px] px-4 text-[1rem] outline-none transition-shadow focus-visible:shadow-[0_0_0_2px_var(--color-accent)]";

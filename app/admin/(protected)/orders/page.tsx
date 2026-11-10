@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ORDER_VIEWS, formatRupees, listOrdersForAdmin, type OrderView } from "@/lib/orders";
 import { RESERVATION_TTL_MINUTES } from "@/lib/checkout-config";
+import { cardColorLabel } from "@/lib/card-colors";
 import { PaymentBadge, StatusBadge } from "@/components/admin/OrderBadges";
 import ExportOrders from "@/components/admin/ExportOrders";
 
@@ -81,7 +82,9 @@ export default async function AdminOrdersPage({
             <div className="min-w-0">
               <p className="text-text-primary truncate">{o.fullName}</p>
               <p className="text-text-muted truncate text-xs">
-                {o.cardName} &times; {o.quantity} · {formatRupees(o.amountPaise)}
+                {o.cardName}
+                {o.cardColor ? `, ${cardColorLabel(o.cardColor).toLowerCase()}` : ""} &times; {o.quantity} ·{" "}
+                {formatRupees(o.amountPaise)}
                 {o.profile ? ` · /u/${o.profile.username}` : ""}
               </p>
             </div>
