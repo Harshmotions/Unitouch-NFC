@@ -20,7 +20,7 @@
     "framer-motion": "^12.43.0",
     "lenis": "^1.3.26",
     "lucide-react": "^1.52.0",
-    "next": "15.5.28",
+    "next": "15.5.29",
     "qrcode-generator": "^1.4.4",
     "razorpay": "^2.9.8",
     "react": "19.3.0",
